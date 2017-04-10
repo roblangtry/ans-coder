@@ -27,6 +27,7 @@ int encode(char * input_filename, char * output_filename, unsigned char method_f
     if (method_flag == 1){
         if(verbose_flag == 1)
             printf("rANS compression scheme\n");
+        rANS_encode(input_file, output_file, header);
     }
     return 1;
 }

@@ -46,7 +46,3 @@ int main ( int argc, char *argv[] ){
     if (encode_flag == 1)
         return encode(input_filename, output_filename, method_flag, verbose_flag);
 }
-void verbose_message(char * message, unsigned char verbose_flag){
-    if(verbose_flag > 0)
-        fprintf(stderr, "%s", message);
-}

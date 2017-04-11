@@ -6,6 +6,7 @@
 #define RANS_CODE
 #define BYTES_TO_WRITE_OUT 1
 #define BUFFER_SIZE 4096
+#define OUT_BUFFER_SIZE 1048576
 struct preamble
 {
     uint64_t write_size;

@@ -11,9 +11,9 @@ rANS_encode(FILE * input_file, FILE * output_file, struct header header){
     final_group = size % (BUFFER_SIZE * sizeof(uint));
     groups = size / (BUFFER_SIZE * sizeof(uint));
     buffer = malloc(sizeof(uint) * BUFFER_SIZE);
-    writer.max_size = sizeof(uint) * BUFFER_SIZE;
+    writer.max_size = sizeof(unsigned char) * OUT_BUFFER_SIZE;
     writer.size = 0;
-    writer.buffer = malloc(sizeof(uint) * BUFFER_SIZE);
+    writer.buffer = malloc(sizeof(unsigned char) * OUT_BUFFER_SIZE);
     writer.file = output_file;
     state = header.no_symbols;
     if(final_group > 0){
@@ -39,6 +39,8 @@ rANS_encode(FILE * input_file, FILE * output_file, struct header header){
         i++;
     }
     writer_flush(&writer);
+    fwrite(&state, sizeof(uint64_t), 1, writer.file);
+    fflush(writer.file);
 }
 struct preamble build_preamble(struct header header){
     struct preamble preamble;

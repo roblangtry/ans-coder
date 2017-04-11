@@ -23,4 +23,6 @@ void ** initialise_hashmap();
 uint64_t get_symbol_index(uint64_t symbol, struct header * header);
 struct hashmap_node * add_symbol(uint64_t symbol, struct header * header);
 void check_for_rearrangement(struct hashmap_node * current, struct hashmap_node * last, struct header * header);
+void writeout_header(FILE * output_file, struct header header, unsigned char flag_byte);
+struct header read_header(FILE * input_file, unsigned char * flag_byte);
 #endif

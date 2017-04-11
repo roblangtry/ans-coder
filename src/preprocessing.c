@@ -97,3 +97,23 @@ void check_for_rearrangement(struct hashmap_node * current, struct hashmap_node 
         current->index = store_index;
     }
 }
+void writeout_header(FILE * output_file, struct header header, unsigned char flag_byte){
+    fwrite(&flag_byte, sizeof(unsigned char), 1, output_file);
+    fwrite(&(header.no_symbols), sizeof(uint64_t), 1, output_file);
+    fwrite(&(header.no_unique_symbols), sizeof(uint64_t), 1, output_file);
+    fwrite(header.symbols, sizeof(uint64_t), header.no_unique_symbols, output_file);
+    fwrite(header.symbol_frequencies, sizeof(uint64_t), header.no_unique_symbols, output_file);
+}
+struct header read_header(FILE * input_file, unsigned char * flag_byte){
+    struct header header;
+    uint64_t no_symbols;
+    uint64_t no_unique_symbols;
+    fread(flag_byte, sizeof(unsigned char), 1, input_file);
+    fread(&(header.no_symbols), sizeof(uint64_t), 1, input_file);
+    fread(&(header.no_unique_symbols), sizeof(uint64_t), 1, input_file);
+    header.symbols = malloc(sizeof(uint64_t) * header.no_unique_symbols);
+    header.symbol_frequencies = malloc(sizeof(uint64_t) * header.no_unique_symbols);
+    fread(header.symbols, sizeof(uint64_t), header.no_unique_symbols, input_file);
+    fread(header.symbol_frequencies, sizeof(uint64_t), header.no_unique_symbols, input_file);
+    return header;
+}

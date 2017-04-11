@@ -1,13 +1,14 @@
 #include "main.h"
 int main ( int argc, char *argv[] ){
     unsigned char decode_flag, encode_flag, method_flag, verbose_flag;
-    int c;
+    int c, indent;
     char * input_filename;
     char * output_filename;
     decode_flag = 0;
     encode_flag = 0;
     method_flag = 0;
     verbose_flag = 0;
+    indent = 0;
     while((c = getopt(argc, argv, "detrv")) != -1){
         switch(c)
         {
@@ -18,21 +19,19 @@ int main ( int argc, char *argv[] ){
                 encode_flag = 1;
                 break;
             case 't':
-                method_flag = 2;
+                method_flag = 1;
+                indent = 1;
                 break;
             case 'r':
-                method_flag = 1;
+                method_flag = 0;
+                indent = 1;
                 break;
             case 'v':
                 verbose_flag = 1;
                 break;
         }
     }
-    if (method_flag > 0)
-        c = 1;
-    else
-        c = 0;
-    if( (decode_flag + encode_flag) != 1  || (2 + verbose_flag + c + 2) != argc){
+    if( (decode_flag + encode_flag) != 1  || (2 + verbose_flag + indent + 2) != argc){
         printf("CORRECT SYNTAX:\n");
         printf("    %s -e [-r | -t] [-v] <input_file> <output_file>\n", argv[0]);
         printf(" or\n");

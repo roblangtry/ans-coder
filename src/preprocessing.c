@@ -68,6 +68,28 @@ uint64_t get_symbol_index(uint64_t symbol, struct header * header){
         }
     }
 }
+uint64_t safe_get_symbol_index(uint64_t symbol, struct header * header){
+    struct hashmap_node * current;
+    struct hashmap_node * last;
+    struct hashmap_node * node;
+    last = NULL;
+    current = header->hashmap[symbol % HASHMAP_SIZE];
+    if (current == NULL) {
+        return -1;
+    } else {
+        while(current->next != NULL && current->symbol != symbol){
+            last = current;
+            current = current->next;
+        }
+        if(current->symbol == symbol){
+            if(last != NULL)
+                check_for_rearrangement(current, last, header);
+            return current->index;
+        } else{
+            return -1;
+        }
+    }
+}
 
 struct hashmap_node * add_symbol(uint64_t symbol, struct header * header){
     struct hashmap_node * node;

@@ -2,6 +2,7 @@
 int encode(char * input_filename, char * output_filename, unsigned char method_flag, unsigned char verbose_flag){
     struct header header;
     unsigned char flag_byte;
+    int i;
     FILE * input_file;
     FILE * output_file;
     if(verbose_flag == 1){
@@ -20,6 +21,13 @@ int encode(char * input_filename, char * output_filename, unsigned char method_f
         printf("no_symbols: %ld\n", (long)header.no_symbols);
         printf("no_unique_symbols: %ld\n", (long)header.no_unique_symbols);
         printf("===========================\n");
+        i = 0;
+        while(i < header.no_unique_symbols){
+            printf("SYM %ld | FRQ %ld\n",
+            (long)header.symbols[i],
+            (long)header.symbol_frequencies[i]);
+            i++;
+        }
     }
     if (method_flag == 1){
         if(verbose_flag == 1)

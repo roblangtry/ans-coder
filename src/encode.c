@@ -28,6 +28,7 @@ int encode(char * input_filename, char * output_filename, unsigned char method_f
             (long)header.symbol_frequencies[i]);
             i++;
         }
+        printf("===========================\n");
     }
     if (method_flag == 1){
         if(verbose_flag == 1)

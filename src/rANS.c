@@ -24,8 +24,6 @@ void rANS_encode(FILE * input_file, FILE * output_file, struct header header){
         ssstate = state;
         state = process_symbol(state, value, preamble, header, &writer);
     }
-    printf("sss %ld\n", (long)ssstate);
-    printf("sta %ld\n", (long)state);
     writer_flush(&writer);
     fwrite(&state, sizeof(uint64_t), 1, writer.file);
     fflush(writer.file);

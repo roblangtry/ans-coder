@@ -53,7 +53,7 @@ struct decode_source get_decoder_source(FILE * file, size_t start, size_t end){
     source.buffer = malloc(sizeof(unsigned char) * READER_BUFFER);
     return source;
 }
-unsigned char yield_decoder_byte(struct decode_source * source, unsigned char flag){
+unsigned char yield_decoder_byte(struct decode_source * source){
     unsigned char value;
     if(source->current >= source->buffer_size){
         if(source->stop == 1){
@@ -67,8 +67,6 @@ unsigned char yield_decoder_byte(struct decode_source * source, unsigned char fl
                 source->buffer_start = source->buffer_start - (READER_BUFFER * sizeof(unsigned char));
                 source->buffer_size = READER_BUFFER;
             }
-            if(flag == 1)
-                printf("YIELD READ\n");
             fseek(source->file, source->buffer_start, SEEK_SET);
             fread(source->buffer, sizeof(unsigned char), source->buffer_size, source->file);
             source->current = 0;

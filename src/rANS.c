@@ -115,36 +115,13 @@ void rANS_decode(FILE * input_file, FILE * output_file, struct header header, un
     writer.buffer = malloc(sizeof(uint) * OUT_BUFFER_SIZE);
     writer.file = output_file;
     source = get_decoder_source(input_file, header_end, content_end);
-    while(current < 12){
-        //printf("ST %ld\n", (long)state);
-        symbol = preamble.symbol_state[state % header.no_symbols];
-        //printf("SI %ld\n", (long)symbol);
-        //printf("SY %d\n", header.symbols[symbol]);
-        state = calculate_state(&header, &preamble, symbol, state);
-        current++;
-        write_out(header.symbols[symbol], &writer);
-        while(state < header.no_symbols){
-            //printf("%d\n", buffer[current_read - i]);
-            input = yield_decoder_byte(&source, 0);
-            //printf("IN %d\n", input);
-            //sleep(1);
-            state = state * preamble.write_size + input;
-            i++;
-        }
-    }
     while(current < header.no_symbols){
         symbol = preamble.symbol_state[state % header.no_symbols];
         state = calculate_state(&header, &preamble, symbol, state);
         current++;
         write_out((uint)header.symbols[symbol], &writer);
         while(state < header.no_symbols){
-            if(ftell(writer.file) > 199999489){
-                printf("SYM %d\n", (uint)header.symbols[symbol]);
-                input = yield_decoder_byte(&source, 1);
-            }
-            else{
-                input = yield_decoder_byte(&source, 0);
-            }
+            input = yield_decoder_byte(&source);
             state = state * preamble.write_size + input;
             i++;
         }

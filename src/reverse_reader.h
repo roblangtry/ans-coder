@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #ifndef REVERSE_CODE
 #define REVERSE_CODE
-#define READER_BUFFER 50
+#define READER_BUFFER 4096
 struct reverse_reader {
     FILE * file;
     size_t current;

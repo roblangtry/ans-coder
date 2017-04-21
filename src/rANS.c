@@ -127,21 +127,9 @@ void rANS_decode(FILE * input_file, FILE * output_file, struct header header, un
     write_flush(&writer);
 }
 void write_out(uint symbol, struct buffered_uint_writer * writer){
-    uint i;
-    if(ftell(writer->file) > 199999489)
-        printf("%d\n", symbol);
     writer->buffer[writer->size] = symbol;
     writer->size += 1;
     if(writer->size == writer->max_size){
-        if(ftell(writer->file) > 199999489){
-            i = 0;
-            while(i < writer->size){
-                printf("|%d|%d|\n", i, writer->buffer[i]);
-                i++;
-            }
-        }
-        if(ftell(writer->file) > 199999489)
-            printf("fwrite(%p, %d, %d, %p)\n", writer->buffer, sizeof(uint), writer->size, writer->file);
         fwrite(writer->buffer, sizeof(uint), writer->size, writer->file);
         writer->size = 0;
     }

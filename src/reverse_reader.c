@@ -59,12 +59,12 @@ unsigned char yield_decoder_byte(struct decode_source * source){
         if(source->stop == 1){
             return 0;
         } else {
-            if(source->buffer_start < (READER_BUFFER * sizeof(unsigned char) + source->content_start)){
+            if(source->buffer_start < (READER_BUFFER + source->content_start)){
                 source->buffer_size = source->buffer_start - source->content_start;
                 source->buffer_start = source->content_start;
                 source->stop = 1;
             } else {
-                source->buffer_start = source->buffer_start - (READER_BUFFER * sizeof(unsigned char));
+                source->buffer_start = source->buffer_start - (READER_BUFFER);
                 source->buffer_size = READER_BUFFER;
             }
             fseek(source->file, source->buffer_start, SEEK_SET);

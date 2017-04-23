@@ -33,8 +33,8 @@ int encode(char * input_filename, char * output_filename, unsigned char method_f
     if (method_flag == 1){
         if(verbose_flag == 1)
             printf("tANS compression scheme\n");
-        printf("NOT IMPLEMENTED YET\n");
-        return -1;
+        tANS_encode(input_file, output_file, header);
+        return 1;
     }
     if (method_flag == 0){
         if(verbose_flag == 1)

@@ -7,6 +7,7 @@
 #define HASHMAP_SIZE 1048576
 #define BUFFER_SIZE 4096
 struct header {
+    unsigned char coding; //0 encode 1 decode
     uint64_t no_symbols;
     uint64_t no_unique_symbols;
     void ** hashmap;
@@ -16,7 +17,7 @@ struct header {
 struct hashmap_node {
     uint64_t symbol;
     uint64_t index;
-    void * next;
+    struct hashmap_node * next;
 };
 struct header preprocess(FILE * input_file);
 void ** initialise_hashmap();

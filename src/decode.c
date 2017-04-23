@@ -29,7 +29,7 @@ int decode(char * input_filename, char * output_filename, unsigned char verbose_
     } else if (method == 1){
         if(verbose_flag == 1)
             printf("tANS compression scheme\n");
-        printf("NOT IMPLEMENTED YET\n");
+        tANS_decode(input_file, output_file, header, verbose_flag);
         return -1;
     }
     return 1;

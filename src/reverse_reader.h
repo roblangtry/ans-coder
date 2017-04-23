@@ -18,7 +18,10 @@ struct decode_source {
     size_t buffer_start;
     size_t content_start;
     size_t current;
+    unsigned char start;
     unsigned char stop;
+    unsigned char current_byte;
+    unsigned char position;
     unsigned char * buffer;
 };
 unsigned char yield_uint(struct reverse_reader * reader, unsigned int * value);

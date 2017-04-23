@@ -14,6 +14,7 @@ struct header preprocess(FILE * input_file){
     struct header header;
     uint64_t index;
     uint64_t symbol;
+    header.coding = 0;
     header.no_symbols = 0;
     header.no_unique_symbols = 0;
     header.symbols = malloc(sizeof(uint64_t));
@@ -58,8 +59,8 @@ uint64_t get_symbol_index(uint64_t symbol, struct header * header){
             current = current->next;
         }
         if(current->symbol == symbol){
-            if(last != NULL)
-                check_for_rearrangement(current, last, header);
+            //if(last != NULL)
+            //    check_for_rearrangement(current, last, header);
             return current->index;
         } else{
             node = add_symbol(symbol, header);
@@ -77,13 +78,12 @@ uint64_t safe_get_symbol_index(uint64_t symbol, struct header * header){
     if (current == NULL) {
         return -1;
     } else {
-        while(current->next != NULL && current->symbol != symbol){
+        while((current->next != NULL) && current->symbol != symbol){
+            printf("%p\n", current->next);
             last = current;
             current = current->next;
         }
         if(current->symbol == symbol){
-            if(last != NULL)
-                check_for_rearrangement(current, last, header);
             return current->index;
         } else{
             return -1;
@@ -130,6 +130,7 @@ struct header read_header(FILE * input_file, unsigned char * flag_byte){
     struct header header;
     uint64_t no_symbols;
     uint64_t no_unique_symbols;
+    header.coding = 1;
     fread(flag_byte, sizeof(unsigned char), 1, input_file);
     fread(&(header.no_symbols), sizeof(uint64_t), 1, input_file);
     fread(&(header.no_unique_symbols), sizeof(uint64_t), 1, input_file);

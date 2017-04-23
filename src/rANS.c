@@ -125,13 +125,12 @@ void rANS_decode(FILE * input_file, FILE * output_file, struct header header, un
     writer.buffer = malloc(sizeof(uint) * OUT_BUFFER_SIZE);
     writer.file = output_file;
     source = get_decoder_source(input_file, header_end, content_end);
-    printf("while %ld\n", time(NULL));
     while(current < header.no_symbols){
         state = calculate_state(&header, &preamble, &symbol, state);
         current++;
         write_out((uint)header.symbols[symbol], &writer);
         while(state < header.no_symbols){
-            input = 0;//yield_decoder_byte(&source);
+            input = yield_decoder_byte(&source);
             state = (state << preamble.bits_to_write) + input;
             i++;
         }
@@ -159,7 +158,10 @@ uint64_t calculate_state(struct header * header, struct preamble * preamble, uin
     x = state;
     m = header->no_symbols;
     x_mod_m = x % m;
-    x_div_m = x / m;
+    if (x - m < m)
+        x_div_m = 1;
+    else
+        x_div_m = x / m;
     *symbol = preamble->symbol_state[x_mod_m];
     ls = header->symbol_frequencies[*symbol];
     bs = preamble->cumalative_frequency[*symbol];

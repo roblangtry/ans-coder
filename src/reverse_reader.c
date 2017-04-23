@@ -13,7 +13,7 @@ unsigned char yield_uint(struct reverse_reader * reader, unsigned int * value){
                 reader->buffer_size = READER_BUFFER;
             }
             fseek(reader->file, reader->buffer_start, SEEK_SET);
-            fread(reader->buffer, sizeof(uint), reader->buffer_size, reader->file);
+            reader->buffer_size = fread(reader->buffer, sizeof(uint), reader->buffer_size, reader->file);
             reader->current = 0;
         }
     }
@@ -70,7 +70,7 @@ unsigned char yield_decoder_byte(struct decode_source * source){
                 source->buffer_size = READER_BUFFER;
             }
             fseek(source->file, source->buffer_start, SEEK_SET);
-            fread(source->buffer, sizeof(unsigned char), source->buffer_size, source->file);
+            source->buffer_size = fread(source->buffer, sizeof(unsigned char), source->buffer_size, source->file);
             source->current = 0;
         }
     }
@@ -94,7 +94,7 @@ unsigned char yield_decoder_bit(struct decode_source * source){
             source->buffer_size = READER_BUFFER;
         }
         fseek(source->file, source->buffer_start, SEEK_SET);
-        fread(source->buffer, sizeof(unsigned char), source->buffer_size, source->file);
+        source->buffer_size = fread(source->buffer, sizeof(unsigned char), source->buffer_size, source->file);
         source->current = 0;
         source->start = 0;
     }
@@ -112,7 +112,7 @@ unsigned char yield_decoder_bit(struct decode_source * source){
                     source->buffer_size = READER_BUFFER;
                 }
                 fseek(source->file, source->buffer_start, SEEK_SET);
-                fread(source->buffer, sizeof(unsigned char), source->buffer_size, source->file);
+                source->buffer_size = fread(source->buffer, sizeof(unsigned char), source->buffer_size, source->file);
                 source->current = 0;
             }
         } else {

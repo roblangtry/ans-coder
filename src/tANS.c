@@ -1,18 +1,10 @@
 #include "tANS.h"
 void tANS_encode(FILE * input_file, FILE * output_file, struct header header){
     struct t_preamble preamble = t_build_preamble(header, 0);
-    long int size, final_group_size, final_group, groups, i, c;
-    uint symbol;
-    uint * buffer;
     struct reverse_reader reader;
     uint value;
     uint64_t state;
     struct t_buffered_writer writer;
-    fseek(input_file, 0L, SEEK_END);
-    size = ftell(input_file);
-    final_group = size % (BUFFER_SIZE * sizeof(uint));
-    groups = size / (BUFFER_SIZE * sizeof(uint));
-    buffer = malloc(sizeof(uint) * BUFFER_SIZE);
     writer.max_size = OUT_BUFFER_SIZE;
     writer.size = 0;
     writer.current_byte = 0;
@@ -30,8 +22,7 @@ void tANS_encode(FILE * input_file, FILE * output_file, struct header header){
 }
 struct t_preamble t_build_preamble(struct header header, unsigned char encode){
     struct t_preamble preamble;
-    uint64_t i, x, y, prev, c;
-    size_t lut_size;
+    uint64_t i, x, y, prev;
     preamble.cumalative_frequency = malloc(sizeof(uint64_t) * header.no_unique_symbols);
     if(encode == 0)
         preamble.I_max = malloc(sizeof(uint64_t) * header.no_unique_symbols);
@@ -39,13 +30,13 @@ struct t_preamble t_build_preamble(struct header header, unsigned char encode){
         preamble.aligned_frequency = malloc(sizeof(uint64_t) * header.no_unique_symbols);
     x = 0;
     prev = 0;
-    c = 0;
     preamble.write_size = 2;
     preamble.bits_to_write = 1;
     preamble.I = header.no_symbols << 1;
     while (x < header.no_unique_symbols){
         preamble.cumalative_frequency[x] = prev;
-        preamble.aligned_frequency = header.symbol_frequencies[x] - preamble.cumalative_frequency[x];
+        if(encode == 1)
+            preamble.aligned_frequency[x] = header.symbol_frequencies[x] - preamble.cumalative_frequency[x];
         prev = prev + header.symbol_frequencies[x];
         if(encode == 0)
             preamble.I_max[x] = header.symbol_frequencies[x] << 1;
@@ -63,7 +54,7 @@ struct t_preamble t_build_preamble(struct header header, unsigned char encode){
                 }
             }
             preamble.sym_lut[i] = y;
-            preamble.state_lut[i] = preamble.aligned_frequency + i;
+            preamble.state_lut[i] = preamble.aligned_frequency[i] + i;
             i++;
         }
     }
@@ -116,12 +107,10 @@ void t_writer_flush(struct t_buffered_writer * writer){
 }
 void tANS_decode(FILE * input_file, FILE * output_file, struct header header, unsigned char verbose_flag){
     struct t_preamble preamble = t_build_preamble(header, 1);
-    size_t header_end, size, content_end, read_amount, current_read, i;
+    size_t header_end, size, content_end;
     struct decode_source source;
-    unsigned char * buffer;
     unsigned char input;
-    uint64_t state, symbol, current, comp;
-    uint output_symbol;
+    uint64_t state, symbol, current;
     struct t_buffered_uint_writer writer;
     header_end = ftell(input_file);
     fseek(input_file, 0, SEEK_END);
@@ -129,8 +118,6 @@ void tANS_decode(FILE * input_file, FILE * output_file, struct header header, un
     content_end = size - sizeof(uint64_t);
     fseek(input_file, content_end, SEEK_SET);
     fread(&state, sizeof(uint64_t), 1, input_file);
-    read_amount = content_end - header_end;
-    buffer = malloc(sizeof(unsigned char) * BUFFER_SIZE);
     current = 0;
     writer.max_size = OUT_BUFFER_SIZE;
     writer.size = 0;

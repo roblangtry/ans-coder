@@ -1,19 +1,11 @@
 #include "rANS.h"
 void rANS_encode(FILE * input_file, FILE * output_file, struct header header){
     struct preamble preamble = build_preamble(header);
-    long int size, final_group_size, final_group, groups, i, c;
-    uint symbol;
-    uint * buffer;
     struct reverse_reader reader;
     uint value;
     uint64_t state;
-    uint64_t ssstate;
     struct buffered_writer writer;
     fseek(input_file, 0L, SEEK_END);
-    size = ftell(input_file);
-    final_group = size % (BUFFER_SIZE * sizeof(uint));
-    groups = size / (BUFFER_SIZE * sizeof(uint));
-    buffer = malloc(sizeof(uint) * BUFFER_SIZE);
     writer.max_size = OUT_BUFFER_SIZE;
     writer.size = 0;
     writer.buffer = malloc(sizeof(unsigned char) * OUT_BUFFER_SIZE);
@@ -21,7 +13,6 @@ void rANS_encode(FILE * input_file, FILE * output_file, struct header header){
     state = header.no_symbols;
     reader = get_reader(input_file);
     while(yield_uint(&reader, &value) != 0){
-        ssstate = state;
         state = process_symbol(state, value, preamble, header, &writer);
     }
     writer_flush(&writer);
@@ -105,9 +96,8 @@ void writer_flush(struct buffered_writer * writer){
 }
 void rANS_decode(FILE * input_file, FILE * output_file, struct header header, unsigned char verbose_flag){
     struct preamble preamble = build_preamble(header);
-    size_t header_end, size, content_end, read_amount, current_read, i;
+    size_t header_end, size, content_end,  i;
     struct decode_source source;
-    unsigned char * buffer;
     unsigned char input;
     uint64_t state, symbol, current;
     struct buffered_uint_writer writer;
@@ -117,8 +107,6 @@ void rANS_decode(FILE * input_file, FILE * output_file, struct header header, un
     content_end = size - sizeof(uint64_t);
     fseek(input_file, content_end, SEEK_SET);
     fread(&state, sizeof(uint64_t), 1, input_file);
-    read_amount = content_end - header_end;
-    buffer = malloc(sizeof(unsigned char) * BUFFER_SIZE);
     current = 0;
     writer.max_size = OUT_BUFFER_SIZE;
     writer.size = 0;
@@ -154,7 +142,7 @@ void write_flush(struct buffered_uint_writer * writer){
 }
 
 uint64_t calculate_state(struct header * header, struct preamble * preamble, uint64_t * symbol, uint64_t state){
-    uint64_t ls, x, m, bs, result, w, x_mod_m, x_div_m;
+    uint64_t ls, x, m,  result, w, x_mod_m, x_div_m;
     x = state;
     m = header->no_symbols;
     x_mod_m = x % m;
@@ -164,7 +152,6 @@ uint64_t calculate_state(struct header * header, struct preamble * preamble, uin
         x_div_m = x / m;
     *symbol = preamble->symbol_state[x_mod_m];
     ls = header->symbol_frequencies[*symbol];
-    bs = preamble->cumalative_frequency[*symbol];
     if (x < preamble->I){
         w = x_div_m - 1;
         result = (preamble->ls_lut[*symbol][w]) + (x_mod_m) - preamble->cumalative_frequency[*symbol];

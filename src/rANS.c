@@ -30,7 +30,8 @@ void rANS_encode(FILE * input_file, FILE * output_file, struct header header){
 }
 struct preamble build_preamble(struct header header){
     struct preamble preamble;
-    uint64_t x, y, prev, c;
+    uint64_t i, x, y, prev, c;
+    size_t lut_size;
     preamble.symbol_state = malloc(sizeof(uint64_t) * header.no_symbols);
     preamble.cumalative_frequency = malloc(sizeof(uint64_t) * header.no_unique_symbols);
     preamble.I_max = malloc(sizeof(uint64_t) * header.no_unique_symbols);
@@ -39,10 +40,21 @@ struct preamble build_preamble(struct header header){
     prev = 0;
     c = 0;
     preamble.write_size = 1 << (8 * BYTES_TO_WRITE_OUT);
+    preamble.bits_to_write = 8 * BYTES_TO_WRITE_OUT;
+    preamble.I = header.no_symbols << preamble.bits_to_write;
+    preamble.ls_lut = malloc(sizeof(uint64_t *) * header.no_unique_symbols);
+    lut_size = sizeof(uint64_t) * preamble.write_size;
     while (x < header.no_unique_symbols){
+        preamble.ls_lut[x] = malloc(lut_size);
+        i = 1;
+        preamble.ls_lut[x][0] = header.symbol_frequencies[x];
+        while(i < preamble.write_size){
+            preamble.ls_lut[x][i] = preamble.ls_lut[x][i - 1] + header.symbol_frequencies[x];
+            i++;
+        }
         preamble.cumalative_frequency[x] = prev;
         prev = prev + header.symbol_frequencies[x];
-        preamble.I_max[x] = (header.symbol_frequencies[x] * preamble.write_size) - 1;
+        preamble.I_max[x] = (header.symbol_frequencies[x] << preamble.bits_to_write) - 1;
         preamble.I_min[x] = header.symbol_frequencies[x];
         y = 0;
         while(y < header.symbol_frequencies[x]){
@@ -62,7 +74,7 @@ uint64_t process_symbol(uint64_t state, uint input_symbol, struct preamble pream
     while(state > preamble.I_max[symbol]){
         output = state % preamble.write_size;
         put(output, writer);
-        state = state / preamble.write_size;
+        state = state >> preamble.bits_to_write;
         //printf("mod -STATE %ld\n", (long)state);
     }
     m = header.no_symbols;
@@ -113,14 +125,14 @@ void rANS_decode(FILE * input_file, FILE * output_file, struct header header, un
     writer.buffer = malloc(sizeof(uint) * OUT_BUFFER_SIZE);
     writer.file = output_file;
     source = get_decoder_source(input_file, header_end, content_end);
+    printf("while %ld\n", time(NULL));
     while(current < header.no_symbols){
-        symbol = preamble.symbol_state[state % header.no_symbols];
-        state = calculate_state(&header, &preamble, symbol, state);
+        state = calculate_state(&header, &preamble, &symbol, state);
         current++;
         write_out((uint)header.symbols[symbol], &writer);
         while(state < header.no_symbols){
-            input = yield_decoder_byte(&source);
-            state = state * preamble.write_size + input;
+            input = 0;//yield_decoder_byte(&source);
+            state = (state << preamble.bits_to_write) + input;
             i++;
         }
     }
@@ -141,29 +153,22 @@ void write_flush(struct buffered_uint_writer * writer){
     }
     fflush(writer->file);
 }
-uint64_t get_symbol(struct preamble * preamble, uint64_t * state, struct header * header){
-    uint64_t symbol, ls, x, m, bs;
-    x = *state;
-    m = header->no_symbols;
-    symbol = preamble->symbol_state[x % m];
-    bs = preamble->cumalative_frequency[symbol];
-    ls = header->symbol_frequencies[symbol];
-    *state =  ls * (x / m) + (x % m) - bs;
-    return symbol;
-}
 
-uint64_t calculate_state(struct header * header, struct preamble * preamble, uint64_t symbol, uint64_t state){
-    uint64_t ls, x, m, bs, result;
-    ls = header->symbol_frequencies[symbol];
-    //printf("ls  %ld\n", ls);
+uint64_t calculate_state(struct header * header, struct preamble * preamble, uint64_t * symbol, uint64_t state){
+    uint64_t ls, x, m, bs, result, w, x_mod_m, x_div_m;
     x = state;
-    //printf("x   %ld\n", x);
     m = header->no_symbols;
-    //printf("m   %ld\n", m);
-    bs = preamble->cumalative_frequency[symbol];
-    //printf("bs  %ld\n", bs);
-    result = (ls * (x / m)) + (x % m) - bs;
-    //printf("sts %ld\n", result);
-    //sleep(1);
+    x_mod_m = x % m;
+    x_div_m = x / m;
+    *symbol = preamble->symbol_state[x_mod_m];
+    ls = header->symbol_frequencies[*symbol];
+    bs = preamble->cumalative_frequency[*symbol];
+    if (x < preamble->I){
+        w = x_div_m - 1;
+        result = (preamble->ls_lut[*symbol][w]) + (x_mod_m) - preamble->cumalative_frequency[*symbol];
+    }
+    else {
+        result = (ls * x_div_m) + (x % m) - preamble->cumalative_frequency[*symbol];
+    }
     return result;
 }

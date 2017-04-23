@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <time.h>
 #include "preprocessing.h"
 #include "reverse_reader.h"
 #ifndef RANS_CODE
@@ -12,10 +13,13 @@
 struct preamble
 {
     uint64_t write_size;
+    uint64_t bits_to_write;
+    uint64_t I;
     uint64_t * symbol_state;
     uint64_t * cumalative_frequency;
     uint64_t * I_max;
     uint64_t * I_min;
+    uint64_t ** ls_lut;
 };
 struct buffered_writer
 {
@@ -40,6 +44,5 @@ void writer_flush(struct buffered_writer * writer);
 void write_out(uint symbol, struct buffered_uint_writer * writer);
 void write_flush(struct buffered_uint_writer * writer);
 void rANS_decode(FILE * input_file, FILE * output_file, struct header header, unsigned char verbose_flag);
-uint64_t get_symbol(struct preamble * preamble, uint64_t * state, struct header * header);
-uint64_t calculate_state(struct header * header, struct preamble * preamble, uint64_t symbol, uint64_t state);
+uint64_t calculate_state(struct header * header, struct preamble * preamble, uint64_t * symbol, uint64_t state);
 #endif

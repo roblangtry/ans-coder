@@ -6,11 +6,13 @@
 #define PREPROCESSING_CODE
 #define HASHMAP_SIZE 1048576
 #define BUFFER_SIZE 4096
+#define MAX_SYMBOL 524288
 struct header {
     unsigned char coding; //0 encode 1 decode
     uint64_t no_symbols;
     uint64_t no_unique_symbols;
-    void ** hashmap;
+    uint64_t max_symbol;
+    uint64_t * hashmap;
     uint64_t * symbols;
     uint64_t * symbol_frequencies;
 };

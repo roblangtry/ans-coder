@@ -10,27 +10,43 @@
 struct header preprocess(FILE * input_file){
     uint * buffer;
     size_t elements_read;
-    size_t i;
+    size_t i, n;
     struct header header;
     uint64_t index;
     uint64_t symbol;
+    header.max_symbol = 0;
     header.coding = 0;
     header.no_symbols = 0;
     header.no_unique_symbols = 0;
-    header.symbols = malloc(sizeof(uint64_t));
-    header.symbol_frequencies = malloc(sizeof(uint64_t));
-    header.hashmap = initialise_hashmap();
+    header.hashmap = calloc(MAX_SYMBOL, sizeof(uint64_t));
+    //header.hashmap = initialise_hashmap();
     buffer = malloc(sizeof(uint) * BUFFER_SIZE);
     while((elements_read = fread(buffer, sizeof(uint), BUFFER_SIZE, input_file)) != 0){
         i = 0;
         while(i<elements_read){
             symbol = buffer[i];
-            index = get_symbol_index(symbol, &header);
-            header.symbol_frequencies[index] += 1;
+            header.hashmap[symbol] += 1;
+            if(symbol > header.max_symbol){
+                header.max_symbol = symbol;
+            }
             header.no_symbols += 1;
             i++;
         }
     }
+    header.symbols = malloc(sizeof(uint64_t) * header.max_symbol);
+    header.symbol_frequencies = malloc(sizeof(uint64_t) * header.max_symbol);
+    i = 0;
+    n = 0;
+    while(i <= header.max_symbol){
+        if(header.hashmap[i]>0){
+            header.symbols[n] = i;
+            header.symbol_frequencies[n] = header.hashmap[i];
+            header.hashmap[i] = n;
+            n++;
+        }
+        i++;
+    }
+    header.no_unique_symbols = n;
     return header;
 }
 void ** initialise_hashmap(){
@@ -70,20 +86,7 @@ uint64_t get_symbol_index(uint64_t symbol, struct header * header){
     }
 }
 uint64_t safe_get_symbol_index(uint64_t symbol, struct header * header){
-    struct hashmap_node * current;
-    current = header->hashmap[symbol % HASHMAP_SIZE];
-    if (current == NULL) {
-        return -1;
-    } else {
-        while((current->next != NULL) && current->symbol != symbol){
-            current = current->next;
-        }
-        if(current->symbol == symbol){
-            return current->index;
-        } else{
-            return -1;
-        }
-    }
+    return header->hashmap[symbol];
 }
 
 struct hashmap_node * add_symbol(uint64_t symbol, struct header * header){

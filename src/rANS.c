@@ -1,6 +1,6 @@
 #include "rANS.h"
 void rANS_encode(FILE * input_file, FILE * output_file, struct header header){
-    struct preamble preamble = build_preamble(header);
+    struct preamble preamble = build_preamble(header, 1);
     struct reverse_reader reader;
     uint value;
     uint64_t state;
@@ -24,34 +24,26 @@ void rANS_encode(FILE * input_file, FILE * output_file, struct header header){
     fwrite(&state, sizeof(uint64_t), 1, writer.file);
     fflush(writer.file);
 }
-struct preamble build_preamble(struct header header){
+struct preamble build_preamble(struct header header, int imax){
     struct preamble preamble;
     uint64_t i, x, y, prev, c;
     size_t lut_size;
-    preamble.symbol_state = malloc(sizeof(uint64_t) * header.no_symbols);
+    preamble.symbol_state = malloc(sizeof(uint32_t) * header.no_symbols);
     preamble.cumalative_frequency = malloc(sizeof(uint64_t) * header.no_unique_symbols);
-    preamble.I_max = malloc(sizeof(uint64_t) * header.no_unique_symbols);
-    preamble.I_min = malloc(sizeof(uint64_t) * header.no_unique_symbols);
+    if(imax == 1)
+        preamble.I_max = malloc(sizeof(uint64_t) * header.no_unique_symbols);
     x = 0;
     prev = 0;
     c = 0;
     preamble.write_size = 1 << (BITS_TO_WRITE_OUT);
     preamble.bits_to_write = BITS_TO_WRITE_OUT;
     preamble.I = header.no_symbols << preamble.bits_to_write - 1;
-    preamble.ls_lut = malloc(sizeof(uint64_t *) * header.no_unique_symbols);
     lut_size = sizeof(uint64_t) * preamble.write_size;
     while (x < header.no_unique_symbols){
-        preamble.ls_lut[x] = malloc(lut_size);
-        i = 1;
-        preamble.ls_lut[x][0] = header.symbol_frequencies[x];
-        while(i < preamble.write_size){
-            preamble.ls_lut[x][i] = preamble.ls_lut[x][i - 1] + header.symbol_frequencies[x];
-            i++;
-        }
         preamble.cumalative_frequency[x] = prev;
         prev = prev + header.symbol_frequencies[x];
-        preamble.I_max[x] = (header.symbol_frequencies[x] << preamble.bits_to_write) - 1;
-        preamble.I_min[x] = header.symbol_frequencies[x];
+        if(imax == 1)
+            preamble.I_max[x] = (header.symbol_frequencies[x] << preamble.bits_to_write) - 1;
         y = 0;
         while(y < header.symbol_frequencies[x]){
             preamble.symbol_state[c] = x;
@@ -118,11 +110,11 @@ void writer_flush(struct buffered_writer * writer){
     fflush(writer->file);
 }
 void rANS_decode(FILE * input_file, FILE * output_file, struct header header, unsigned char verbose_flag){
-    struct preamble preamble = build_preamble(header);
+    struct preamble preamble = build_preamble(header, 0);
     size_t header_end, size, content_end,  i;
     struct decode_source source;
     unsigned int input;
-    uint64_t state, symbol, current;
+    uint64_t state, symbol, current, m, n;
     struct buffered_uint_writer writer;
     header_end = ftell(input_file);
     fseek(input_file, 0, SEEK_END);
@@ -136,8 +128,11 @@ void rANS_decode(FILE * input_file, FILE * output_file, struct header header, un
     writer.buffer = malloc(sizeof(uint) * OUT_BUFFER_SIZE);
     writer.file = output_file;
     source = get_decoder_source(input_file, header_end, content_end);
+    m = header.no_symbols;
     while(current < header.no_symbols){
-        calculate_state(&header, &preamble, &symbol, &state);
+        n = state - m;
+        symbol = preamble.symbol_state[n];
+        state = header.symbol_frequencies[symbol] + n - preamble.cumalative_frequency[symbol];
         current++;
         write_out((uint)header.symbols[symbol], &writer);
         while(state < header.no_symbols){
@@ -170,6 +165,13 @@ void write_flush(struct buffered_uint_writer * writer){
 }
 
 inline void calculate_state(struct header * header, struct preamble * preamble, uint64_t * symbol, uint64_t * state){
-    *symbol = preamble->symbol_state[*state % header->no_symbols];
-    *state = (header->symbol_frequencies[*symbol] * (*state / header->no_symbols)) + (*state % header->no_symbols) - preamble->cumalative_frequency[*symbol];
+    *symbol = preamble->symbol_state[get_mod(state , &header->no_symbols)];
+    *state = ((get_div(state , &header->no_symbols, &header->symbol_frequencies[*symbol]))) + (get_mod(state , &header->no_symbols)) - preamble->cumalative_frequency[*symbol];
+}
+inline uint64_t get_mod(uint64_t * state, uint64_t * m){
+    return *state - *m;
+}
+inline uint64_t get_div(uint64_t * state, uint64_t * m, uint64_t * ls){
+    return *ls;
+
 }

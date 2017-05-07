@@ -141,7 +141,7 @@ void rANS_decode(FILE * input_file, FILE * output_file, struct header header, un
         current++;
         write_out((uint)header.symbols[symbol], &writer);
         while(state < header.no_symbols){
-            input = yield_decoder_bit(&source);
+            yield_decoder_bit(&source, &input);
             if(input == 3){
                 break;
             }

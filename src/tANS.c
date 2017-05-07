@@ -135,7 +135,7 @@ void tANS_decode(FILE * input_file, FILE * output_file, struct header header, un
             state = preamble.state_lut[state - header.no_symbols];
         }
         while(state < header.no_symbols){
-            input = yield_decoder_bit(&source);
+            yield_decoder_bit(&source, &input);
             if(input == 3)
                 break;
             state = (state << preamble.bits_to_write) + input;

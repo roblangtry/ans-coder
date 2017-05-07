@@ -118,13 +118,21 @@ void check_for_rearrangement(struct hashmap_node * current, struct hashmap_node 
     }
 }
 void writeout_header(FILE * output_file, struct header header, unsigned char flag_byte){
+    struct bitlevel_file_pointer * bfp = get_bitlevel_file_pointer(output_file);
+    uint64_t i = 0;
     fwrite(&flag_byte, sizeof(unsigned char), 1, output_file);
     fwrite(&(header.no_symbols), sizeof(uint64_t), 1, output_file);
     fwrite(&(header.no_unique_symbols), sizeof(uint64_t), 1, output_file);
-    fwrite(header.symbols, sizeof(uint64_t), header.no_unique_symbols, output_file);
-    fwrite(header.symbol_frequencies, sizeof(uint64_t), header.no_unique_symbols, output_file);
+    while(i < header.no_unique_symbols){
+        write_elias_value(bfp, header.symbols[i]);
+        write_elias_value(bfp, header.symbol_frequencies[i]);
+        i++;
+    }
+    bitlevel_flush(bfp);
 }
 struct header read_header(FILE * input_file, unsigned char * flag_byte){
+    struct bitlevel_file_pointer * bfp = get_unbuffered_bitlevel_file_pointer(input_file);
+    uint64_t i = 0;
     struct header header;
     header.coding = 1;
     fread(flag_byte, sizeof(unsigned char), 1, input_file);
@@ -132,7 +140,10 @@ struct header read_header(FILE * input_file, unsigned char * flag_byte){
     fread(&(header.no_unique_symbols), sizeof(uint64_t), 1, input_file);
     header.symbols = malloc(sizeof(uint64_t) * header.no_unique_symbols);
     header.symbol_frequencies = malloc(sizeof(uint64_t) * header.no_unique_symbols);
-    fread(header.symbols, sizeof(uint64_t), header.no_unique_symbols, input_file);
-    fread(header.symbol_frequencies, sizeof(uint64_t), header.no_unique_symbols, input_file);
+    while(i < header.no_unique_symbols){
+        header.symbols[i] = read_elias_value(bfp);
+        header.symbol_frequencies[i] = read_elias_value(bfp);
+        i++;
+    }
     return header;
 }

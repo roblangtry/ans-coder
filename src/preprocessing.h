@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include "elias.h"
 #ifndef PREPROCESSING_CODE
 #define PREPROCESSING_CODE
 #define HASHMAP_SIZE 1048576

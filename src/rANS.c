@@ -69,9 +69,9 @@ uint64_t process_symbol(uint64_t state, uint input_symbol, struct preamble pream
     //printf("pre -STATE %ld\n", (long)state);
 
     while(state > preamble.I_max[symbol]){
-        output = state % preamble.write_size;
+        output = state & 1;
         put(output, writer);
-        state = state >> preamble.bits_to_write;
+        state = state >> 1;
         //printf("mod -STATE %ld\n", (long)state);
     }
     m = header.no_symbols;

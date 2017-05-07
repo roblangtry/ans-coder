@@ -98,31 +98,40 @@ unsigned char yield_decoder_byte(struct decode_source * source){
     source->current += 1;
     return value;
 }
-void yield_decoder_bit(struct decode_source * source, unsigned char * value){
-    if(source->position == 0){
-        if((source->current + 1) >= (source->buffer_size)){
-            if(source->stop == 1){
-                return 3;
-            } else {
-                if(source->buffer_start < (READER_BUFFER + source->content_start)){
-                    source->buffer_size = source->buffer_start - source->content_start;
-                    source->buffer_start = source->content_start;
-                    source->stop = 1;
-                } else {
-                    source->buffer_start = source->buffer_start - (READER_BUFFER);
-                    source->buffer_size = READER_BUFFER;
-                }
-                fseek(source->file, source->buffer_start, SEEK_SET);
-                source->buffer_size = fread(source->buffer, sizeof(unsigned char), source->buffer_size, source->file);
-                source->current = 0;
-            }
-        } else {
-            source->current += 1;
-        }
-        source->current_byte = source->buffer[source->buffer_size - source->current - 1];
-        source->position = 8;
+void yield_decoder_bit(struct decode_source * source, unsigned int * value){
+    get_bit(&source->current_byte, &source->position, source, value);
+}
+
+void get_bit(unsigned int * cur, unsigned int * pos, struct decode_source * source, unsigned int * value)
+{
+    if(*pos == 0){
+        get_byte(cur, pos, &source->current, &source->buffer_size, source->buffer, source);
     }
-    *value = source->current_byte & 1;
-    source->current_byte = source->current_byte >> 1;
-    source->position -= 1;
+    *value = *cur & 1;
+    *cur = *cur >> 1;
+    *pos -= 1;
+}
+void get_byte(unsigned int * cur, unsigned int * pos, unsigned int * ind, unsigned int * size, unsigned char * buffer, struct decode_source * source)
+{
+        if((*ind + 1) >= *size){
+            read_bytes(ind, &source->buffer_start, &source->content_start, size, buffer, source->file);
+        } else {
+            *ind += 1;
+        }
+        *cur = buffer[*size - *ind - 1];
+        *pos = 8;
+}
+
+void read_bytes(unsigned int * ind, unsigned int * start, unsigned int * content, unsigned int * size, unsigned char * buffer, FILE * file)
+{
+    if(*start < (READER_BUFFER + *content)){
+                    *size = *start - *content;
+                    *start = *content;
+                } else {
+                    *start = *start - (READER_BUFFER);
+                    *size = READER_BUFFER;
+                }
+                fseek(file, *start, SEEK_SET);
+                *size = fread(buffer, sizeof(unsigned char), *size, file);
+                *ind = 0;
 }

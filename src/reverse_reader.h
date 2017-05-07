@@ -14,19 +14,19 @@ struct reverse_reader {
 };
 struct decode_source {
     FILE * file;
-    size_t buffer_size;
-    size_t buffer_start;
-    size_t content_start;
-    size_t current;
+    unsigned int buffer_size;
+    unsigned int buffer_start;
+    unsigned int content_start;
+    unsigned int current;
     unsigned char start;
     unsigned char stop;
-    unsigned char current_byte;
-    unsigned char position;
+    unsigned int current_byte;
+    unsigned int position;
     unsigned char * buffer;
 };
 unsigned char yield_uint(struct reverse_reader * reader, unsigned int * value);
 struct reverse_reader get_reader(FILE * file);
 struct decode_source get_decoder_source(FILE * file, size_t start, size_t end);
 unsigned char yield_decoder_byte(struct decode_source * source);
-void yield_decoder_bit(struct decode_source * source, unsigned char * value);
+void yield_decoder_bit(struct decode_source * source, unsigned int * value);
 #endif

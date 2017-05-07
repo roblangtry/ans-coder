@@ -121,7 +121,7 @@ void rANS_decode(FILE * input_file, FILE * output_file, struct header header, un
     struct preamble preamble = build_preamble(header);
     size_t header_end, size, content_end,  i;
     struct decode_source source;
-    unsigned char input;
+    unsigned int input;
     uint64_t state, symbol, current;
     struct buffered_uint_writer writer;
     header_end = ftell(input_file);
@@ -137,7 +137,7 @@ void rANS_decode(FILE * input_file, FILE * output_file, struct header header, un
     writer.file = output_file;
     source = get_decoder_source(input_file, header_end, content_end);
     while(current < header.no_symbols){
-        state = calculate_state(&header, &preamble, &symbol, state);
+        calculate_state(&header, &preamble, &symbol, &state);
         current++;
         write_out((uint)header.symbols[symbol], &writer);
         while(state < header.no_symbols){
@@ -169,15 +169,7 @@ void write_flush(struct buffered_uint_writer * writer){
     fflush(writer->file);
 }
 
-uint64_t calculate_state(struct header * header, struct preamble * preamble, uint64_t * symbol, uint64_t state){
-    uint64_t ls, bs, x, m,  result, w, x_mod_m, x_div_m;
-    x = state;
-    m = header->no_symbols;
-    x_mod_m = x % m;
-    x_div_m = x / m;
-    *symbol = preamble->symbol_state[x_mod_m];
-    ls = header->symbol_frequencies[*symbol];
-    bs = preamble->cumalative_frequency[*symbol];
-    result = (ls * x_div_m) + (x_mod_m) - bs;
-    return result;
+inline void calculate_state(struct header * header, struct preamble * preamble, uint64_t * symbol, uint64_t * state){
+    *symbol = preamble->symbol_state[*state % header->no_symbols];
+    *state = (header->symbol_frequencies[*symbol] * (*state / header->no_symbols)) + (*state % header->no_symbols) - preamble->cumalative_frequency[*symbol];
 }

@@ -99,7 +99,7 @@ unsigned char yield_decoder_bit(struct decode_source * source){
         source->start = 0;
     }
     if(source->position == 0){
-        if(source->current >= source->buffer_size){
+        if((source->current + 1) >= (source->buffer_size)){
             if(source->stop == 1){
                 return 3;
             } else {

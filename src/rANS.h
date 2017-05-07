@@ -8,7 +8,8 @@
 #ifndef RANS_CODE
 #define RANS_CODE
 #define BYTES_TO_WRITE_OUT 1
-#define BUFFER_SIZE 4096
+#define BITS_TO_WRITE_OUT 1
+#define BUFFER_SIZE 1048576
 #define OUT_BUFFER_SIZE 1048576
 struct preamble
 {
@@ -26,6 +27,8 @@ struct buffered_writer
     size_t size;
     size_t max_size;
     FILE * file;
+    unsigned char byte;
+    unsigned char len;
     unsigned char * buffer;
 };
 struct buffered_uint_writer

@@ -4,18 +4,23 @@ void rANS_encode(FILE * input_file, FILE * output_file, struct header header){
     struct reverse_reader reader;
     uint value;
     uint64_t state;
+    uint64_t n;
     struct buffered_writer writer;
     fseek(input_file, 0L, SEEK_END);
     writer.max_size = OUT_BUFFER_SIZE;
     writer.size = 0;
     writer.buffer = malloc(sizeof(unsigned char) * OUT_BUFFER_SIZE);
     writer.file = output_file;
+    writer.byte = 0;
+    writer.len = 0;
     state = header.no_symbols;
     reader = get_reader(input_file);
+    n = 0;
     while(yield_uint(&reader, &value) != 0){
         state = process_symbol(state, value, preamble, header, &writer);
+        n++;
     }
-    writer_flush(&writer);
+    bit_writer_flush(&writer);
     fwrite(&state, sizeof(uint64_t), 1, writer.file);
     fflush(writer.file);
 }
@@ -30,9 +35,9 @@ struct preamble build_preamble(struct header header){
     x = 0;
     prev = 0;
     c = 0;
-    preamble.write_size = 1 << (8 * BYTES_TO_WRITE_OUT);
-    preamble.bits_to_write = 8 * BYTES_TO_WRITE_OUT;
-    preamble.I = header.no_symbols << preamble.bits_to_write;
+    preamble.write_size = 1 << (BITS_TO_WRITE_OUT);
+    preamble.bits_to_write = BITS_TO_WRITE_OUT;
+    preamble.I = header.no_symbols << preamble.bits_to_write - 1;
     preamble.ls_lut = malloc(sizeof(uint64_t *) * header.no_unique_symbols);
     lut_size = sizeof(uint64_t) * preamble.write_size;
     while (x < header.no_unique_symbols){
@@ -62,6 +67,7 @@ uint64_t process_symbol(uint64_t state, uint input_symbol, struct preamble pream
     uint64_t m, x, ls, bs, first_comp, second_comp;
     uint64_t symbol = safe_get_symbol_index(input_symbol, &header);
     //printf("pre -STATE %ld\n", (long)state);
+
     while(state > preamble.I_max[symbol]){
         output = state % preamble.write_size;
         put(output, writer);
@@ -79,13 +85,30 @@ uint64_t process_symbol(uint64_t state, uint input_symbol, struct preamble pream
     //printf("post-STATE %ld\n", (long)(first_comp + bs + second_comp));
     return first_comp + bs + second_comp;
 }
-void put(unsigned char byte, struct buffered_writer * writer){
-    writer->buffer[writer->size] = byte;
-    writer->size += 1;
-    if(writer->size == writer->max_size){
-        fwrite(writer->buffer, sizeof(unsigned char), writer->max_size, writer->file);
+void put(unsigned char bit, struct buffered_writer * writer){
+    writer->byte = (writer->byte << 1) + bit;
+    writer->len += 1;
+    if(writer->len == 8){
+        writer->buffer[writer->size] = writer->byte;
+        writer->size += 1;
+        if(writer->size == writer->max_size){
+            fwrite(writer->buffer, sizeof(unsigned char), writer->max_size, writer->file);
+            writer->size = 0;
+        }
+        writer->len = 0;
+        writer->byte = 0;
+    }
+}
+void bit_writer_flush(struct buffered_writer * writer){
+    if(writer->size > 0){
+        fwrite(writer->buffer, sizeof(unsigned char), writer->size, writer->file);
         writer->size = 0;
     }
+    fwrite(&writer->byte, sizeof(unsigned char), 1, writer->file);
+    fwrite(&writer->len, sizeof(unsigned char), 1, writer->file);
+    writer->len = 0;
+    writer->byte = 0;
+    fflush(writer->file);
 }
 void writer_flush(struct buffered_writer * writer){
     if(writer->size > 0){
@@ -118,8 +141,13 @@ void rANS_decode(FILE * input_file, FILE * output_file, struct header header, un
         current++;
         write_out((uint)header.symbols[symbol], &writer);
         while(state < header.no_symbols){
-            input = yield_decoder_byte(&source);
-            state = (state << preamble.bits_to_write) + input;
+            input = yield_decoder_bit(&source);
+            if(input == 3){
+                break;
+            }
+            else{
+                state = (state << preamble.bits_to_write) + input;
+            }
             i++;
         }
     }
@@ -142,22 +170,14 @@ void write_flush(struct buffered_uint_writer * writer){
 }
 
 uint64_t calculate_state(struct header * header, struct preamble * preamble, uint64_t * symbol, uint64_t state){
-    uint64_t ls, x, m,  result, w, x_mod_m, x_div_m;
+    uint64_t ls, bs, x, m,  result, w, x_mod_m, x_div_m;
     x = state;
     m = header->no_symbols;
     x_mod_m = x % m;
-    if (x - m < m)
-        x_div_m = 1;
-    else
-        x_div_m = x / m;
+    x_div_m = x / m;
     *symbol = preamble->symbol_state[x_mod_m];
     ls = header->symbol_frequencies[*symbol];
-    if (x < preamble->I){
-        w = x_div_m - 1;
-        result = (preamble->ls_lut[*symbol][w]) + (x_mod_m) - preamble->cumalative_frequency[*symbol];
-    }
-    else {
-        result = (ls * x_div_m) + (x % m) - preamble->cumalative_frequency[*symbol];
-    }
+    bs = preamble->cumalative_frequency[*symbol];
+    result = (ls * x_div_m) + (x_mod_m) - bs;
     return result;
 }

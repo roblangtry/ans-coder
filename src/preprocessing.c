@@ -135,7 +135,6 @@ struct header read_header(FILE * input_file, unsigned char * flag_byte){
     uint64_t i = 0;
     struct header header;
     header.coding = 1;
-    fread(flag_byte, sizeof(unsigned char), 1, input_file);
     fread(&(header.no_symbols), sizeof(uint64_t), 1, input_file);
     fread(&(header.no_unique_symbols), sizeof(uint64_t), 1, input_file);
     header.symbols = malloc(sizeof(uint64_t) * header.no_unique_symbols);

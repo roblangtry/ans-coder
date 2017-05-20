@@ -11,35 +11,46 @@ int encode(char * input_filename, char * output_filename, unsigned char method_f
     }
     input_file = fopen(input_filename, "r");
     output_file = fopen(output_filename, "w");
-    header = preprocess(input_file);
     flag_byte = method_flag;
-    writeout_header(output_file, header, flag_byte);
-    if(verbose_flag == 1){
-        printf("===========================\n");
-        printf("  Header\n");
-        printf("---------------------------\n");
-        printf("no_symbols: %ld\n", (long)header.no_symbols);
-        printf("no_unique_symbols: %ld\n", (long)header.no_unique_symbols);
-        printf("===========================\n");
-        i = 0;
-        while(i < header.no_unique_symbols){
-            printf("SYM %ld | FRQ %ld\n",
-            (long)header.symbols[i],
-            (long)header.symbol_frequencies[i]);
-            i++;
+    if (method_flag < 2){
+        header = preprocess(input_file);
+        writeout_header(output_file, header, flag_byte);
+        if(verbose_flag == 1){
+            printf("===========================\n");
+            printf("  Header\n");
+            printf("---------------------------\n");
+            printf("no_symbols: %ld\n", (long)header.no_symbols);
+            printf("no_unique_symbols: %ld\n", (long)header.no_unique_symbols);
+            printf("===========================\n");
+            i = 0;
+            while(i < header.no_unique_symbols){
+                printf("SYM %ld | FRQ %ld\n",
+                (long)header.symbols[i],
+                (long)header.symbol_frequencies[i]);
+                i++;
+            }
+            printf("===========================\n");
         }
-        printf("===========================\n");
+        if (method_flag == 1){
+            if(verbose_flag == 1)
+                printf("tANS compression scheme\n");
+            tANS_encode(input_file, output_file, header);
+            return 1;
+        }
+        if (method_flag == 0){
+            if(verbose_flag == 1)
+                printf("rANS compression scheme\n");
+            rANS_encode(input_file, output_file, header);
+        }
+
     }
-    if (method_flag == 1){
+    else {
+        fwrite(&flag_byte, sizeof(unsigned char), 1, output_file);
         if(verbose_flag == 1)
-            printf("tANS compression scheme\n");
-        tANS_encode(input_file, output_file, header);
-        return 1;
+            printf("bANS compression scheme\n");
+        bANS_encode(input_file, output_file);
+
     }
-    if (method_flag == 0){
-        if(verbose_flag == 1)
-            printf("rANS compression scheme\n");
-        rANS_encode(input_file, output_file, header);
-    }
+
     return 1;
 }

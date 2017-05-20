@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "rANS.h"
 #include "tANS.h"
+#include "bANS.h"
 #include "preprocessing.h"
 #ifndef ENCODE_CODE
 #define ENCODE_CODE

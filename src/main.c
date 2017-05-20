@@ -9,7 +9,7 @@ int main ( int argc, char *argv[] ){
     method_flag = 0;
     verbose_flag = 0;
     indent = 0;
-    while((c = getopt(argc, argv, "detrv")) != -1){
+    while((c = getopt(argc, argv, "bdetrv")) != -1){
         switch(c)
         {
             case 'd':
@@ -20,6 +20,10 @@ int main ( int argc, char *argv[] ){
                 break;
             case 't':
                 method_flag = 1;
+                indent = 1;
+                break;
+            case 'b':
+                method_flag = 2;
                 indent = 1;
                 break;
             case 'r':

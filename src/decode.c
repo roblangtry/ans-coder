@@ -11,25 +11,33 @@ int decode(char * input_filename, char * output_filename, unsigned char verbose_
     }
     input_file = fopen(input_filename, "r");
     output_file = fopen(output_filename, "w");
-    header = read_header(input_file, &flag_byte);
-    if(verbose_flag == 1){
-        printf("===========================\n");
-        printf("  Header\n");
-        printf("---------------------------\n");
-        printf("no_symbols: %ld\n", (long)header.no_symbols);
-        printf("no_unique_symbols: %ld\n", (long)header.no_unique_symbols);
-        printf("===========================\n");
-    }
-    method = flag_byte % 2;
-    if (method == 0){
+    fread(&flag_byte, sizeof(unsigned char), 1, input_file);
+    if(flag_byte < 2){
+        header = read_header(input_file, &flag_byte);
+        if(verbose_flag == 1){
+            printf("===========================\n");
+            printf("  Header\n");
+            printf("---------------------------\n");
+            printf("no_symbols: %ld\n", (long)header.no_symbols);
+            printf("no_unique_symbols: %ld\n", (long)header.no_unique_symbols);
+            printf("===========================\n");
+        }
+        method = flag_byte % 2;
+        if (method == 0){
+            if(verbose_flag == 1)
+                printf("rANS compression scheme\n");
+            rANS_decode(input_file, output_file, header, verbose_flag);
+    
+        } else if (method == 1){
+            if(verbose_flag == 1)
+                printf("tANS compression scheme\n");
+            tANS_decode(input_file, output_file, header, verbose_flag);
+            return -1;
+        }
+    } else{
         if(verbose_flag == 1)
-            printf("rANS compression scheme\n");
-        rANS_decode(input_file, output_file, header, verbose_flag);
-
-    } else if (method == 1){
-        if(verbose_flag == 1)
-            printf("tANS compression scheme\n");
-        tANS_decode(input_file, output_file, header, verbose_flag);
+            printf("bANS compression scheme\n");
+        bANS_decode(input_file, output_file);
         return -1;
     }
     return 1;

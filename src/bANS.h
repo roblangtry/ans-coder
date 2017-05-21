@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#ifndef RANS_CODE
-#define RANS_CODE
+#ifndef BANS_CODE
+#define BANS_CODE
 #define BLOCK_LEN 131072
 #define SYMBOL_RANGE 524288
 #define B 256

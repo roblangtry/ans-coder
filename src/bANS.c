@@ -52,10 +52,11 @@ void process_encode(uint32_t symbol, uint64_t * state, struct block_header * hea
     header->block_len += 1;
 }
 
+
 void write_output(uint64_t * state, struct output_obj * output)
 {
     output->output[output->head] = *state % B;
-    *state = *state >> Bbits;
+    *state = *state / B;
     output->head += 1;
 }
 
@@ -93,7 +94,7 @@ struct block_header calculate_block_header(uint32_t * block, size_t block_size)
         i++;
     }
     i = 0;
-    while(i < max_symbol){
+    while(i <= max_symbol){
         if(map[i] > 0){
             ind++;
         }
@@ -107,7 +108,7 @@ struct block_header calculate_block_header(uint32_t * block, size_t block_size)
     header.freq = malloc(sizeof(uint64_t) * header.no_symbols);
     header.cumalative_freq = malloc(sizeof(uint64_t) * header.no_symbols);
     header.I_max = malloc(sizeof(uint64_t) * header.no_symbols);
-    while(i < max_symbol){
+    while(i <= max_symbol){
         if(map[i] > 0){
             header.index[i] = ind;
             header.symbol[ind] = i;
@@ -200,6 +201,7 @@ struct block_header read_block_header(FILE * input_file)
         cumalative_freq += header.freq[i];
         i++;
     }
+    header.m = cumalative_freq;
     i = 0;
     while(i < header.block_len){
         if(ind < (header.no_symbols-1) && i >= header.cumalative_freq[ind + 1])

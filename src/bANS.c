@@ -65,8 +65,7 @@ void write_block(uint64_t state, struct block_header * header, struct output_obj
     fwrite(&state, sizeof(uint64_t), 1, output->file);
     fwrite(&header->no_symbols, sizeof(size_t), 1, output->file);
     fwrite(&output->head, sizeof(size_t), 1, output->file);
-    fwrite(header->symbol, sizeof(uint32_t), header->no_symbols, output->file);
-    fwrite(header->freq, sizeof(uint32_t), header->no_symbols, output->file);
+    write_symbol_prelude(header->symbol, header->freq, header->no_symbols, output->file);
     fwrite(output->output, sizeof(unsigned char), output->head, output->file);
 }
 struct output_obj get_output_obj(FILE * output_file)
@@ -184,14 +183,12 @@ struct block_header read_block_header(FILE * input_file)
     size_t i = 0;
     size_t ind = 0;
     uint32_t cumalative_freq = 0;
+    uint32_t * x;
     fread(&header.no_symbols, sizeof(size_t), 1, input_file);
     fread(&header.content_length, sizeof(size_t), 1, input_file);
-    header.symbol = malloc(sizeof(uint32_t) * header.no_symbols);
-    header.freq = malloc(sizeof(uint32_t) * header.no_symbols);
     header.cumalative_freq = malloc(sizeof(uint32_t) * header.no_symbols);
     header.symbol_state = malloc(sizeof(size_t) * BLOCK_LEN);
-    fread(header.symbol, sizeof(uint32_t), header.no_symbols, input_file);
-    fread(header.freq, sizeof(uint32_t), header.no_symbols, input_file);
+    read_symbol_prelude(header.no_symbols, input_file, &header.symbol, &header.freq);
     while(i < header.no_symbols){
         header.cumalative_freq[i] = cumalative_freq;
         cumalative_freq += header.freq[i];

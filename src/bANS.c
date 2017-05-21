@@ -42,9 +42,9 @@ void process_encode_block(uint32_t * block, size_t block_size, FILE * output_fil
 void process_encode(uint32_t symbol, uint64_t * state, struct block_header * header, struct output_obj * output)
 {
     size_t index = header->index[symbol];
-    uint64_t ls = header->freq[index];
-    uint64_t bs = header->cumalative_freq[index];
-    uint64_t Is = header->I_max[index];
+    uint32_t ls = header->freq[index];
+    uint32_t bs = header->cumalative_freq[index];
+    uint32_t Is = header->I_max[index];
     while(*state > Is){
         write_output(state, output);
     }
@@ -56,7 +56,7 @@ void process_encode(uint32_t symbol, uint64_t * state, struct block_header * hea
 void write_output(uint64_t * state, struct output_obj * output)
 {
     output->output[output->head] = *state % B;
-    *state = *state / B;
+    *state = *state >> Bbits;
     output->head += 1;
 }
 
@@ -64,11 +64,9 @@ void write_block(uint64_t state, struct block_header * header, struct output_obj
 {
     fwrite(&state, sizeof(uint64_t), 1, output->file);
     fwrite(&header->no_symbols, sizeof(size_t), 1, output->file);
-    fwrite(&header->m, sizeof(size_t), 1, output->file);
-    fwrite(&header->block_len, sizeof(size_t), 1, output->file);
     fwrite(&output->head, sizeof(size_t), 1, output->file);
     fwrite(header->symbol, sizeof(uint32_t), header->no_symbols, output->file);
-    fwrite(header->freq, sizeof(uint64_t), header->no_symbols, output->file);
+    fwrite(header->freq, sizeof(uint32_t), header->no_symbols, output->file);
     fwrite(output->output, sizeof(unsigned char), output->head, output->file);
 }
 struct output_obj get_output_obj(FILE * output_file)
@@ -86,7 +84,7 @@ struct block_header calculate_block_header(uint32_t * block, size_t block_size)
     size_t i = 0;
     size_t ind = 0;
     uint32_t max_symbol = 0;
-    uint64_t cumalative_freq = 0;
+    uint32_t cumalative_freq = 0;
     while(i<block_size){
         if (max_symbol < block[i])
             max_symbol = block[i];
@@ -105,8 +103,8 @@ struct block_header calculate_block_header(uint32_t * block, size_t block_size)
     i=0;
     header.index = malloc(sizeof(size_t) * SYMBOL_RANGE);
     header.symbol = malloc(sizeof(uint32_t) * header.no_symbols);
-    header.freq = malloc(sizeof(uint64_t) * header.no_symbols);
-    header.cumalative_freq = malloc(sizeof(uint64_t) * header.no_symbols);
+    header.freq = malloc(sizeof(uint32_t) * header.no_symbols);
+    header.cumalative_freq = malloc(sizeof(uint32_t) * header.no_symbols);
     header.I_max = malloc(sizeof(uint64_t) * header.no_symbols);
     while(i <= max_symbol){
         if(map[i] > 0){
@@ -174,8 +172,8 @@ void process_decode_block(FILE * input_file, FILE * output_file)
 void process_decode(uint64_t * state, struct block_header * header, uint32_t * output)
 {
     size_t index = header->symbol_state[*state % header->block_len];
-    uint64_t ls = header->freq[index];
-    uint64_t bs = header->cumalative_freq[index];
+    uint32_t ls = header->freq[index];
+    uint32_t bs = header->cumalative_freq[index];
     *output = header->symbol[index];
     *state = ls * (*state / header->m) + (*state % header->m) - bs;
 }
@@ -185,23 +183,22 @@ struct block_header read_block_header(FILE * input_file)
     struct block_header header;
     size_t i = 0;
     size_t ind = 0;
-    uint64_t cumalative_freq = 0;
+    uint32_t cumalative_freq = 0;
     fread(&header.no_symbols, sizeof(size_t), 1, input_file);
-    fread(&header.m, sizeof(size_t), 1, input_file);
-    fread(&header.block_len, sizeof(size_t), 1, input_file);
     fread(&header.content_length, sizeof(size_t), 1, input_file);
     header.symbol = malloc(sizeof(uint32_t) * header.no_symbols);
-    header.freq = malloc(sizeof(uint64_t) * header.no_symbols);
-    header.cumalative_freq = malloc(sizeof(uint64_t) * header.no_symbols);
+    header.freq = malloc(sizeof(uint32_t) * header.no_symbols);
+    header.cumalative_freq = malloc(sizeof(uint32_t) * header.no_symbols);
     header.symbol_state = malloc(sizeof(size_t) * BLOCK_LEN);
     fread(header.symbol, sizeof(uint32_t), header.no_symbols, input_file);
-    fread(header.freq, sizeof(uint64_t), header.no_symbols, input_file);
+    fread(header.freq, sizeof(uint32_t), header.no_symbols, input_file);
     while(i < header.no_symbols){
         header.cumalative_freq[i] = cumalative_freq;
         cumalative_freq += header.freq[i];
         i++;
     }
     header.m = cumalative_freq;
+    header.block_len = cumalative_freq;
     i = 0;
     while(i < header.block_len){
         if(ind < (header.no_symbols-1) && i >= header.cumalative_freq[ind + 1])

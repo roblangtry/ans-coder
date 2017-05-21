@@ -21,8 +21,8 @@ struct block_header
     size_t block_len;
     size_t  * symbol_state;
     uint32_t * symbol;
-    uint64_t * freq;
-    uint64_t * cumalative_freq;
+    uint32_t * freq;
+    uint32_t * cumalative_freq;
     uint64_t * I_max;
     size_t m;
 };

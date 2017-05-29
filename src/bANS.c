@@ -62,10 +62,7 @@ void write_output(uint64_t * state, struct output_obj * output)
 
 void write_block(uint64_t state, struct block_header * header, struct output_obj * output)
 {
-    fwrite(&state, sizeof(uint64_t), 1, output->file);
-    fwrite(&header->no_symbols, sizeof(size_t), 1, output->file);
-    fwrite(&output->head, sizeof(size_t), 1, output->file);
-    write_symbol_prelude(header->symbol, header->freq, header->no_symbols, output->file);
+    write_symbol_prelude(header->symbol, header->freq, &header->no_symbols, output->file, &state, &output->head);
     fwrite(output->output, sizeof(unsigned char), output->head, output->file);
 }
 struct output_obj get_output_obj(FILE * output_file)
@@ -149,9 +146,8 @@ void process_decode_block(FILE * input_file, FILE * output_file)
     size_t i = 0;
     uint64_t state;
     uint32_t * output;
-    fread(&state, sizeof(uint64_t), 1, input_file);
 
-    struct block_header header = read_block_header(input_file);
+    struct block_header header = read_block_header(input_file, &state);
     output = malloc(sizeof(uint32_t) * header.block_len);
     struct output_obj input;
     input.output = malloc(sizeof(unsigned char) * header.content_length);
@@ -177,18 +173,16 @@ void process_decode(uint64_t * state, struct block_header * header, uint32_t * o
     *state = ls * (*state / header->m) + (*state % header->m) - bs;
 }
 
-struct block_header read_block_header(FILE * input_file)
+struct block_header read_block_header(FILE * input_file, uint64_t * state)
 {
     struct block_header header;
     size_t i = 0;
     size_t ind = 0;
     uint32_t cumalative_freq = 0;
     uint32_t * x;
-    fread(&header.no_symbols, sizeof(size_t), 1, input_file);
-    fread(&header.content_length, sizeof(size_t), 1, input_file);
+    read_symbol_prelude(&(header.no_symbols), input_file, &(header.symbol), &(header.freq), state, &(header.content_length));
     header.cumalative_freq = malloc(sizeof(uint32_t) * header.no_symbols);
     header.symbol_state = malloc(sizeof(size_t) * BLOCK_LEN);
-    read_symbol_prelude(header.no_symbols, input_file, &header.symbol, &header.freq);
     while(i < header.no_symbols){
         header.cumalative_freq[i] = cumalative_freq;
         cumalative_freq += header.freq[i];

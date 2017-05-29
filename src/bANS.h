@@ -39,5 +39,5 @@ struct block_header calculate_block_header(uint32_t * block, size_t block_size);
 void bANS_decode(FILE * input_file, FILE * output_file);
 void process_decode_block(FILE * input_file, FILE * output_file);
 void process_decode(uint64_t * state, struct block_header * header, uint32_t * output);
-struct block_header read_block_header(FILE * input_file);
+struct block_header read_block_header(FILE * input_file, uint64_t * state);
 #endif

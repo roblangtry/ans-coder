@@ -12,7 +12,7 @@ void low_order_simple_test(
     FILE * input_file;
     FILE * output_file;
     output_file = fopen("test.stack", "w");
-    struct prelude_code_data * metadata = prepare_metadata(NULL, output_file, 0);
+    struct prelude_code_data * metadata = prepare_metadata(NULL, initialise_writer(output_file), 0);
     printf("%s,LOST,", encoding);
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
     while(i < TEST_SIZE){
@@ -26,7 +26,7 @@ void low_order_simple_test(
     flush_writer(metadata->writer_ptr);
     fclose(output_file);
     input_file = fopen("test.stack", "r");
-    metadata = prepare_metadata(input_file, NULL, 0);
+    metadata = prepare_metadata(initialise_reader(input_file), NULL, 0);
     i = 0;
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
     while(i < TEST_SIZE){
@@ -54,7 +54,7 @@ void high_order_simple_test(
     FILE * input_file;
     FILE * output_file;
     output_file = fopen("test.stack", "w");
-    struct prelude_code_data * metadata = prepare_metadata(NULL, output_file, 0);
+    struct prelude_code_data * metadata = prepare_metadata(NULL, initialise_writer(output_file), 0);
     printf("%s,HOST,", encoding);
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
     while(i < TEST_SIZE){
@@ -68,7 +68,7 @@ void high_order_simple_test(
     flush_writer(metadata->writer_ptr);
     fclose(output_file);
     input_file = fopen("test.stack", "r");
-    metadata = prepare_metadata(input_file, NULL, 0);
+    metadata = prepare_metadata(initialise_reader(input_file), NULL, 0);
     i = 0;
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
     while(i < TEST_SIZE){
@@ -97,7 +97,7 @@ void complex_order_test(
     FILE * input_file;
     FILE * output_file;
     output_file = fopen("test.stack", "w");
-    struct prelude_code_data * metadata = prepare_metadata(NULL, output_file, 0);
+    struct prelude_code_data * metadata = prepare_metadata(NULL, initialise_writer(output_file), 0);
     printf("%s,COT,", encoding);
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
     while(i < TEST_SIZE){
@@ -113,7 +113,7 @@ void complex_order_test(
     flush_writer(metadata->writer_ptr);
     fclose(output_file);
     input_file = fopen("test.stack", "r");
-    metadata = prepare_metadata(input_file, NULL, 0);
+    metadata = prepare_metadata(initialise_reader(input_file), NULL, 0);
     i = 0;
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
     while(i < TEST_SIZE){

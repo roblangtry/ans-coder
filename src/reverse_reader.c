@@ -114,7 +114,7 @@ void get_bit(unsigned int * cur, unsigned int * pos, struct decode_source * sour
 void get_byte(unsigned int * cur, unsigned int * pos, unsigned int * ind, unsigned int * size, unsigned char * buffer, struct decode_source * source)
 {
         if((*ind + 1) >= *size){
-            read_bytes(ind, &source->buffer_start, &source->content_start, size, buffer, source->file);
+            reverse_read_bytes(ind, &source->buffer_start, &source->content_start, size, buffer, source->file);
         } else {
             *ind += 1;
         }
@@ -122,7 +122,7 @@ void get_byte(unsigned int * cur, unsigned int * pos, unsigned int * ind, unsign
         *pos = 8;
 }
 
-void read_bytes(unsigned int * ind, unsigned int * start, unsigned int * content, unsigned int * size, unsigned char * buffer, FILE * file)
+void reverse_read_bytes(unsigned int * ind, unsigned int * start, unsigned int * content, unsigned int * size, unsigned char * buffer, FILE * file)
 {
     if(*start < (READER_BUFFER + *content)){
                     *size = *start - *content;

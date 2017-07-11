@@ -15,8 +15,14 @@ struct prelude_code_data
     uint64_t hi;
     uint64_t buffer[PRELUDE_BUFFER_SIZE];
     size_t index;
- }; 
-struct prelude_code_data * prepare_metadata(FILE * input_file, FILE * output_file, uint64_t initial_state);
+ };
+ struct prelude_functions
+ {
+    void (*func_encode)(struct prelude_code_data *,uint64_t);
+    void (*func_flush)(struct prelude_code_data *);
+    uint64_t (*func_decode)(struct prelude_code_data *);
+ };
+struct prelude_code_data * prepare_metadata(struct reader * reader_ptr, struct writer * writer_ptr, uint64_t initial_state);
 // ---------------
 // Variable byte
 // ---------------

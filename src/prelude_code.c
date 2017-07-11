@@ -1,22 +1,22 @@
 #include "prelude_code.h"
 
 
-struct prelude_code_data * prepare_metadata(FILE * input_file, FILE * output_file, uint64_t initial_state){
+struct prelude_code_data * prepare_metadata(struct reader * reader_ptr, struct writer * writer_ptr, uint64_t initial_state){
     struct prelude_code_data * metadata = (struct prelude_code_data *)malloc(sizeof(struct prelude_code_data));
     metadata->state = initial_state;
     metadata->lo = 0;
     metadata->hi = 0;
     metadata->index = 0;
-    if(output_file != NULL){
-        metadata->writer_ptr = initialise_writer(output_file);
+    if(writer_ptr != NULL){
+        metadata->writer_ptr = writer_ptr;
         metadata->bit_writer_ptr = initialise_bit_writer(metadata->writer_ptr);
     }
     else {
         metadata->writer_ptr = NULL;
         metadata->bit_writer_ptr = NULL;
     }
-    if(input_file != NULL){
-        metadata->reader_ptr = initialise_reader(input_file);
+    if(reader_ptr != NULL){
+        metadata->reader_ptr = reader_ptr;
         metadata->bit_reader_ptr = initialise_bit_reader(metadata->reader_ptr);
     }
     else {

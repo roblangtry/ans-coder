@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include "reader.h"
+#include "writer.h"
+#include "prelude_code.h"
 #ifndef BANS_CODE
 #define BANS_CODE
 #define BLOCK_LEN 131072
@@ -28,16 +31,16 @@ struct block_header
 };
 
 
-void bANS_encode(FILE * input_file, FILE * output_file);
-void write_meta_header(FILE * input_file, FILE * output_file);
-void process_encode_block(uint32_t * block, size_t block_size, FILE * output_file);
+void bANS_encode(FILE * input_file, FILE * output_file, struct prelude_functions * my_prelude_functions);
+void write_meta_header(FILE * input_file, struct writer * my_writer);
+void process_encode_block(uint32_t * block, size_t block_size, struct writer * my_writer, struct prelude_functions * my_prelude_functions);
 void process_encode(uint32_t symbol, uint64_t * state, struct block_header * header, struct output_obj * output);
 void write_output(uint64_t * state, struct output_obj * output);
-void write_block(uint64_t state, struct block_header * header, struct output_obj * output);
+void write_block(uint64_t state, struct block_header * header, struct output_obj * output, struct writer * my_writer, struct prelude_functions * my_prelude_functions);
 struct output_obj get_output_obj(FILE * output_file);
 struct block_header calculate_block_header(uint32_t * block, size_t block_size);
-void bANS_decode(FILE * input_file, FILE * output_file);
-void process_decode_block(FILE * input_file, FILE * output_file);
+void bANS_decode(FILE * input_file, FILE * output_file, struct prelude_functions * my_prelude_functions);
+void process_decode_block(struct reader * my_reader, FILE * output_file, struct prelude_functions * my_prelude_functions);
 void process_decode(uint64_t * state, struct block_header * header, uint32_t * output);
-struct block_header read_block_header(FILE * input_file, uint64_t * state);
+struct block_header read_block_header(uint64_t * state, struct reader * my_reader, struct prelude_functions * my_prelude_functions);
 #endif

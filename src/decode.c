@@ -5,6 +5,10 @@ int decode(char * input_filename, char * output_filename, unsigned char verbose_
     unsigned char method;
     FILE * input_file;
     FILE * output_file;
+    struct prelude_functions * my_prelude_functions = malloc(sizeof(struct prelude_functions));
+    my_prelude_functions->func_encode = vbyte_encode;
+    my_prelude_functions->func_flush = vbyte_flush;
+    my_prelude_functions->func_decode = vbyte_decode;
     if(verbose_flag == 1){
         printf("Input filename:  %s\n", input_filename);
         printf("Output filename: %s\n", output_filename);
@@ -37,7 +41,7 @@ int decode(char * input_filename, char * output_filename, unsigned char verbose_
     } else{
         if(verbose_flag == 1)
             printf("bANS compression scheme\n");
-        bANS_decode(input_file, output_file);
+        bANS_decode(input_file, output_file, my_prelude_functions);
         return -1;
     }
     return 1;

@@ -1,34 +1,40 @@
 #include "prelude.h"
-void write_symbol_prelude(uint32_t * symbols, uint32_t * symbol_frequencies, size_t * no_symbols, FILE * output_file, uint64_t * state, size_t * content_length)
+void write_symbol_prelude(uint32_t * symbols, uint32_t * symbol_frequencies, size_t * no_symbols, uint64_t * state, size_t * content_length, struct writer * my_writer, struct prelude_functions * my_prelude_functions)
 {
-    fwrite(state, sizeof(uint64_t), 1, output_file);
-    fwrite(no_symbols, sizeof(size_t), 1, output_file);
-    fwrite(content_length, sizeof(size_t), 1, output_file);
-    struct bitlevel_file_pointer * bfp = get_bitlevel_file_pointer(output_file);
+    struct prelude_code_data * metadata = prepare_metadata(NULL, my_writer, 0);
+    my_prelude_functions->func_encode(metadata, *state);
+    my_prelude_functions->func_encode(metadata, *no_symbols);
+    my_prelude_functions->func_encode(metadata, *content_length);
+    //printf("state (%ld)\n", *state);
+    //printf("no_symbols (%ld)\n", *no_symbols);
+    //printf("content_length (%ld)\n", *content_length);
     uint64_t i = 0;
     uint64_t last_symbol = 0;
     while(i < *no_symbols){
-        write_elias_value(bfp, symbols[i] - last_symbol);
+        my_prelude_functions->func_encode(metadata, symbols[i] - last_symbol);
         last_symbol = symbols[i];
-        write_elias_value(bfp, symbol_frequencies[i]);
+        my_prelude_functions->func_encode(metadata, symbol_frequencies[i]);
         i++;
     }
-    bitlevel_flush(bfp);
+    my_prelude_functions->func_flush(metadata);
 }
-void read_symbol_prelude(size_t * no_symbols, FILE * input_file, uint32_t ** symbols, uint32_t ** symbol_frequencies, uint64_t * state, size_t * content_length)
+void read_symbol_prelude(size_t * no_symbols, uint32_t ** symbols, uint32_t ** symbol_frequencies, uint64_t * state, size_t * content_length, struct reader * my_reader, struct prelude_functions * my_prelude_functions)
 {
-    struct bitlevel_file_pointer * bfp = get_unbuffered_bitlevel_file_pointer(input_file);
     uint64_t i = 0;
     uint64_t last_symbol = 0;
-    fread(state, sizeof(uint64_t), 1, input_file);
-    fread(no_symbols, sizeof(size_t), 1, input_file);
-    fread(content_length, sizeof(size_t), 1, input_file);
+    struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
+    *state = my_prelude_functions->func_decode(metadata);
+    *no_symbols = my_prelude_functions->func_decode(metadata);
+    *content_length = my_prelude_functions->func_decode(metadata);
+    //printf("state (%ld)\n", *state);
+    //printf("no_symbols (%ld)\n", *no_symbols);
+    //printf("content_length (%ld)\n", *content_length);
     *symbols = malloc(sizeof(uint32_t) * (*no_symbols));
     *symbol_frequencies = malloc(sizeof(uint32_t) * (*no_symbols));
     while(i < *no_symbols){
-        (*symbols)[i] = (uint32_t)read_elias_value(bfp) + last_symbol;
+        (*symbols)[i] = my_prelude_functions->func_decode(metadata) + last_symbol;
         last_symbol = (*symbols)[i];
-        (*symbol_frequencies)[i] = (uint32_t)read_elias_value(bfp);
+        (*symbol_frequencies)[i] = my_prelude_functions->func_decode(metadata);
         i++;
     }
 }

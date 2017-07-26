@@ -19,12 +19,12 @@ void low_order_simple_test(
         func_encode(metadata, 1 + (i % 128));
         i++;
     }
-    clock_gettime(CLOCK_MONOTONIC_RAW, &end);
-    delta_us = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
-    printf("%ld,", delta_us);
     func_flush(metadata);
     flush_writer(metadata->writer_ptr);
     fclose(output_file);
+    clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+    delta_us = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
+    printf("%ld,", delta_us);
     input_file = fopen("test.stack", "r");
     metadata = prepare_metadata(initialise_reader(input_file), NULL, 0);
     i = 0;
@@ -61,12 +61,12 @@ void high_order_simple_test(
         func_encode(metadata, 10000000 + (i % 2000));
         i++;
     }
-    clock_gettime(CLOCK_MONOTONIC_RAW, &end);
-    delta_us = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
-    printf("%ld,", delta_us);
     func_flush(metadata);
     flush_writer(metadata->writer_ptr);
     fclose(output_file);
+    clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+    delta_us = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
+    printf("%ld,", delta_us);
     input_file = fopen("test.stack", "r");
     metadata = prepare_metadata(initialise_reader(input_file), NULL, 0);
     i = 0;
@@ -106,12 +106,12 @@ void complex_order_test(
         func_encode(metadata, sym);
         i++;
     }
-    clock_gettime(CLOCK_MONOTONIC_RAW, &end);
-    delta_us = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
-    printf("%ld,", delta_us);
     func_flush(metadata);
     flush_writer(metadata->writer_ptr);
     fclose(output_file);
+    clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+    delta_us = (end.tv_sec - start.tv_sec) * 1000000 + (end.tv_nsec - start.tv_nsec) / 1000;
+    printf("%ld,", delta_us);
     input_file = fopen("test.stack", "r");
     metadata = prepare_metadata(initialise_reader(input_file), NULL, 0);
     i = 0;

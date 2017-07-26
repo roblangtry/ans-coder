@@ -155,7 +155,7 @@ void ans_flush(struct prelude_code_data * metadata)
         s = metadata->buffer[metadata->index - meta_index - 1];
         ls = 1;
         bs = s - metadata->lo;
-        while(x > (ls * (b-1)))
+        while(x > ((ls * b)-1))
         {
             byte = x % b;
             output[output_index] = byte;
@@ -256,7 +256,7 @@ void ans_elias_flush(struct prelude_code_data * metadata)
         ls = 1 << ((max - log_lookup[s]) << 1);
         bs = m - (m >> log_lookup[s]);
         bs += ((s - (1 << log_lookup[s])) * ls);
-        while(x > (ls * (b-1)))
+        while(x > ((ls * b)-1))
         {
             byte = x % b;
             output[output_index] = byte;

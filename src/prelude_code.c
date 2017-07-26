@@ -236,7 +236,8 @@ void ans_elias_flush(struct prelude_code_data * metadata)
     uint64_t * log_lookup = calloc(metadata->hi + 1, sizeof(uint64_t));
     log_lookup[metadata->hi] = flog2(metadata->hi);
     uint64_t max = log_lookup[metadata->hi];
-    uint64_t m = 2 << (max << 1);
+    uint64_t m = 2 << max;
+    m = m << max;
     uint64_t x = m;
     uint64_t ls;
     uint64_t bs;
@@ -253,7 +254,8 @@ void ans_elias_flush(struct prelude_code_data * metadata)
         }
         s = metadata->buffer[metadata->index - meta_index - 1];
         if (log_lookup[s] == 0) log_lookup[s] = flog2(s);
-        ls = 1 << ((max - log_lookup[s]) << 1);
+        ls = 1 << (max - log_lookup[s]);
+        ls = ls << (max - log_lookup[s]);
         bs = m - (m >> log_lookup[s]);
         bs += ((s - (1 << log_lookup[s])) * ls);
         while(x > ((ls * b)-1))
@@ -307,8 +309,9 @@ void get_ans_elias_data(struct prelude_code_data * metadata)
     metadata->index = 0;
     metadata->hi = hi;
     uint64_t max = flog2(metadata->hi);
-    m = 2 << (max << 1);
-    uint64_t * log_lookup = calloc(m + 1, sizeof(uint64_t));
+    m = 2 << max;
+    m = m << max;
+    uint64_t * log_lookup = calloc(LOG_SIZE + 1, sizeof(uint64_t));
     while(i < num)
     {
         if (log_lookup[m - (x % m) - 1] == 0) log_lookup[m - (x % m) - 1] = flog2(m - (x % m) - 1);
@@ -323,7 +326,8 @@ void get_ans_elias_data(struct prelude_code_data * metadata)
         else r = v5 / (v4 / q);
         s = q + r;
         if (log_lookup[s] == 0) log_lookup[s] = flog2(s);
-        ls = 1 << ((max - log_lookup[s]) << 1);
+        ls = 1 << ((max - log_lookup[s]));
+        ls = ls << ((max - log_lookup[s]));
         bs = m - (m >> log_lookup[s]);
         bs += ((s - (1 << log_lookup[s])) * ls);
         metadata->buffer[i] = s;

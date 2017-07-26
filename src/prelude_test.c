@@ -149,5 +149,6 @@ int main(){
     printf("encoding,test,compression_time,decompression_time,compressed_size,no_symbols\n");
     test_battery(ans_encode,ans_flush,ans_decode,"ANS");
     test_battery(elias_encode,elias_flush,elias_decode,"ELIAS");
+    test_battery(ans_elias_encode,ans_elias_flush,ans_elias_decode,"ANS_ELIAS");
     test_battery(vbyte_encode,vbyte_flush,vbyte_decode,"VBYTE");
 }

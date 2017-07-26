@@ -1,8 +1,11 @@
 #include "writer.h"
 #include "reader.h"
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#ifndef PRELUDE_COMP_CODE
+#define PRELUDE_COMP_CODE
 #define PRELUDE_BUFFER_SIZE 1048576
 struct prelude_code_data
  {
@@ -57,8 +60,16 @@ uint64_t interp_decode(struct prelude_code_data * metadata);
 void ans_encode(struct prelude_code_data * metadata, uint64_t value);
 void ans_flush(struct prelude_code_data * metadata);
 uint64_t ans_decode(struct prelude_code_data * metadata);
-
+// ---------------
+// ANS elias coder
+// ---------------
+void ans_elias_encode(struct prelude_code_data * metadata, uint64_t value);
+void ans_elias_flush(struct prelude_code_data * metadata);
+uint64_t ans_elias_decode(struct prelude_code_data * metadata);
+void get_ans_elias_data(struct prelude_code_data * metadata);
 // void %SCHEME%_encode(struct prelude_code_data * metadata, uint64_t value);
 // void %SCHEME%_flush(struct prelude_code_data * metadata);
 // uint64_t %SCHEME%_decode(struct prelude_code_data * metadata);
 // just replace SCHEME with the scheme to add and follow the same format this will allow the modular application.
+uint64_t flog2(uint64_t value);
+#endif

@@ -7,6 +7,7 @@
 #ifndef PRELUDE_COMP_CODE
 #define PRELUDE_COMP_CODE
 #define PRELUDE_BUFFER_SIZE 1048576
+#define LOG_SIZE 524288
 struct prelude_code_data
  {
     struct writer * writer_ptr;

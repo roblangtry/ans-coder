@@ -91,7 +91,7 @@ void golomb_flush(struct prelude_code_data * metadata)
 }
 uint64_t golomb_decode(struct prelude_code_data * metadata)
 {
-
+    return 0;
 }
 
 // ---------------
@@ -121,7 +121,7 @@ void interp_flush(struct prelude_code_data * metadata)
 }
 uint64_t interp_decode(struct prelude_code_data * metadata)
 {
-
+    return 0;
 }
 // ---------------
 // ANS coder
@@ -150,7 +150,7 @@ void ans_flush(struct prelude_code_data * metadata)
         {
             output_mod += 1;
             size = PRELUDE_BUFFER_SIZE * output_mod * sizeof(unsigned char);
-            realloc(output, size);
+            if(realloc(output, size) == NULL) return;
         }
         s = metadata->buffer[metadata->index - meta_index - 1];
         ls = 1;
@@ -194,7 +194,6 @@ void get_ans_data(struct prelude_code_data * metadata)
     uint64_t s;
     uint64_t ls;
     uint64_t bs;
-    uint64_t b = 256;
     size_t num = vbyte_decode(metadata);
     size_t i = 0;
     unsigned char byte;
@@ -242,7 +241,6 @@ void ans_elias_flush(struct prelude_code_data * metadata)
     uint64_t ls;
     uint64_t bs;
     uint64_t s;
-    uint64_t snor;
     unsigned char byte;
     while(meta_index != metadata->index)
     {
@@ -250,7 +248,7 @@ void ans_elias_flush(struct prelude_code_data * metadata)
         {
             output_mod += 1;
             size = PRELUDE_BUFFER_SIZE * output_mod * sizeof(unsigned char);
-            realloc(output, size);
+            if(realloc(output, size) == NULL) return;
         }
         s = metadata->buffer[metadata->index - meta_index - 1];
         if (log_lookup[s] == 0) log_lookup[s] = flog2(s);
@@ -301,7 +299,6 @@ void get_ans_elias_data(struct prelude_code_data * metadata)
     uint64_t v3;
     uint64_t v4;
     uint64_t v5;
-    uint64_t b = 256;
     size_t num = vbyte_decode(metadata);
     size_t i = 0;
     unsigned char byte;

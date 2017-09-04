@@ -49,7 +49,7 @@ unsigned char buffer_read(struct bitlevel_file_pointer * bitlevel_file_pointer){
         byte = bitlevel_file_pointer->byte_buffer[bitlevel_file_pointer->current_byte];
         bitlevel_file_pointer->current_byte += 1;
     } else{
-        fread(&byte, sizeof(unsigned char), 1, bitlevel_file_pointer->file_pointer);
+        if(!fread(&byte, sizeof(unsigned char), 1, bitlevel_file_pointer->file_pointer)) byte = 0;
     }
     return byte;
 }

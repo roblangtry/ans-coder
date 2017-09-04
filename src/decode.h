@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "rANS.h"
-#include "tANS.h"
+#include "bANS.h"
 #include "preprocessing.h"
 #include "prelude_code.h"
 #ifndef DECODE_CODE

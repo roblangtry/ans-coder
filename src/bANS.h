@@ -4,6 +4,7 @@
 #include "reader.h"
 #include "writer.h"
 #include "prelude_code.h"
+#include "prelude.h"
 #ifndef BANS_CODE
 #define BANS_CODE
 #define BLOCK_LEN 131072

@@ -73,4 +73,6 @@ void get_ans_elias_data(struct prelude_code_data * metadata);
 // uint64_t %SCHEME%_decode(struct prelude_code_data * metadata);
 // just replace SCHEME with the scheme to add and follow the same format this will allow the modular application.
 uint64_t flog2(uint64_t value);
+void get_ans_data(struct prelude_code_data * metadata);
+
 #endif

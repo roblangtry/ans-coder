@@ -46,8 +46,7 @@ void put(unsigned char byte, struct buffered_writer * writer);
 void writer_flush(struct buffered_writer * writer);
 void write_out(uint symbol, struct buffered_uint_writer * writer);
 void write_flush(struct buffered_uint_writer * writer);
+void bit_writer_flush(struct buffered_writer * writer);
 void rANS_decode(FILE * input_file, FILE * output_file, struct header header, unsigned char verbose_flag);
-inline void calculate_state(struct header * header, struct preamble * preamble, uint64_t * symbol, uint64_t * state);
-inline uint64_t get_mod(uint64_t * state, uint64_t * m);
-inline uint64_t get_div(uint64_t * state, uint64_t * m, uint64_t * ls);
+
 #endif

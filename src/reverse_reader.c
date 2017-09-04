@@ -57,7 +57,7 @@ struct decode_source get_decoder_source(FILE * file, size_t start, size_t end){
     if(source.start == 1){
         source.buffer_start -= (sizeof(unsigned char));
         fseek(source.file, source.buffer_start, SEEK_SET);
-        fread(&value, sizeof(unsigned char), 1, source.file);
+        if (!fread(&value, sizeof(unsigned char), 1, source.file)) value = 0;
         source.position = value;
         if(source.buffer_start < (READER_BUFFER + source.content_start)){
             source.buffer_size = source.buffer_start - source.content_start;

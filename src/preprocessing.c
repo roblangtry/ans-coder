@@ -12,7 +12,6 @@ struct header preprocess(FILE * input_file){
     size_t elements_read;
     size_t i, n;
     struct header header;
-    uint64_t index;
     uint64_t symbol;
     header.max_symbol = 0;
     header.coding = 0;
@@ -135,8 +134,8 @@ struct header read_header(FILE * input_file, unsigned char * flag_byte){
     uint64_t i = 0;
     struct header header;
     header.coding = 1;
-    fread(&(header.no_symbols), sizeof(uint64_t), 1, input_file);
-    fread(&(header.no_unique_symbols), sizeof(uint64_t), 1, input_file);
+    if(!fread(&(header.no_symbols), sizeof(uint64_t), 1, input_file)) header.no_symbols = 0;
+    if(!fread(&(header.no_unique_symbols), sizeof(uint64_t), 1, input_file)) header.no_unique_symbols = 0;
     header.symbols = malloc(sizeof(uint64_t) * header.no_unique_symbols);
     header.symbol_frequencies = malloc(sizeof(uint64_t) * header.no_unique_symbols);
     while(i < header.no_unique_symbols){

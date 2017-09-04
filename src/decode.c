@@ -15,7 +15,7 @@ int decode(char * input_filename, char * output_filename, unsigned char verbose_
     }
     input_file = fopen(input_filename, "r");
     output_file = fopen(output_filename, "w");
-    fread(&flag_byte, sizeof(unsigned char), 1, input_file);
+    if(!fread(&flag_byte, sizeof(unsigned char), 1, input_file)) flag_byte = 0;
     if(flag_byte < 2){
         header = read_header(input_file, &flag_byte);
         if(verbose_flag == 1){
@@ -35,7 +35,7 @@ int decode(char * input_filename, char * output_filename, unsigned char verbose_
         } else if (method == 1){
             if(verbose_flag == 1)
                 printf("tANS compression scheme\n");
-            tANS_decode(input_file, output_file, header, verbose_flag);
+            /* tANS_decode(input_file, output_file, header, verbose_flag); */
             return -1;
         }
     } else{

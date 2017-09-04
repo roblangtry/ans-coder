@@ -29,4 +29,7 @@ struct reverse_reader get_reader(FILE * file);
 struct decode_source get_decoder_source(FILE * file, size_t start, size_t end);
 unsigned char yield_decoder_byte(struct decode_source * source);
 void yield_decoder_bit(struct decode_source * source, unsigned int * value);
+void get_bit(unsigned int * cur, unsigned int * pos, struct decode_source * source, unsigned int * value);
+void get_byte(unsigned int * cur, unsigned int * pos, unsigned int * ind, unsigned int * size, unsigned char * buffer, struct decode_source * source);
+void reverse_read_bytes(unsigned int * ind, unsigned int * start, unsigned int * content, unsigned int * size, unsigned char * buffer, FILE * file);
 #endif

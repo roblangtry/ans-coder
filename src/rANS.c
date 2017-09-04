@@ -26,8 +26,7 @@ void rANS_encode(FILE * input_file, FILE * output_file, struct header header){
 }
 struct preamble build_preamble(struct header header, int imax){
     struct preamble preamble;
-    uint64_t i, x, y, prev, c;
-    size_t lut_size;
+    uint64_t x, y, prev, c;
     preamble.symbol_state = malloc(sizeof(uint32_t) * header.no_symbols);
     preamble.cumalative_frequency = malloc(sizeof(uint64_t) * header.no_unique_symbols);
     if(imax == 1)
@@ -37,8 +36,7 @@ struct preamble build_preamble(struct header header, int imax){
     c = 0;
     preamble.write_size = 1 << (BITS_TO_WRITE_OUT);
     preamble.bits_to_write = BITS_TO_WRITE_OUT;
-    preamble.I = header.no_symbols << preamble.bits_to_write - 1;
-    lut_size = sizeof(uint64_t) * preamble.write_size;
+    preamble.I = (header.no_symbols << preamble.bits_to_write) - 1;
     while (x < header.no_unique_symbols){
         preamble.cumalative_frequency[x] = prev;
         prev = prev + header.symbol_frequencies[x];
@@ -121,7 +119,7 @@ void rANS_decode(FILE * input_file, FILE * output_file, struct header header, un
     size = ftell(input_file);
     content_end = size - sizeof(uint64_t);
     fseek(input_file, content_end, SEEK_SET);
-    fread(&state, sizeof(uint64_t), 1, input_file);
+    if(!fread(&state, sizeof(uint64_t), 1, input_file)) state = 0;
     current = 0;
     writer.max_size = OUT_BUFFER_SIZE;
     writer.size = 0;
@@ -162,16 +160,4 @@ void write_flush(struct buffered_uint_writer * writer){
         writer->size = 0;
     }
     fflush(writer->file);
-}
-
-inline void calculate_state(struct header * header, struct preamble * preamble, uint64_t * symbol, uint64_t * state){
-    *symbol = preamble->symbol_state[get_mod(state , &header->no_symbols)];
-    *state = ((get_div(state , &header->no_symbols, &header->symbol_frequencies[*symbol]))) + (get_mod(state , &header->no_symbols)) - preamble->cumalative_frequency[*symbol];
-}
-inline uint64_t get_mod(uint64_t * state, uint64_t * m){
-    return *state - *m;
-}
-inline uint64_t get_div(uint64_t * state, uint64_t * m, uint64_t * ls){
-    return *ls;
-
 }

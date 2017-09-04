@@ -183,7 +183,6 @@ struct block_header read_block_header(uint64_t * state, struct reader * my_reade
     size_t i = 0;
     size_t ind = 0;
     uint32_t cumalative_freq = 0;
-    uint32_t * x;
     read_symbol_prelude(&(header.no_symbols), &(header.symbol), &(header.freq), state, &(header.content_length), my_reader, my_prelude_functions);
     header.cumalative_freq = malloc(sizeof(uint32_t) * header.no_symbols);
     header.symbol_state = malloc(sizeof(size_t) * BLOCK_LEN);

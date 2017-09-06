@@ -1,5 +1,5 @@
 EXECUTABLE_NAME = ans-coder
-CFLAGS = -Wall -pedantic -O3
+CFLAGS = -Wall -pedantic -O3 -fopenmp
 
 build:
 	gcc $(CFLAGS) src/*.c -lm -o $(EXECUTABLE_NAME)

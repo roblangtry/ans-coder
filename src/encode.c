@@ -10,8 +10,8 @@ int encode(char * input_filename, char * output_filename, unsigned char method_f
     my_prelude_functions->func_flush = vbyte_flush;
     my_prelude_functions->func_decode = vbyte_decode;
     if(verbose_flag == 1){
-        printf("Input filename:  %s\n", input_filename);
-        printf("Output filename: %s\n", output_filename);
+        fprintf(stderr, "Input filename:  %s\n", input_filename);
+        fprintf(stderr, "Output filename: %s\n", output_filename);
     }
     input_file = fopen(input_filename, "r");
     output_file = fopen(output_filename, "w");
@@ -20,30 +20,30 @@ int encode(char * input_filename, char * output_filename, unsigned char method_f
         header = preprocess(input_file);
         writeout_header(output_file, header, flag_byte);
         if(verbose_flag == 1){
-            printf("===========================\n");
-            printf("  Header\n");
-            printf("---------------------------\n");
-            printf("no_symbols: %ld\n", (long)header.no_symbols);
-            printf("no_unique_symbols: %ld\n", (long)header.no_unique_symbols);
-            printf("===========================\n");
+            fprintf(stderr, "===========================\n");
+            fprintf(stderr, "  Header\n");
+            fprintf(stderr, "---------------------------\n");
+            fprintf(stderr, "no_symbols: %ld\n", (long)header.no_symbols);
+            fprintf(stderr, "no_unique_symbols: %ld\n", (long)header.no_unique_symbols);
+            fprintf(stderr, "===========================\n");
             i = 0;
             while(i < header.no_unique_symbols){
-                printf("SYM %ld | FRQ %ld\n",
+                fprintf(stderr, "SYM %ld | FRQ %ld\n",
                 (long)header.symbols[i],
                 (long)header.symbol_frequencies[i]);
                 i++;
             }
-            printf("===========================\n");
+            fprintf(stderr, "===========================\n");
         }
         if (method_flag == 1){
             if(verbose_flag == 1)
-                printf("tANS compression scheme\n");
+                fprintf(stderr, "tANS compression scheme\n");
             /* tANS_encode(input_file, output_file, header); */
             return 1;
         }
         if (method_flag == 0){
             if(verbose_flag == 1)
-                printf("rANS compression scheme\n");
+                fprintf(stderr, "rANS compression scheme\n");
             rANS_encode(input_file, output_file, header);
         }
 
@@ -51,7 +51,7 @@ int encode(char * input_filename, char * output_filename, unsigned char method_f
     else {
         fwrite(&flag_byte, sizeof(unsigned char), 1, output_file);
         if(verbose_flag == 1)
-            printf("bANS compression scheme\n");
+            fprintf(stderr, "bANS compression scheme\n");
         bANS_encode(input_file, output_file, my_prelude_functions);
 
     }

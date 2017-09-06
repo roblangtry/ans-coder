@@ -15,4 +15,5 @@ uint32_t elias_gamma_decode(uint32_t * V, t_breader * reader);
 void elias_delta_encode(uint32_t value, t_bwriter * writer);
 uint32_t elias_delta_decode(uint32_t * V, t_breader * reader);
 uint32_t mylog(uint32_t value);
+uint32_t flylog( uint32_t x );
 #endif

@@ -4,7 +4,7 @@
 #ifndef BUFFER_CODE
 #define BUFFER_CODE
 typedef struct {
-    uint32_t current;
+    uint64_t current;
     uint32_t read;
     uint32_t clen;
     uint32_t blen;

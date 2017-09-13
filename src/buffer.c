@@ -21,6 +21,19 @@ buffer_bit(int bit, bit_buffer * buffer)
     }
 }
 void
+buffer_bits(int bits, int len, bit_buffer * buffer)
+{
+    buffer->current = (buffer->current << len) + bits;
+    buffer->clen += len;
+    while(buffer->clen >= 32)
+    {
+        buffer->clen -= 32;
+        buffer->buffer[buffer->blen] = buffer->current >> buffer->clen;
+        buffer->current -= buffer->buffer[buffer->blen++] << buffer->clen;
+    }
+
+}
+void
 set_buffer(uint32_t value, uint32_t len, bit_buffer * buffer)
 {
     buffer->clen = len;

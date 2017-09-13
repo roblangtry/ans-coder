@@ -4,10 +4,11 @@ int pans_encode()
 {
     C_block_t * block = malloc(sizeof(C_block_t));
     t_bwriter * writer = malloc(sizeof(t_bwriter));
+    C_data_t * data = malloc(sizeof(C_data_t));
     start_bwriter(writer);
     while((block->len = fread(block->content, sizeof(uint32_t), BLOCK_SIZE, stdin)) > 0){
         binary_encode(MAGIC, MAGIC_LENGTH, writer);
-        parralel_encode_block(block, writer);
+        parralel_encode_block(block, writer, data);
     }
     nio_flush_bits(writer);
     return 0;
@@ -31,18 +32,19 @@ int pans_decode()
     nio_flush_ints(writer);
     return 0;
 }
-void parralel_encode_block(C_block_t * block, t_bwriter * writer)
+void parralel_encode_block(C_block_t * block, t_bwriter * writer, C_data_t * data)
 {
-    uint32_t * l = calloc(SYMBOL_MAP_SIZE, sizeof(uint32_t));
-    uint32_t * b;
+    uint32_t * l = data->l;
+    uint32_t * b = data->b;
     uint64_t state;
     uint32_t p1,p2;
     uint32_t Is, x, n=0;
-    uint32_t * syms;
+    uint32_t * syms = data->syms;
     uint32_t m = block->len;
     uint32_t xmax = 0;
     uint32_t * M = block->content;
-    uint32_t i, track=0, add=0;
+    uint32_t i, track=0, add=0,v,j;
+    memset(l, 0, SYMBOL_MAP_SIZE * sizeof(uint32_t));
     bit_buffer * buffer = malloc(sizeof(bit_buffer));
     for(i = 0; i < m; i++)
     {
@@ -53,8 +55,6 @@ void parralel_encode_block(C_block_t * block, t_bwriter * writer)
         }
         l[x] += 1;
     }
-    b = malloc(xmax * sizeof(uint32_t));
-    syms = malloc(n * sizeof(uint32_t));
     n = 0;
     for(i=0;i<=xmax;i++){
         if(l[i]){
@@ -69,11 +69,15 @@ void parralel_encode_block(C_block_t * block, t_bwriter * writer)
     start_buffer(buffer);
     for(i=0;i<m;i++)
     {
+        v=0;
+        j=0;
         while(state > ((l[M[m-i-1]] << 1) -1)){
-            buffer_bit(state & 1, buffer);
+            v = (v << 1) + (state & 1);
+            j++;
             //fprintf(stderr, "OUT %d\n", state & 1);
             state = state >> 1;
         }
+        buffer_bits(v, j, buffer);
         //fprintf(stderr, "S (%d)\n", state);
         state = m * (state / l[M[m-i-1]]) + b[M[m-i-1]] + (state % l[M[m-i-1]]);
     }

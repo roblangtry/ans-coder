@@ -26,7 +26,7 @@ int decode(char * input_filename, char * output_filename, unsigned char verbose_
             fprintf(stderr, "no_unique_symbols: %ld\n", (long)header.no_unique_symbols);
             fprintf(stderr, "===========================\n");
         }
-        method = flag_byte % 2;
+        method = flag_byte % 4;
         if (method == 0){
             if(verbose_flag == 1)
                 fprintf(stderr, "rANS compression scheme\n");
@@ -39,12 +39,15 @@ int decode(char * input_filename, char * output_filename, unsigned char verbose_
             return -1;
         }
     } else{
-        if(verbose_flag == 1)
-            fprintf(stderr, "bANS compression scheme\n");
-        if(method == VECTOR_METHOD)
+        method = flag_byte % 8;
+        if(method == VECTOR_METHOD){
+            if(verbose_flag == 1) fprintf(stderr, "vANS compression scheme\n");
             vANS_decode(input_file, output_file, my_prelude_functions);
-        else
+        }
+        else{
+            if(verbose_flag == 1) fprintf(stderr, "bANS compression scheme\n");
             bANS_decode(input_file, output_file, my_prelude_functions);
+        }
         return -1;
     }
     return 1;

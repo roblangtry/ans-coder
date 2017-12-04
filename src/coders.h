@@ -10,7 +10,7 @@ static uint32_t first = 0;
 static uint32_t logs[SYMBOL_MAP_SIZE];
 static inline uint32_t flylog( uint32_t x )
 {
-  uint32_t ans = 0;
+  uint32_t ans = 1;
   while(x>>=1) ans++;
   return ans;
 }
@@ -25,6 +25,7 @@ static inline uint32_t mylog(uint32_t value){
                 width = 1 << length;
                 length++;
             }
+            if (flylog(index) != length) fprintf(stderr, "[%d] f = %d  l = %d\n", index, flylog(index), length);
             logs[index++] = length;
             width--;
         }
@@ -78,7 +79,7 @@ unary_decode(uint32_t * V, t_breader * reader)
 static inline void
 elias_gamma_encode(uint32_t value, t_bwriter * writer)
 {
-    uint32_t l = mylog(value);
+    uint32_t l = flylog(value);
     unary_encode(l+1, writer);
     binary_encode(value, l, writer);
 }
@@ -99,7 +100,7 @@ elias_gamma_decode(uint32_t * V,t_breader * reader)
 static inline void
 elias_delta_encode(uint32_t value, t_bwriter * writer)
 {
-    uint32_t l = mylog(value);
+    uint32_t l = flylog(value);
     elias_gamma_encode(l+1, writer);
     binary_encode(value, l, writer);
 }

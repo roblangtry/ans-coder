@@ -9,6 +9,7 @@
 #ifndef PANS_CODE
 #define PANS_CODE
 #define THREADS 32
+#define NB 1000
 #define MIN(a,b) (((a)<(b))?(a):(b))
 typedef struct {
     uint32_t len;

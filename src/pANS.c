@@ -2,14 +2,17 @@
 
 int pans_encode()
 {
-    C_block_t * block = malloc(sizeof(C_block_t));
+    C_block_t * block = malloc(sizeof(C_block_t) * NB);
     t_bwriter * writer = malloc(sizeof(t_bwriter));
     C_data_t * data = malloc(sizeof(C_data_t));
+    int i = 0,n=0;
     start_bwriter(writer);
-    while((block->len = fread(block->content, sizeof(uint32_t), BLOCK_SIZE, stdin)) > 0){
+    while((block[i].len = fread(block[i].content, sizeof(uint32_t), BLOCK_SIZE, stdin)) > 0){
         //binary_encode(MAGIC, MAGIC_LENGTH, writer);
-        parralel_encode_block(block, writer, data);
+        i++;
     }
+    while(n < i)
+        parralel_encode_block(&block[n++], writer, data);
     nio_flush_bits(writer);
     return 0;
 }
@@ -45,7 +48,6 @@ void parralel_encode_block(C_block_t * block, t_bwriter * writer, C_data_t * dat
     uint32_t xmax = 0;
     uint32_t * M = block->content;
     uint32_t i, track=0, add=0,v,j;
-    memset(l, 0, SYMBOL_MAP_SIZE * sizeof(uint32_t));
     bit_buffer * buffer = &data->buffer;
     for(i = 0; i < m; i++)
     {
@@ -91,8 +93,9 @@ void parralel_encode_block(C_block_t * block, t_bwriter * writer, C_data_t * dat
     for(i=0;i<n;i++)
     {
         elias_delta_encode(syms[i]-add, writer);
-        elias_delta_encode(l[syms[i]], writer);
         add = syms[i];
+        elias_delta_encode(l[add], writer);
+        l[add] = 0;
     }
     for(i=0;i<buffer->blen;i++)
         binary_encode(buffer->buffer[i], 32, writer);

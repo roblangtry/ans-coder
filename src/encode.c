@@ -52,7 +52,10 @@ int encode(char * input_filename, char * output_filename, unsigned char method_f
         fwrite(&flag_byte, sizeof(unsigned char), 1, output_file);
         if(verbose_flag == 1)
             fprintf(stderr, "bANS compression scheme\n");
-        bANS_encode(input_file, output_file, my_prelude_functions);
+        if(method_flag == VECTOR_METHOD)
+            vANS_encode(input_file, output_file, my_prelude_functions);
+        else
+            bANS_encode(input_file, output_file, my_prelude_functions);
 
     }
 

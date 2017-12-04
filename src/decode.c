@@ -41,7 +41,10 @@ int decode(char * input_filename, char * output_filename, unsigned char verbose_
     } else{
         if(verbose_flag == 1)
             fprintf(stderr, "bANS compression scheme\n");
-        bANS_decode(input_file, output_file, my_prelude_functions);
+        if(method == VECTOR_METHOD)
+            vANS_decode(input_file, output_file, my_prelude_functions);
+        else
+            bANS_decode(input_file, output_file, my_prelude_functions);
         return -1;
     }
     return 1;

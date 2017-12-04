@@ -9,7 +9,7 @@ int main ( int argc, char *argv[] ){
     method_flag = RANGE_METHOD;
     verbose_flag = 0;
     indent = 0;
-    while((c = getopt(argc, argv, "bdetrvp")) != -1){
+    while((c = getopt(argc, argv, "bdetrvpV")) != -1){
         switch(c)
         {
             case 'd':
@@ -27,6 +27,10 @@ int main ( int argc, char *argv[] ){
                 break;
             case 'b':
                 method_flag = BLOCK_METHOD;
+                indent = 1;
+                break;
+            case 'V':
+                method_flag = VECTOR_METHOD;
                 indent = 1;
                 break;
             case 'r':

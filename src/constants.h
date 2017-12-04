@@ -8,3 +8,4 @@
 #define BLOCK_METHOD 2
 #define PARRALEL_METHOD 1
 #define TABLE_METHOD 3
+#define VECTOR_METHOD 4

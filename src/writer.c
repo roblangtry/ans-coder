@@ -57,7 +57,7 @@ uint64_t write_bits(uint64_t value, uint64_t length, struct bit_writer * my_bit_
     while(my_bit_writer->length >= 8){
         my_bit_writer->length -= 8;
         byte = my_bit_writer->buffer >> my_bit_writer->length;
-        my_bit_writer->buffer = my_bit_writer->buffer - (byte << my_bit_writer->length);
+        my_bit_writer->buffer = my_bit_writer->buffer % (1 << my_bit_writer->length);//- (byte << my_bit_writer->length);
         write_amount += write_byte(byte, my_bit_writer->my_writer);
     }
     return write_amount;
@@ -75,7 +75,7 @@ uint64_t flush_bit_writer(struct bit_writer * my_bit_writer)
         write_amount += write_byte(byte, my_bit_writer->my_writer);
     }
     if(my_bit_writer->length > 0){
-        byte = my_bit_writer->buffer;
+        byte = my_bit_writer->buffer << (8 - my_bit_writer->length);
         my_bit_writer->buffer = 0;
         my_bit_writer->length = 0;
         write_amount += write_byte(byte, my_bit_writer->my_writer);

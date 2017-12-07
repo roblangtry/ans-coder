@@ -40,6 +40,12 @@ void elias_encode(struct prelude_code_data * metadata, uint64_t value);
 void elias_flush(struct prelude_code_data * metadata);
 uint64_t elias_decode(struct prelude_code_data * metadata);
 // ---------------
+// Delta
+// ---------------
+void delta_encode(struct prelude_code_data * metadata, uint64_t value);
+void delta_flush(struct prelude_code_data * metadata);
+uint64_t delta_decode(struct prelude_code_data * metadata);
+// ---------------
 // Golomb
 // ---------------
 void golomb_encode(struct prelude_code_data * metadata, uint64_t value);
@@ -74,5 +80,6 @@ void get_ans_elias_data(struct prelude_code_data * metadata);
 // just replace SCHEME with the scheme to add and follow the same format this will allow the modular application.
 uint64_t flog2(uint64_t value);
 void get_ans_data(struct prelude_code_data * metadata);
+uint64_t loggy(uint64_t value);
 
 #endif

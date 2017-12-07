@@ -6,9 +6,9 @@ int encode(char * input_filename, char * output_filename, unsigned char method_f
     FILE * input_file;
     FILE * output_file;
     struct prelude_functions * my_prelude_functions = malloc(sizeof(struct prelude_functions));
-    my_prelude_functions->func_encode = vbyte_encode;
-    my_prelude_functions->func_flush = vbyte_flush;
-    my_prelude_functions->func_decode = vbyte_decode;
+    my_prelude_functions->func_encode = elias_encode;
+    my_prelude_functions->func_flush = elias_flush;
+    my_prelude_functions->func_decode = elias_decode;
     if(verbose_flag == 1){
         fprintf(stderr, "Input filename:  %s\n", input_filename);
         fprintf(stderr, "Output filename: %s\n", output_filename);

@@ -56,27 +56,56 @@ uint64_t vbyte_decode(struct prelude_code_data * metadata){
     return value;
 }
 // ---------------
+// Unary
+// ---------------
+void unary_encode(struct prelude_code_data * metadata, uint64_t value){
+    while(value > 1){
+        write_bits(1, 1, metadata->bit_writer_ptr);
+        value--;
+    }
+    write_bits(0, 1, metadata->bit_writer_ptr);
+}
+void unary_flush(struct prelude_code_data * metadata){
+    flush_bit_writer(metadata->bit_writer_ptr);
+}
+uint64_t unary_decode(struct prelude_code_data * metadata){
+    uint64_t value = 0;
+    unsigned char read = 1;
+    while(read == 1){
+        read = read_bits(1, metadata->bit_reader_ptr);
+        value++;
+    }
+    return value;
+}
+// ---------------
 // Elias
 // ---------------
 void elias_encode(struct prelude_code_data * metadata, uint64_t value){
-    uint64_t zlength = ((int)log2(value));
-    uint64_t length = zlength + 1;
-    write_bits(0, zlength, metadata->bit_writer_ptr);
-    write_bits(value, length, metadata->bit_writer_ptr);
+    uint64_t z = loggy(value);
+    unary_encode(metadata, z+1);
+    write_bits(value, z, metadata->bit_writer_ptr);
 }
 void elias_flush(struct prelude_code_data * metadata){
     flush_bit_writer(metadata->bit_writer_ptr);
 }
 uint64_t elias_decode(struct prelude_code_data * metadata){
-    uint no_zeroes = 0;
-    uint64_t value = 0;
-    while(value == 0){
-        value += read_bits(1, metadata->bit_reader_ptr);
-        if(value == 0) no_zeroes++;
-    }
-    value = value << no_zeroes;
-    if(no_zeroes > 0) value += read_bits(no_zeroes, metadata->bit_reader_ptr);
-    return value;
+    uint64_t z = unary_decode(metadata) - 1;
+    return read_bits(z, metadata->bit_reader_ptr);
+}
+// ---------------
+// Delta
+// ---------------
+void delta_encode(struct prelude_code_data * metadata, uint64_t value){
+    uint64_t z = loggy(value);
+    elias_encode(metadata, z+1);
+    write_bits(value, z, metadata->bit_writer_ptr);
+}
+void delta_flush(struct prelude_code_data * metadata){
+    flush_bit_writer(metadata->bit_writer_ptr);
+}
+uint64_t delta_decode(struct prelude_code_data * metadata){
+    uint64_t z = elias_decode(metadata) - 1;
+    return read_bits(z, metadata->bit_reader_ptr);
 }
 // ---------------
 // Golomb
@@ -341,4 +370,11 @@ void get_ans_elias_data(struct prelude_code_data * metadata)
 uint64_t flog2(uint64_t value)
 {
     return floor(log(value) / log(2));
+}
+
+uint64_t loggy(uint64_t value)
+{
+    uint64_t i = 1;
+    while(value>>=1) i++;
+    return i;
 }

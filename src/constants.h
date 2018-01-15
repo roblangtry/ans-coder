@@ -9,3 +9,5 @@
 #define PARRALEL_METHOD 1
 #define TABLE_METHOD 3
 #define VECTOR_METHOD 4
+#define ESCAPE_METHOD 5
+#define SPLIT_METHOD 6

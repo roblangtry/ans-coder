@@ -21,7 +21,6 @@ int pans_decode()
     t_breader * reader = malloc(sizeof(t_breader));
     t_iwriter * writer = malloc(sizeof(t_iwriter));
     D_data_t * data = malloc(sizeof(D_data_t));
-    uint32_t V;
     io_back backfeed;
     start_breader(reader);
     start_iwriter(writer);
@@ -42,7 +41,7 @@ void parralel_encode_block(C_block_t * block, t_bwriter * writer, C_data_t * dat
     uint32_t * b = data->b;
     uint64_t state;
     uint32_t p1,p2;
-    uint32_t Is, x, n=0;
+    uint32_t x, n=0;
     uint32_t * syms = data->syms;
     uint32_t m = block->len;
     uint32_t xmax = 0;
@@ -66,7 +65,6 @@ void parralel_encode_block(C_block_t * block, t_bwriter * writer, C_data_t * dat
             track += l[i];
         }
     }
-    Is = (m<<1) - 1;
     
     state = m;
     start_buffer(buffer);
@@ -105,8 +103,8 @@ void parralel_encode_block(C_block_t * block, t_bwriter * writer, C_data_t * dat
 uint32_t parralel_decode_block(t_breader * reader, t_iwriter * writer, io_back * backfeed, D_data_t * data)
 {
     uint64_t state;
-    uint32_t p1,p2;
-    uint32_t n,m,i,j,s,bs,ls,add=0, blen, clen, b_int;
+    uint32_t p1=0,p2=0;
+    uint32_t n=0,m,i,j,s,bs,add=0, blen=0, clen=0, b_int=0;
     uint32_t * l = data->l;
     uint32_t * b = data->b;
     uint32_t * syms = data->syms;
@@ -116,7 +114,8 @@ uint32_t parralel_decode_block(t_breader * reader, t_iwriter * writer, io_back *
     start_buffer(buffer);
     binary_decode(&p1, 32, reader);
     binary_decode(&p2, 32, reader);
-    state = (p1 << 32) + p2;
+    state = (p1 << 16);
+    state = (state << 16) + p2;
     elias_delta_decode(&n, reader);
     elias_delta_decode(&blen, reader);
     blen--;

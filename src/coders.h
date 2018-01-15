@@ -6,33 +6,11 @@
 #ifndef CODERS_CODE
 #define CODERS_CODE
 
-static uint32_t first = 0;
-static uint32_t logs[SYMBOL_MAP_SIZE];
 static inline uint32_t flylog( uint32_t x )
 {
   uint32_t ans = 1;
   while(x>>=1) ans++;
   return ans;
-}
-static inline uint32_t mylog(uint32_t value){
-    if(first == 0){
-        uint32_t index = 1;
-        uint32_t length = 0;
-        uint32_t width = 0;
-        while(index < SYMBOL_MAP_SIZE)
-        {
-            if(width == 0){
-                width = 1 << length;
-                length++;
-            }
-            if (flylog(index) != length) fprintf(stderr, "[%d] f = %d  l = %d\n", index, flylog(index), length);
-            logs[index++] = length;
-            width--;
-        }
-        first = 1;
-    }
-    if(value > SYMBOL_MAP_SIZE) return flylog(value);
-    return logs[value];
 }
 static inline void
 binary_encode(uint32_t value, uint32_t length, t_bwriter * writer)

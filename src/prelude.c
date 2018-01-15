@@ -17,6 +17,7 @@ void write_symbol_prelude(uint32_t * symbols, uint32_t * symbol_frequencies, siz
         i++;
     }
     my_prelude_functions->func_flush(metadata);
+    free_metadata(metadata);
 }
 void read_symbol_prelude(size_t * no_symbols, uint32_t ** symbols, uint32_t ** symbol_frequencies, uint64_t * state, size_t * content_length, struct reader * my_reader, struct prelude_functions * my_prelude_functions)
 {

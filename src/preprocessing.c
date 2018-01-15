@@ -17,7 +17,7 @@ struct header preprocess(FILE * input_file){
     header.coding = 0;
     header.no_symbols = 0;
     header.no_unique_symbols = 0;
-    header.hashmap = calloc(MAX_SYMBOL, sizeof(uint64_t));
+    header.hashmap = calloc(SYMBOL_MAP_SIZE, sizeof(uint64_t));
     //header.hashmap = initialise_hashmap();
     buffer = malloc(sizeof(uint) * BUFFER_SIZE);
     while((elements_read = fread(buffer, sizeof(uint), BUFFER_SIZE, input_file)) != 0){
@@ -58,32 +58,32 @@ void ** initialise_hashmap(){
     }
     return pointer;
 }
-uint64_t get_symbol_index(uint64_t symbol, struct header * header){
-    struct hashmap_node * current;
-    struct hashmap_node * last;
-    struct hashmap_node * node;
-    last = NULL;
-    current = header->hashmap[symbol % HASHMAP_SIZE];
-    if (current == NULL) {
-        node = add_symbol(symbol, header);
-        header->hashmap[symbol % HASHMAP_SIZE] = node;
-        return node->index;
-    } else {
-        while(current->next != NULL && current->symbol != symbol){
-            last = current;
-            current = current->next;
-        }
-        if(current->symbol == symbol){
-            if(last != NULL)
-                check_for_rearrangement(current, last, header);
-            return current->index;
-        } else{
-            node = add_symbol(symbol, header);
-            current->next = node;
-            return node->index;
-        }
-    }
-}
+// uint64_t get_symbol_index(uint64_t symbol, struct header * header){
+//     struct hashmap_node * current;
+//     struct hashmap_node * last;
+//     struct hashmap_node * node;
+//     last = NULL;
+//     current = header->hashmap[symbol % HASHMAP_SIZE];
+//     if (current == NULL) {
+//         node = add_symbol(symbol, header);
+//         header->hashmap[symbol % HASHMAP_SIZE] = node;
+//         return node->index;
+//     } else {
+//         while(current->next != NULL && current->symbol != symbol){
+//             last = current;
+//             current = current->next;
+//         }
+//         if(current->symbol == symbol){
+//             if(last != NULL)
+//                 check_for_rearrangement(current, last, header);
+//             return current->index;
+//         } else{
+//             node = add_symbol(symbol, header);
+//             current->next = node;
+//             return node->index;
+//         }
+//     }
+// }
 uint64_t safe_get_symbol_index(uint64_t symbol, struct header * header){
     return header->hashmap[symbol];
 }

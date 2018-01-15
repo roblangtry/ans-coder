@@ -1,6 +1,11 @@
 #include "prelude_code.h"
 
-
+void free_metadata(struct prelude_code_data * metadata)
+{
+    free_bit_writer(metadata->bit_writer_ptr);
+    free_bit_reader(metadata->bit_reader_ptr);
+    free(metadata);
+}
 struct prelude_code_data * prepare_metadata(struct reader * reader_ptr, struct writer * writer_ptr, uint64_t initial_state){
     struct prelude_code_data * metadata = (struct prelude_code_data *)malloc(sizeof(struct prelude_code_data));
     metadata->state = initial_state;
@@ -337,7 +342,7 @@ void get_ans_elias_data(struct prelude_code_data * metadata)
     uint64_t max = flog2(metadata->hi);
     m = 2 << max;
     m = m << max;
-    uint64_t * log_lookup = calloc(LOG_SIZE + 1, sizeof(uint64_t));
+    uint64_t * log_lookup = calloc(SYMBOL_MAP_SIZE + 1, sizeof(uint64_t));
     while(i < num)
     {
         if (log_lookup[m - (x % m) - 1] == 0) log_lookup[m - (x % m) - 1] = flog2(m - (x % m) - 1);

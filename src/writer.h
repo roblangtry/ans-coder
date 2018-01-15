@@ -24,6 +24,7 @@ uint64_t write_bytes(unsigned char * byte_array, size_t no_bytes, struct writer 
 uint64_t flush_writer(struct writer * my_writer);
 //bit writer functions
 struct bit_writer * initialise_bit_writer(struct writer * my_writer);
+void free_bit_writer(struct bit_writer * my_bit_writer);
 uint64_t write_bits(uint64_t value, uint64_t length, struct bit_writer * my_bit_writer);
 uint64_t flush_bit_writer(struct bit_writer * my_bit_writer);
 #endif

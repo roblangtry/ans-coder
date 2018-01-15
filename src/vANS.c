@@ -65,14 +65,14 @@ uint32_t iterate_vector(uint32_t hot_start, vector_t * vector)
 
 void vANS_encode(FILE * input_file, FILE * output_file, struct prelude_functions * my_prelude_functions)
 {
-    uint32_t block[BLOCK_LEN];
+    uint32_t block[BLOCK_SIZE];
     size_t size;
     struct writer * my_writer = initialise_writer(output_file);
     write_vector_meta_header(input_file, my_writer);
-    size = fread(block, sizeof(uint32_t), BLOCK_LEN, input_file);
+    size = fread(block, sizeof(uint32_t), BLOCK_SIZE, input_file);
     while(size > 0){
         process_encode_vector_block(block, size, my_writer, my_prelude_functions);
-        size = fread(block, sizeof(uint32_t), BLOCK_LEN, input_file);
+        size = fread(block, sizeof(uint32_t), BLOCK_SIZE, input_file);
     }
     flush_writer(my_writer);
 }
@@ -98,7 +98,7 @@ vector_t * prepare_common_vector(FILE * input_file, struct writer * my_writer)
 {
     unsigned char current[SYMBOL_MAP_SIZE];
     unsigned char total[SYMBOL_MAP_SIZE];
-    uint32_t block[BLOCK_LEN];
+    uint32_t block[BLOCK_SIZE];
     uint i;
     uint max;
     size_t size;
@@ -108,7 +108,7 @@ vector_t * prepare_common_vector(FILE * input_file, struct writer * my_writer)
         current[i] = 0;
         total[i] = 0;
     }
-    size = fread(block, sizeof(uint32_t), BLOCK_LEN, input_file);
+    size = fread(block, sizeof(uint32_t), BLOCK_SIZE, input_file);
     while(size > 0){
         count++;
         max = 0;
@@ -124,7 +124,7 @@ vector_t * prepare_common_vector(FILE * input_file, struct writer * my_writer)
                 current[i] = 0;
             }
         }
-        size = fread(block, sizeof(uint32_t), BLOCK_LEN, input_file);
+        size = fread(block, sizeof(uint32_t), BLOCK_SIZE, input_file);
     }
     for(i=0;i<SYMBOL_MAP_SIZE;i++)
     {
@@ -139,11 +139,11 @@ void write_vector_meta_header(FILE * input_file, struct writer * my_writer)
     size_t size;
     uint32_t no_blocks;
     struct prelude_code_data * metadata = prepare_metadata(NULL, my_writer, 0);
-    vector_t * common_vector;
+    // vector_t * common_vector;
     fseek(input_file, 0, SEEK_END);
     size = ftell(input_file);
-    no_blocks = (size / sizeof(uint32_t)) / BLOCK_LEN;
-    if(((size / sizeof(uint32_t)) % BLOCK_LEN) > 0)
+    no_blocks = (size / sizeof(uint32_t)) / BLOCK_SIZE;
+    if(((size / sizeof(uint32_t)) % BLOCK_SIZE) > 0)
         no_blocks += 1;
     fseek(input_file, 0, SEEK_SET);
     //common_vector = prepare_common_vector(input_file, my_writer);
@@ -157,7 +157,7 @@ void vANS_decode(FILE * input_file, FILE * output_file, struct prelude_functions
     uint32_t i = 0;
     struct reader * my_reader = initialise_reader(input_file);
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
-    vector_t * common_vector;
+    // vector_t * common_vector;
     no_blocks = elias_decode(metadata);
     //common_vector = read_vector(metadata);
     while(i < no_blocks){
@@ -196,7 +196,7 @@ struct block_header read_vector_block_header(uint64_t * state, struct reader * m
     uint32_t cumalative_freq = 0;
     read_vector_symbol_prelude(&(header.no_symbols), &(header.symbol), &(header.freq), state, &(header.content_length), my_reader, my_prelude_functions);
     header.cumalative_freq = malloc(sizeof(uint32_t) * header.no_symbols);
-    header.symbol_state = malloc(sizeof(size_t) * BLOCK_LEN);
+    header.symbol_state = malloc(sizeof(size_t) * BLOCK_SIZE);
     while(i < header.no_symbols){
         header.cumalative_freq[i] = cumalative_freq;
         cumalative_freq += header.freq[i];
@@ -252,8 +252,8 @@ void read_vector_symbol_prelude(size_t * no_symbols, uint32_t ** symbols, uint32
     *symbol_frequencies = malloc(sizeof(uint32_t) * (*no_symbols));
     while(i < *no_symbols){
         (*symbols)[i] = iterate_vector(last_symbol, vector);
-        fprintf(stderr, "S %d\n", last_symbol);
-        sleep(1);
+        //fprintf(stderr, "S %d\n", last_symbol);
+        // sleep(1);
         last_symbol = (*symbols)[i];
         (*symbol_frequencies)[i] = elias_decode(metadata);
         i++;

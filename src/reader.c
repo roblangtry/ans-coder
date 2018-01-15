@@ -41,6 +41,10 @@ struct bit_reader * initialise_bit_reader(struct reader * my_reader)
     my_bit_reader->length = 0;
     return my_bit_reader;
 }
+void free_bit_reader(struct bit_reader * my_bit_reader)
+{
+    free(my_bit_reader);
+}
 uint64_t read_bits(uint64_t length, struct bit_reader * my_bit_reader){
     unsigned char byte;
     uint64_t value;

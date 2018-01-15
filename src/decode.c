@@ -44,9 +44,17 @@ int decode(char * input_filename, char * output_filename, unsigned char verbose_
             if(verbose_flag == 1) fprintf(stderr, "vANS compression scheme\n");
             vANS_decode(input_file, output_file, my_prelude_functions);
         }
+        else if(method == ESCAPE_METHOD){
+            if(verbose_flag == 1) fprintf(stderr, "xANS compression scheme\n");
+            bANS_decode(input_file, output_file, my_prelude_functions, method);
+        }
+        else if(method == SPLIT_METHOD){
+            if(verbose_flag == 1) fprintf(stderr, "sANS compression scheme\n");
+            bANS_decode(input_file, output_file, my_prelude_functions, method);
+        }
         else{
             if(verbose_flag == 1) fprintf(stderr, "bANS compression scheme\n");
-            bANS_decode(input_file, output_file, my_prelude_functions);
+            bANS_decode(input_file, output_file, my_prelude_functions, method);
         }
         return -1;
     }

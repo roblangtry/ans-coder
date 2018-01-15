@@ -4,3 +4,4 @@
 #include "decode.h"
 #include "encode.h"
 #include "pANS.h"
+#include "tANS.h"

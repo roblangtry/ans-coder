@@ -1,5 +1,6 @@
 #include "writer.h"
 #include "reader.h"
+#include "constants.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,7 +8,6 @@
 #ifndef PRELUDE_COMP_CODE
 #define PRELUDE_COMP_CODE
 #define PRELUDE_BUFFER_SIZE 1048576
-#define LOG_SIZE 524288
 struct prelude_code_data
  {
     struct writer * writer_ptr;
@@ -26,6 +26,7 @@ struct prelude_code_data
     void (*func_flush)(struct prelude_code_data *);
     uint64_t (*func_decode)(struct prelude_code_data *);
  };
+void free_metadata(struct prelude_code_data * metadata);
 struct prelude_code_data * prepare_metadata(struct reader * reader_ptr, struct writer * writer_ptr, uint64_t initial_state);
 // ---------------
 // Variable byte

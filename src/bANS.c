@@ -93,7 +93,8 @@ void write_output(uint64_t * state, struct output_obj * output)
 
 void write_block(uint64_t state, struct block_header * header, struct output_obj * output, struct writer * my_writer, struct prelude_functions * my_prelude_functions)
 {
-    write_symbol_prelude(header->symbol, header->freq, &header->no_symbols, &state, &output->head, my_writer, my_prelude_functions);
+    size_t head = output->head;
+    write_symbol_prelude(header->symbol, header->freq, &header->no_symbols, &state, &head, my_writer, my_prelude_functions);
     write_bytes(output->output, output->head, my_writer);
 }
 void free_output_obj(struct output_obj obj)
@@ -199,7 +200,6 @@ struct block_header calculate_block_header(uint32_t * block, size_t block_size, 
     lookup_t * sym_lookup = build_lookup();
     size_t i = 0;
     size_t ind = 0;
-    size_t si;
     uint32_t V, O;
     uint32_t max_symbol = 0;
     uint32_t cumalative_freq = 0;

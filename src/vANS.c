@@ -91,7 +91,8 @@ void process_encode_vector_block(uint32_t * block, size_t block_size, struct wri
 }
 void write_vector_block(uint64_t state, struct block_header * header, struct output_obj * output, struct writer * my_writer, struct prelude_functions * my_prelude_functions)
 {
-    write_vector_symbol_prelude(header->symbol, header->freq, &header->no_symbols, &state, &output->head, my_writer, my_prelude_functions);
+    size_t head = output->head;
+    write_vector_symbol_prelude(header->symbol, header->freq, &header->no_symbols, &state, &head, my_writer, my_prelude_functions);
     write_bytes(output->output, output->head, my_writer);
 }
 vector_t * prepare_common_vector(FILE * input_file, struct writer * my_writer)

@@ -284,7 +284,7 @@ void bANS_decode(FILE * input_file, FILE * output_file, struct prelude_functions
 void standard_decode(uint64_t * state, struct block_header * header, uint32_t * output, struct output_obj * input)
 {
     process_decode(state, header, output);
-    while(*state < header->block_len && input->head >= 0){
+    while(*state < header->m && input->head >= 0){
         if(input->head >= 0)
         {
             input->head -= 1;
@@ -305,6 +305,19 @@ void split_decode(uint64_t * state, struct block_header * header, uint32_t * out
     }
     *output = V;
 }
+void reassess_len(struct block_header * header, int flag)
+{
+    if(flag == SPLIT_METHOD)
+    {
+        int i = 0;
+        header->block_len = 0;
+        while(i < header->no_symbols)
+        {
+            if(header->symbol[i] < (1 << (SPLIT_LENGTH - 1))) header->block_len += header->freq[i];
+            i++;
+        }
+    }
+}
 void process_decode_block(
     struct reader * my_reader,
     FILE * output_file,
@@ -316,7 +329,8 @@ void process_decode_block(
 
     uint32_t * output;
     struct block_header header = read_block_header(&state, my_reader, my_prelude_functions);
-    output = malloc(sizeof(uint32_t) * header.block_len);
+    if(flag == SPLIT_METHOD) reassess_len(&header, flag);
+    output = malloc(sizeof(uint32_t) * header.m);
     struct output_obj input;
     input.output = malloc(sizeof(unsigned char) * header.content_length);
     read_bytes(input.output, header.content_length, my_reader);
@@ -331,7 +345,7 @@ void process_decode_block(
 
 void process_decode(uint64_t * state, struct block_header * header, uint32_t * output)
 {
-    size_t index = header->symbol_state[*state % header->block_len];
+    size_t index = header->symbol_state[*state % header->m];
     uint32_t ls = header->freq[index];
     uint32_t bs = header->cumalative_freq[index];
     *output = header->symbol[index];
@@ -355,7 +369,7 @@ struct block_header read_block_header(uint64_t * state, struct reader * my_reade
     header.m = cumalative_freq;
     header.block_len = cumalative_freq;
     i = 0;
-    while(i < header.block_len){
+    while(i < header.m){
         if(ind < (header.no_symbols-1) && i >= header.cumalative_freq[ind + 1])
             ind += 1;
         header.symbol_state[i] = ind;

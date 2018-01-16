@@ -27,6 +27,7 @@ void write_meta_header(FILE * input_file, struct writer * my_writer)
         no_blocks += 1;
     fseek(input_file, 0, SEEK_SET);
     vbyte_encode(metadata, no_blocks);
+    free_metadata(metadata);
 }
 void standard_encode(uint32_t symbol, uint64_t * state, struct block_header * header, struct output_obj * output)
 {
@@ -283,11 +284,11 @@ void bANS_decode(FILE * input_file, FILE * output_file, struct prelude_functions
     struct reader * my_reader = initialise_reader(input_file);
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
     no_blocks = vbyte_decode(metadata);
+    free_metadata(metadata);
     while(i < no_blocks){
         process_decode_block(my_reader, output_file, my_prelude_functions,flag);
         i++;
     }
-    free(metadata);
 }
 void standard_decode(uint64_t * state, struct block_header * header, uint32_t * output, struct output_obj * input)
 {
@@ -318,12 +319,14 @@ void reassess_len(struct block_header * header, int flag)
     if(flag == SPLIT_METHOD)
     {
         int i = 0;
-        header->block_len = 0;
-        while(i < header->no_symbols)
+        int bl = 0;
+        int ns = header->no_symbols;
+        while(i < ns && (header->symbol[i] < (1 << (SPLIT_LENGTH - 1))))
         {
-            if(header->symbol[i] < (1 << (SPLIT_LENGTH - 1))) header->block_len += header->freq[i];
+            bl += header->freq[i];
             i++;
         }
+        header->block_len = bl;
     }
 }
 void process_decode_block(

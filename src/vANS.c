@@ -80,7 +80,7 @@ void vANS_encode(FILE * input_file, FILE * output_file, struct prelude_functions
 void process_encode_vector_block(uint32_t * block, size_t block_size, struct writer * my_writer, struct prelude_functions * my_prelude_functions){
     uint64_t state = block_size;
     struct block_header header;
-    header = calculate_block_header(block, block_size);
+    header = calculate_block_header(block, block_size, VECTOR_METHOD);
     size_t i = block_size;
     struct output_obj output = get_output_obj(NULL);
     while(i > 0){

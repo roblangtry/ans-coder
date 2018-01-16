@@ -9,7 +9,7 @@ void bANS_encode(FILE * input_file, FILE * output_file, struct prelude_functions
     write_meta_header(input_file, my_writer);
     size = fread(block, sizeof(uint32_t), BLOCK_SIZE, input_file);
     while(size > 0){
-        process_encode_block(block, size, my_writer, my_prelude_functions);
+        process_encode_block(block, size, my_writer, my_prelude_functions, flag);
         size = fread(block, sizeof(uint32_t), BLOCK_SIZE, input_file);
     }
     flush_writer(my_writer);
@@ -28,16 +28,32 @@ void write_meta_header(FILE * input_file, struct writer * my_writer)
     fseek(input_file, 0, SEEK_SET);
     vbyte_encode(metadata, no_blocks);
 }
-
-void process_encode_block(uint32_t * block, size_t block_size, struct writer * my_writer, struct prelude_functions * my_prelude_functions){
+void standard_encode(uint32_t symbol, uint64_t * state, struct block_header * header, struct output_obj * output)
+{
+    process_encode(symbol, state, header, output);
+}
+void split_encode(uint32_t symbol, uint64_t * state, struct block_header * header, struct output_obj * output)
+{
+    uint32_t value = symbol;
+    uint32_t out;
+    while(value)
+    {
+        out = value % (1 << (SPLIT_LENGTH - 1));
+        value = value >> (SPLIT_LENGTH - 1);
+        if(value)
+            out += (1 << (SPLIT_LENGTH - 1));
+        process_encode(out, state, header, output);
+    }
+}
+void process_encode_block(uint32_t * block, size_t block_size, struct writer * my_writer, struct prelude_functions * my_prelude_functions, int flag){
     uint64_t state = block_size;
-    struct block_header header;
-    header = calculate_block_header(block, block_size);
+    struct block_header header = calculate_block_header(block, block_size, flag);
     size_t i = block_size;
     struct output_obj output = get_output_obj(NULL);
     while(i > 0){
         i--;
-        process_encode(block[i], &state, &header, &output);
+        if(flag == SPLIT_METHOD) split_encode(block[i], &state, &header, &output);
+        else standard_encode(block[i], &state, &header, &output);
     }
     write_block(state, &header, &output, my_writer, my_prelude_functions);
     clear_block_header(header);
@@ -152,7 +168,21 @@ void clear_block_header(struct block_header header)
     free(header.cumalative_freq);
     free(header.I_max);
 }
-struct block_header calculate_block_header(uint32_t * block, size_t block_size)
+uint32_t add_symbol_to_index(uint32_t symbol, uint32_t max_symbol, size_t * ind, uint32_t * map, lookup_t * sym_lookup)
+{
+    size_t si;
+    if (max_symbol < symbol)
+        max_symbol = symbol;
+    si = get_symbol_index(symbol, sym_lookup);
+    if(si == -1)
+    {
+        si = set_symbol_index(symbol, *ind, sym_lookup);
+        (*ind)++;
+    }
+    map[si] += 1;
+    return max_symbol;
+}
+struct block_header calculate_block_header(uint32_t * block, size_t block_size, int flag)
 {
     struct block_header header;
     uint32_t * map = calloc(SYMBOL_MAP_SIZE, sizeof(uint32_t));
@@ -160,18 +190,28 @@ struct block_header calculate_block_header(uint32_t * block, size_t block_size)
     size_t i = 0;
     size_t ind = 0;
     size_t si;
+    uint32_t V, O;
     uint32_t max_symbol = 0;
     uint32_t cumalative_freq = 0;
+    uint64_t c = 0;
     while(i<block_size){
-        if (max_symbol < block[i])
-            max_symbol = block[i];
-        si = get_symbol_index(block[i], sym_lookup);
-        if(si == -1)
+        if(flag == SPLIT_METHOD)
         {
-            si = set_symbol_index(block[i], ind, sym_lookup);
-            ind++;
+            V = block[i];
+            while(V > 0)
+            {
+                c++;
+                O = V % (1 << (SPLIT_LENGTH - 1));
+                V = V >> (SPLIT_LENGTH - 1);
+                if(V)
+                    O += (1 << (SPLIT_LENGTH - 1));
+                max_symbol = add_symbol_to_index(O, max_symbol, &ind, map, sym_lookup);
+            }
         }
-        map[si] += 1;
+        else
+        {
+            max_symbol = add_symbol_to_index(block[i], max_symbol, &ind, map, sym_lookup);
+        }
         i++;
     }
     ind = 0;
@@ -202,7 +242,7 @@ struct block_header calculate_block_header(uint32_t * block, size_t block_size)
         }
         i++;
     }
-    header.m = block_size;
+    header.m = cumalative_freq;
     header.no_symbols = ind;
     header.block_len = 0;
     free(map);
@@ -227,15 +267,52 @@ void bANS_decode(FILE * input_file, FILE * output_file, struct prelude_functions
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
     no_blocks = vbyte_decode(metadata);
     while(i < no_blocks){
-        process_decode_block(my_reader, output_file, my_prelude_functions);
+        process_decode_block(my_reader, output_file, my_prelude_functions,flag);
         i++;
     }
 }
+void standard_decode(uint64_t * state, struct block_header * header, uint32_t * output, struct output_obj * input)
+{
+    process_decode(state, header, output);
+    while(*state < header->block_len && input->head >= 0){
+        if(input->head >= 0)
+        {
+            input->head -= 1;
+            *state = (*state << Bbits) + input->output[input->head];
+        }
+    }
+}
+void split_decode(uint64_t * state, struct block_header * header, uint32_t * output, struct output_obj * input)
+{
+    uint32_t V = 0;
+    uint32_t I = (1 << (SPLIT_LENGTH - 1));
+    uint32_t R = 0;
 
-void process_decode_block(struct reader * my_reader, FILE * output_file, struct prelude_functions * my_prelude_functions)
+            // V = block[i];
+            // while(V)
+            // {
+            //     O = V % (1 << (SPLIT_LENGTH - 1));
+            //     V = V >> (SPLIT_LENGTH - 1);
+            //     if(V)
+            //         O += (1 << (SPLIT_LENGTH - 1));
+
+    while(I >= (1 << (SPLIT_LENGTH - 1)))
+    {
+        standard_decode(state, header, &I, input);
+        V += ((I % (1 << (SPLIT_LENGTH - 1))) << ((SPLIT_LENGTH - 1) * R));
+        R++;
+    }
+    *output = V;
+}
+void process_decode_block(
+    struct reader * my_reader,
+    FILE * output_file,
+    struct prelude_functions * my_prelude_functions,
+    int flag)
 {
     size_t i = 0;
     uint64_t state;
+
     uint32_t * output;
     struct block_header header = read_block_header(&state, my_reader, my_prelude_functions);
     output = malloc(sizeof(uint32_t) * header.block_len);
@@ -244,11 +321,8 @@ void process_decode_block(struct reader * my_reader, FILE * output_file, struct 
     read_bytes(input.output, header.content_length, my_reader);
     input.head = header.content_length;
     while(i < header.block_len){
-        process_decode(&state, &header, &output[i]);
-        while(state < header.block_len){
-            input.head -= 1;
-            state = (state << Bbits) + input.output[input.head];
-        }
+        if(flag == SPLIT_METHOD) split_decode(&state, &header, &output[i], &input);
+        else standard_decode(&state, &header, &output[i], &input);
         i++;
     }
     fwrite(output, sizeof(uint32_t), header.block_len, output_file);

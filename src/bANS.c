@@ -36,14 +36,24 @@ void split_encode(uint32_t symbol, uint64_t * state, struct block_header * heade
 {
     uint32_t value = symbol;
     uint32_t out;
+    uint32_t V[8];
+    int index = 0;
     while(value)
     {
         out = value % (1 << (SPLIT_LENGTH - 1));
         value = value >> (SPLIT_LENGTH - 1);
         if(value)
             out += (1 << (SPLIT_LENGTH - 1));
-        process_encode(out, state, header, output);
+        V[index] = out;
+        index++;
     }
+    index--;
+    while(index){
+        process_encode(V[index], state, header, output);
+        index--;
+    }
+    process_encode(V[index], state, header, output);
+
 }
 void process_encode_block(uint32_t * block, size_t block_size, struct writer * my_writer, struct prelude_functions * my_prelude_functions, int flag){
     uint64_t state = block_size;
@@ -287,15 +297,6 @@ void split_decode(uint64_t * state, struct block_header * header, uint32_t * out
     uint32_t V = 0;
     uint32_t I = (1 << (SPLIT_LENGTH - 1));
     uint32_t R = 0;
-
-            // V = block[i];
-            // while(V)
-            // {
-            //     O = V % (1 << (SPLIT_LENGTH - 1));
-            //     V = V >> (SPLIT_LENGTH - 1);
-            //     if(V)
-            //         O += (1 << (SPLIT_LENGTH - 1));
-
     while(I >= (1 << (SPLIT_LENGTH - 1)))
     {
         standard_decode(state, header, &I, input);

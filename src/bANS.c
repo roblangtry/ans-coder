@@ -173,11 +173,12 @@ int check_symbol_index(int value, lookup_t * index)
 }
 void clear_block_header(struct block_header header)
 {
-    free(header.index);
-    free(header.symbol);
-    free(header.freq);
-    free(header.cumalative_freq);
-    free(header.I_max);
+    if(header.index != NULL) free(header.index);
+    if(header.symbol != NULL) free(header.symbol);
+    if(header.symbol_state != NULL) free(header.symbol_state);
+    if(header.freq != NULL) free(header.freq);
+    if(header.cumalative_freq != NULL) free(header.cumalative_freq);
+    if(header.I_max != NULL) free(header.I_max);
 }
 uint32_t add_symbol_to_index(uint32_t symbol, uint32_t max_symbol, size_t * ind, uint32_t * map, lookup_t * sym_lookup)
 {
@@ -196,6 +197,12 @@ uint32_t add_symbol_to_index(uint32_t symbol, uint32_t max_symbol, size_t * ind,
 struct block_header calculate_block_header(uint32_t * block, size_t block_size, int flag)
 {
     struct block_header header;
+    header.index = NULL;
+    header.symbol_state = NULL;
+    header.symbol = NULL;
+    header.freq = NULL;
+    header.cumalative_freq = NULL;
+    header.I_max = NULL;
     uint32_t * map = calloc(SYMBOL_MAP_SIZE, sizeof(uint32_t));
     lookup_t * sym_lookup = build_lookup();
     size_t i = 0;
@@ -280,6 +287,7 @@ void bANS_decode(FILE * input_file, FILE * output_file, struct prelude_functions
         process_decode_block(my_reader, output_file, my_prelude_functions,flag);
         i++;
     }
+    free(metadata);
 }
 void standard_decode(uint64_t * state, struct block_header * header, uint32_t * output, struct output_obj * input)
 {
@@ -341,6 +349,9 @@ void process_decode_block(
         i++;
     }
     fwrite(output, sizeof(uint32_t), header.block_len, output_file);
+    free(output);
+    free(input.output);
+    clear_block_header(header);
 }
 
 void process_decode(uint64_t * state, struct block_header * header, uint32_t * output)
@@ -355,18 +366,24 @@ void process_decode(uint64_t * state, struct block_header * header, uint32_t * o
 struct block_header read_block_header(uint64_t * state, struct reader * my_reader, struct prelude_functions * my_prelude_functions)
 {
     struct block_header header;
+    header.index = NULL;
+    header.symbol_state = NULL;
+    header.symbol = NULL;
+    header.freq = NULL;
+    header.cumalative_freq = NULL;
+    header.I_max = NULL;
     size_t i = 0;
     size_t ind = 0;
     uint32_t cumalative_freq = 0;
     read_symbol_prelude(&(header.no_symbols), &(header.symbol), &(header.freq), state, &(header.content_length), my_reader, my_prelude_functions);
     header.cumalative_freq = malloc(sizeof(uint32_t) * header.no_symbols);
-    header.symbol_state = malloc(sizeof(size_t) * BLOCK_SIZE);
     while(i < header.no_symbols){
         header.cumalative_freq[i] = cumalative_freq;
         cumalative_freq += header.freq[i];
         i++;
     }
     header.m = cumalative_freq;
+    header.symbol_state = malloc(sizeof(size_t) * header.m);
     header.block_len = cumalative_freq;
     i = 0;
     while(i < header.m){

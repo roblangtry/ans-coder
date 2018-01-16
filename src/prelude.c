@@ -38,4 +38,5 @@ void read_symbol_prelude(size_t * no_symbols, uint32_t ** symbols, uint32_t ** s
         (*symbol_frequencies)[i] = my_prelude_functions->func_decode(metadata);
         i++;
     }
+    free_metadata(metadata);
 }

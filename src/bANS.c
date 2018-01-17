@@ -76,7 +76,7 @@ void process_encode(uint32_t symbol, uint64_t * state, struct block_header * hea
     size_t index = get_symbol_index(symbol, header->index);
     uint32_t ls = header->freq[index];
     uint32_t bs = header->cumalative_freq[index];
-    uint32_t Is = header->I_max[index];
+    uint32_t Is = (ls * B) - 1;
     while(*state > Is){
         write_output(state, output);
     }
@@ -179,7 +179,6 @@ void clear_block_header(struct block_header header)
     if(header.symbol_state != NULL) free(header.symbol_state);
     if(header.freq != NULL) free(header.freq);
     if(header.cumalative_freq != NULL) free(header.cumalative_freq);
-    if(header.I_max != NULL) free(header.I_max);
 }
 uint32_t add_symbol_to_index(uint32_t symbol, uint32_t max_symbol, size_t * ind, uint32_t * map, lookup_t * sym_lookup)
 {
@@ -203,7 +202,6 @@ struct block_header calculate_block_header(uint32_t * block, size_t block_size, 
     header.symbol = NULL;
     header.freq = NULL;
     header.cumalative_freq = NULL;
-    header.I_max = NULL;
     uint32_t * map = calloc(SYMBOL_MAP_SIZE, sizeof(uint32_t));
     lookup_t * sym_lookup = build_lookup();
     size_t i = 0;
@@ -247,13 +245,11 @@ struct block_header calculate_block_header(uint32_t * block, size_t block_size, 
     header.symbol = malloc(sizeof(uint32_t) * header.no_symbols);
     header.freq = malloc(sizeof(uint32_t) * header.no_symbols);
     header.cumalative_freq = malloc(sizeof(uint32_t) * header.no_symbols);
-    header.I_max = malloc(sizeof(uint64_t) * header.no_symbols);
     while(i <= max_symbol){
         if(check_symbol_index(i, sym_lookup)){
             header.symbol[ind] = i;
             header.freq[ind] = map[get_symbol_index(i, sym_lookup)];
             header.cumalative_freq[ind] = cumalative_freq;
-            header.I_max[ind] = (map[get_symbol_index(i, sym_lookup)] * B) - 1;
             cumalative_freq += map[get_symbol_index(i, sym_lookup)];
             set_symbol_index(i, ind, sym_lookup);
             ind++;
@@ -374,7 +370,6 @@ struct block_header read_block_header(uint64_t * state, struct reader * my_reade
     header.symbol = NULL;
     header.freq = NULL;
     header.cumalative_freq = NULL;
-    header.I_max = NULL;
     size_t i = 0;
     size_t ind = 0;
     uint32_t cumalative_freq = 0;

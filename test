@@ -1,0 +1,49 @@
+#!/bin/bash
+make build
+function encode_test {
+    echo "-----------------------------"
+    echo " $1"
+    echo "-----------------------------"
+    echo $2 $3
+    TIME=$( { time $2 $3; } 2>&1 )
+    TVAL=$(echo $TIME | sed 's/real 0m\([0-9.]*\)s.*/\1/')
+    echo "Encoding  - $TVAL"
+    TIME=$( { time $2 $4; } 2>&1 )
+    TVAL=$(echo $TIME | sed 's/real 0m\([0-9.]*\)s.*/\1/')
+    echo "Decoding  - $TVAL"
+    val="Failure!"
+    cmp g9-dec fcc.data && val="Success!"
+    echo "Comparing - $val"
+    LL=$(ls -l g9-enc)
+    val=$(echo $LL | sed 's/.*root //g' | sed 's/ .*//')
+    echo "Size      - $val"
+    rm g9-dec
+    rm g9-enc
+}
+function encode2_test {
+    echo "-----------------------------"
+    echo " $1"
+    echo "-----------------------------"
+    echo $2 $3
+    TIME=$( { time $2 $3 < fcc.data > g9-enc; } 2>&1 )
+    TVAL=$(echo $TIME | sed 's/real 0m\([0-9.]*\)s.*/\1/')
+    echo "Encoding  - $TVAL"
+    TIME=$( { time $2 $4 < g9-enc > g9-dec; } 2>&1 )
+    TVAL=$(echo $TIME | sed 's/real 0m\([0-9.]*\)s.*/\1/')
+    echo "Decoding  - $TVAL"
+    val="Failure!"
+    cmp g9-dec fcc.data && val="Success!"
+    echo "Comparing - $val"
+    LL=$(ls -l g9-enc)
+    val=$(echo $LL | sed 's/.*root //g' | sed 's/ .*//')
+    echo "Size      - $val"
+    rm g9-dec
+    rm g9-enc
+}
+encode_test Split ./ans-coder "-e -s fcc.data g9-enc" "-d -s g9-enc g9-dec"
+##>encode_test Block ./ans-coder "-e -b fcc.data g9-enc" "-d -b g9-enc g9-dec"
+##>encode_test Escape ./ans-coder "-e -x fcc.data g9-enc" "-d -x g9-enc g9-dec"
+#encode_test Vector ./ans-coder "-e -V fcc.data g9-enc" "-d -V g9-enc g9-dec"
+#encode_test Full ./ans-coder "-e fcc.data g9-enc" "-d g9-enc g9-dec"
+#encode2_test Parralel ./ans-coder "-e -p" "-d -p"
+##>encode2_test Shuff ../shuff-master/shuff-master/shuff "-e" "-d"

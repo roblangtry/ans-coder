@@ -100,7 +100,7 @@ void write_block(uint64_t state, struct block_header * header, struct output_obj
 }
 void free_output_obj(struct output_obj obj)
 {
-    free(obj.output);
+    myfree(obj.output);
 }
 struct output_obj get_output_obj(FILE * output_file)
 {
@@ -174,11 +174,11 @@ int check_symbol_index(int value, lookup_t * index)
 }
 void clear_block_header(struct block_header header)
 {
-    if(header.index != NULL) free(header.index);
-    if(header.symbol != NULL) free(header.symbol);
-    if(header.symbol_state != NULL) free(header.symbol_state);
-    if(header.freq != NULL) free(header.freq);
-    if(header.cumalative_freq != NULL) free(header.cumalative_freq);
+    if(header.index != NULL) myfree(header.index);
+    if(header.symbol != NULL) myfree(header.symbol);
+    if(header.symbol_state != NULL) myfree(header.symbol_state);
+    if(header.freq != NULL) myfree(header.freq);
+    if(header.cumalative_freq != NULL) myfree(header.cumalative_freq);
 }
 uint32_t add_symbol_to_index(uint32_t symbol, uint32_t max_symbol, size_t * ind, uint32_t * map, lookup_t * sym_lookup)
 {
@@ -259,7 +259,7 @@ struct block_header calculate_block_header(uint32_t * block, size_t block_size, 
     header.m = cumalative_freq;
     header.no_symbols = ind;
     header.block_len = 0;
-    free(map);
+    myfree(map);
     return header;
 }
 
@@ -348,8 +348,8 @@ void process_decode_block(
         i++;
     }
     fwrite(output, sizeof(uint32_t), header.block_len, output_file);
-    free(output);
-    free(input.output);
+    myfree(output);
+    myfree(input.output);
     clear_block_header(header);
 }
 

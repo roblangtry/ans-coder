@@ -49,7 +49,7 @@ struct bit_writer * initialise_bit_writer(struct writer * my_writer)
 }
 void free_bit_writer(struct bit_writer * my_bit_writer)
 {
-    free(my_bit_writer);
+    myfree(my_bit_writer);
 }
 uint64_t write_bits(uint64_t value, uint64_t length, struct bit_writer * my_bit_writer)
 {

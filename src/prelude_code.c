@@ -4,7 +4,7 @@ void free_metadata(struct prelude_code_data * metadata)
 {
     free_bit_writer(metadata->bit_writer_ptr);
     free_bit_reader(metadata->bit_reader_ptr);
-    free(metadata);
+    myfree(metadata);
 }
 struct prelude_code_data * prepare_metadata(struct reader * reader_ptr, struct writer * writer_ptr, uint64_t initial_state){
     struct prelude_code_data * metadata = (struct prelude_code_data *)mymalloc(sizeof(struct prelude_code_data));

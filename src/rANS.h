@@ -5,6 +5,7 @@
 #include <time.h>
 #include "preprocessing.h"
 #include "reverse_reader.h"
+#include "mem_manager.h"
 #ifndef RANS_CODE
 #define RANS_CODE
 #define BYTES_TO_WRITE_OUT 1

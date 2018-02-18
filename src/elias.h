@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "bitlevel_io.h"
 #include <math.h>
+#include "mem_manager.h"
 #ifndef ELIAS_CODE
 #define ELIAS_CODE
 struct bitlevel_object calculate_elias_value(uint64_t value);

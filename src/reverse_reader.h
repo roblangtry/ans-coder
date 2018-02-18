@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "mem_manager.h"
 #ifndef REVERSE_CODE
 #define REVERSE_CODE
 #define READER_BUFFER 1048576

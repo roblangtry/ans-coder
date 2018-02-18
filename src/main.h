@@ -5,3 +5,4 @@
 #include "encode.h"
 #include "pANS.h"
 #include "tANS.h"
+#include "mem_manager.h"

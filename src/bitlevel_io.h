@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdint.h>
+#include "mem_manager.h"
 #ifndef BITLEVEL_IO_CODE
 #define BITLEVEL_IO_CODE
 #define BUFFER_SIZE 1048576

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "mem_manager.h"
 #ifndef Q_CODE
 #define Q_CODE
 struct heap_node {

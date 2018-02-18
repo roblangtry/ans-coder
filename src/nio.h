@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <math.h>
 #include "constants.h"
+#include "mem_manager.h"
 #ifndef NIO_CODE
 #define NIO_CODE
 typedef struct {

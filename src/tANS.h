@@ -5,6 +5,7 @@
 #include "coders.h"
 #include "nio.h"
 #include "buffer.h"
+#include "mem_manager.h"
 #ifndef TANS_CODE
 #define TANS_CODE
 int tans_encode();

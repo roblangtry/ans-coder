@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+#include "mem_manager.h"
 #ifndef WRITER_CODE
 #define WRITER_CODE
 #define WRITE_BUFFER 1048576

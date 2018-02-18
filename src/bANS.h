@@ -6,6 +6,7 @@
 #include "prelude_code.h"
 #include "prelude.h"
 #include "constants.h"
+#include "mem_manager.h"
 #ifndef BANS_CODE
 #define BANS_CODE
 #define B 256

@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "constants.h"
+#include "mem_manager.h"
 #ifndef BUFFER_CODE
 #define BUFFER_CODE
 typedef struct {

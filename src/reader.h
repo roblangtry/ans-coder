@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+#include "mem_manager.h"
 #ifndef READER_CODE
 #define READER_CODE
 #define READ_BUFFER 1048576

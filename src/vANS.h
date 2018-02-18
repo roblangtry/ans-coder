@@ -7,6 +7,7 @@
 #include "prelude.h"
 #include "bANS.h"
 #include "constants.h"
+#include "mem_manager.h"
 #ifndef VANS_CODE
 #define VANS_CODE
 typedef struct {

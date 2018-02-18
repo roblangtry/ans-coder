@@ -6,6 +6,7 @@
 #include "coders.h"
 #include "nio.h"
 #include "buffer.h"
+#include "mem_manager.h"
 #ifndef PANS_CODE
 #define PANS_CODE
 #define THREADS 32

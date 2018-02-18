@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "elias.h"
 #include "constants.h"
+#include "mem_manager.h"
 #ifndef PREPROCESSING_CODE
 #define PREPROCESSING_CODE
 #define HASHMAP_SIZE 1048576

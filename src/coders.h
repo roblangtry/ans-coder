@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "nio.h"
 #include "constants.h"
+#include "mem_manager.h"
 #ifndef CODERS_CODE
 #define CODERS_CODE
 

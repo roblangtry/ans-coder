@@ -1,6 +1,7 @@
 #include "writer.h"
 #include "reader.h"
 #include "constants.h"
+#include "mem_manager.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

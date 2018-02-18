@@ -202,7 +202,7 @@ struct block_header calculate_block_header(uint32_t * block, size_t block_size, 
     header.symbol = NULL;
     header.freq = NULL;
     header.cumalative_freq = NULL;
-    uint32_t * map = calloc(SYMBOL_MAP_SIZE, sizeof(uint32_t));
+    uint32_t * map = calloc(BLOCK_SIZE, sizeof(uint32_t));
     lookup_t * sym_lookup = build_lookup();
     size_t i = 0;
     size_t ind = 0;

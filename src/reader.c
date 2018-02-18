@@ -1,7 +1,7 @@
 #include "reader.h"
 //reader functions
 struct reader * initialise_reader(FILE * input_file){
-    struct reader * my_reader = malloc(sizeof(struct reader));
+    struct reader * my_reader = mymalloc(sizeof(struct reader));
     my_reader->index = 0;
     my_reader->size = 0;
     my_reader->input_file = input_file;
@@ -35,7 +35,7 @@ size_t read_bytes(unsigned char * target, size_t no_bytes, struct reader * my_re
 //bit reader functions
 struct bit_reader * initialise_bit_reader(struct reader * my_reader)
 {
-    struct bit_reader * my_bit_reader = malloc(sizeof(struct bit_reader));
+    struct bit_reader * my_bit_reader = mymalloc(sizeof(struct bit_reader));
     my_bit_reader->my_reader = my_reader;
     my_bit_reader->buffer = 0;
     my_bit_reader->length = 0;

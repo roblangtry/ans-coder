@@ -3,11 +3,11 @@ struct bitlevel_file_pointer * get_bitlevel_file_pointer(FILE * file_pointer){
     // Make a bitlevel_file_pointer from a file pointer
     struct bitlevel_file_pointer * bitlevel_file_pointer;
     // Assign the memory
-    bitlevel_file_pointer = (struct bitlevel_file_pointer *)malloc(sizeof(struct bitlevel_file_pointer));
+    bitlevel_file_pointer = (struct bitlevel_file_pointer *)mymalloc(sizeof(struct bitlevel_file_pointer));
     // Set initial values and file pointer
     bitlevel_file_pointer->file_pointer = file_pointer;
     bitlevel_file_pointer->buffer = 0;
-    bitlevel_file_pointer->byte_buffer = malloc(sizeof(unsigned char) * BUFFER_SIZE);
+    bitlevel_file_pointer->byte_buffer = mymalloc(sizeof(unsigned char) * BUFFER_SIZE);
     bitlevel_file_pointer->current_byte = 0;
     bitlevel_file_pointer->bytes_in_buffer = 0;
     bitlevel_file_pointer->current_length = 0;
@@ -19,7 +19,7 @@ struct bitlevel_file_pointer * get_unbuffered_bitlevel_file_pointer(FILE * file_
     // Make a bitlevel_file_pointer from a file pointer
     struct bitlevel_file_pointer * bitlevel_file_pointer;
     // Assign the memory
-    bitlevel_file_pointer = (struct bitlevel_file_pointer *)malloc(sizeof(struct bitlevel_file_pointer));
+    bitlevel_file_pointer = (struct bitlevel_file_pointer *)mymalloc(sizeof(struct bitlevel_file_pointer));
     // Set initial values and file pointer
     bitlevel_file_pointer->file_pointer = file_pointer;
     bitlevel_file_pointer->buffer = 0;

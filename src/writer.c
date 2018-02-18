@@ -3,7 +3,7 @@
 struct writer * initialise_writer(FILE * output_file)
 {
     
-    struct writer * my_writer = (struct writer *)malloc(sizeof(struct writer));
+    struct writer * my_writer = (struct writer *)mymalloc(sizeof(struct writer));
     my_writer->index = 0;
     my_writer->output_file = output_file;
     return my_writer;
@@ -41,7 +41,7 @@ uint64_t flush_writer(struct writer * my_writer)
 //bit writer functions
 struct bit_writer * initialise_bit_writer(struct writer * my_writer)
 {
-    struct bit_writer * my_bit_writer = (struct bit_writer *)malloc(sizeof(struct bit_writer));
+    struct bit_writer * my_bit_writer = (struct bit_writer *)mymalloc(sizeof(struct bit_writer));
     my_bit_writer->my_writer = my_writer;
     my_bit_writer->buffer = 0;
     my_bit_writer->length = 0;

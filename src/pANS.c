@@ -2,9 +2,9 @@
 
 int pans_encode()
 {
-    C_block_t * block = malloc(sizeof(C_block_t) * NB);
-    t_bwriter * writer = malloc(sizeof(t_bwriter));
-    C_data_t * data = malloc(sizeof(C_data_t));
+    C_block_t * block = mymalloc(sizeof(C_block_t) * NB);
+    t_bwriter * writer = mymalloc(sizeof(t_bwriter));
+    C_data_t * data = mymalloc(sizeof(C_data_t));
     int i = 0,n=0;
     start_bwriter(writer);
     while((block[i].len = fread(block[i].content, sizeof(uint32_t), BLOCK_SIZE, stdin)) > 0){
@@ -18,9 +18,9 @@ int pans_encode()
 }
 int pans_decode()
 {
-    t_breader * reader = malloc(sizeof(t_breader));
-    t_iwriter * writer = malloc(sizeof(t_iwriter));
-    D_data_t * data = malloc(sizeof(D_data_t));
+    t_breader * reader = mymalloc(sizeof(t_breader));
+    t_iwriter * writer = mymalloc(sizeof(t_iwriter));
+    D_data_t * data = mymalloc(sizeof(D_data_t));
     io_back backfeed;
     start_breader(reader);
     start_iwriter(writer);

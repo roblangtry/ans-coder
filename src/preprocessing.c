@@ -19,7 +19,7 @@ struct header preprocess(FILE * input_file){
     header.no_unique_symbols = 0;
     header.hashmap = calloc(SYMBOL_MAP_SIZE, sizeof(uint64_t));
     //header.hashmap = initialise_hashmap();
-    buffer = malloc(sizeof(uint) * BUFFER_SIZE);
+    buffer = mymalloc(sizeof(uint) * BUFFER_SIZE);
     while((elements_read = fread(buffer, sizeof(uint), BUFFER_SIZE, input_file)) != 0){
         i = 0;
         while(i<elements_read){
@@ -32,8 +32,8 @@ struct header preprocess(FILE * input_file){
             i++;
         }
     }
-    header.symbols = malloc(sizeof(uint64_t) * header.max_symbol);
-    header.symbol_frequencies = malloc(sizeof(uint64_t) * header.max_symbol);
+    header.symbols = mymalloc(sizeof(uint64_t) * header.max_symbol);
+    header.symbol_frequencies = mymalloc(sizeof(uint64_t) * header.max_symbol);
     i = 0;
     n = 0;
     while(i <= header.max_symbol){
@@ -52,7 +52,7 @@ void ** initialise_hashmap(){
     void ** pointer;
     size_t i;
     i = 0;
-    pointer = malloc(sizeof(void*) * HASHMAP_SIZE);
+    pointer = mymalloc(sizeof(void*) * HASHMAP_SIZE);
     while(i < HASHMAP_SIZE){
         pointer[i++] = NULL;
     }
@@ -90,7 +90,7 @@ uint64_t safe_get_symbol_index(uint64_t symbol, struct header * header){
 
 struct hashmap_node * add_symbol(uint64_t symbol, struct header * header){
     struct hashmap_node * node;
-    node = malloc(sizeof(struct hashmap_node));
+    node = mymalloc(sizeof(struct hashmap_node));
     node->symbol = symbol;
     node->index = header->no_unique_symbols;
     node->next = NULL;
@@ -136,8 +136,8 @@ struct header read_header(FILE * input_file, unsigned char * flag_byte){
     header.coding = 1;
     if(!fread(&(header.no_symbols), sizeof(uint64_t), 1, input_file)) header.no_symbols = 0;
     if(!fread(&(header.no_unique_symbols), sizeof(uint64_t), 1, input_file)) header.no_unique_symbols = 0;
-    header.symbols = malloc(sizeof(uint64_t) * header.no_unique_symbols);
-    header.symbol_frequencies = malloc(sizeof(uint64_t) * header.no_unique_symbols);
+    header.symbols = mymalloc(sizeof(uint64_t) * header.no_unique_symbols);
+    header.symbol_frequencies = mymalloc(sizeof(uint64_t) * header.no_unique_symbols);
     while(i < header.no_unique_symbols){
         header.symbols[i] = read_elias_value(bfp);
         header.symbol_frequencies[i] = read_elias_value(bfp);

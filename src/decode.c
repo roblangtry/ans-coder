@@ -5,7 +5,7 @@ int decode(char * input_filename, char * output_filename, unsigned char verbose_
     unsigned char method;
     FILE * input_file;
     FILE * output_file;
-    struct prelude_functions * my_prelude_functions = malloc(sizeof(struct prelude_functions));
+    struct prelude_functions * my_prelude_functions = mymalloc(sizeof(struct prelude_functions));
     my_prelude_functions->func_encode = elias_encode;
     my_prelude_functions->func_flush = elias_flush;
     my_prelude_functions->func_decode = elias_decode;

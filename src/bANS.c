@@ -107,13 +107,13 @@ struct output_obj get_output_obj(FILE * output_file)
     struct output_obj output;
     output.head = 0;
     output.file = output_file;
-    output.output = malloc(sizeof(unsigned char) * (BLOCK_SIZE << 2));
+    output.output = mymalloc(sizeof(unsigned char) * (BLOCK_SIZE << 2));
     return output;
 }
 lookup_t * build_lookup()
 {
     int i;
-    lookup_t * index = (lookup_t *)malloc(sizeof(lookup_t) * SYMBOL_MAP_SIZE);
+    lookup_t * index = (lookup_t *)mymalloc(sizeof(lookup_t) * SYMBOL_MAP_SIZE);
     for(i=0;i<SYMBOL_MAP_SIZE;i++)
     {
         index[i].index = -1;
@@ -242,9 +242,9 @@ struct block_header calculate_block_header(uint32_t * block, size_t block_size, 
     ind=0;
     i=0;
     header.index = sym_lookup;
-    header.symbol = malloc(sizeof(uint32_t) * header.no_symbols);
-    header.freq = malloc(sizeof(uint32_t) * header.no_symbols);
-    header.cumalative_freq = malloc(sizeof(uint32_t) * header.no_symbols);
+    header.symbol = mymalloc(sizeof(uint32_t) * header.no_symbols);
+    header.freq = mymalloc(sizeof(uint32_t) * header.no_symbols);
+    header.cumalative_freq = mymalloc(sizeof(uint32_t) * header.no_symbols);
     while(i <= max_symbol){
         if(check_symbol_index(i, sym_lookup)){
             header.symbol[ind] = i;
@@ -337,9 +337,9 @@ void process_decode_block(
     uint32_t * output;
     struct block_header header = read_block_header(&state, my_reader, my_prelude_functions);
     if(flag == SPLIT_METHOD) reassess_len(&header, flag);
-    output = malloc(sizeof(uint32_t) * header.m);
+    output = mymalloc(sizeof(uint32_t) * header.m);
     struct output_obj input;
-    input.output = malloc(sizeof(unsigned char) * header.content_length);
+    input.output = mymalloc(sizeof(unsigned char) * header.content_length);
     read_bytes(input.output, header.content_length, my_reader);
     input.head = header.content_length;
     while(i < header.block_len){
@@ -374,14 +374,14 @@ struct block_header read_block_header(uint64_t * state, struct reader * my_reade
     size_t ind = 0;
     uint32_t cumalative_freq = 0;
     read_symbol_prelude(&(header.no_symbols), &(header.symbol), &(header.freq), state, &(header.content_length), my_reader, my_prelude_functions);
-    header.cumalative_freq = malloc(sizeof(uint32_t) * header.no_symbols);
+    header.cumalative_freq = mymalloc(sizeof(uint32_t) * header.no_symbols);
     while(i < header.no_symbols){
         header.cumalative_freq[i] = cumalative_freq;
         cumalative_freq += header.freq[i];
         i++;
     }
     header.m = cumalative_freq;
-    header.symbol_state = malloc(sizeof(size_t) * header.m);
+    header.symbol_state = mymalloc(sizeof(size_t) * header.m);
     header.block_len = cumalative_freq;
     i = 0;
     while(i < header.m){

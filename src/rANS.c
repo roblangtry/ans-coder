@@ -9,7 +9,7 @@ void rANS_encode(FILE * input_file, FILE * output_file, struct header header){
     fseek(input_file, 0L, SEEK_END);
     writer.max_size = OUT_BUFFER_SIZE;
     writer.size = 0;
-    writer.buffer = malloc(sizeof(unsigned char) * OUT_BUFFER_SIZE);
+    writer.buffer = mymalloc(sizeof(unsigned char) * OUT_BUFFER_SIZE);
     writer.file = output_file;
     writer.byte = 0;
     writer.len = 0;
@@ -27,10 +27,10 @@ void rANS_encode(FILE * input_file, FILE * output_file, struct header header){
 struct preamble build_preamble(struct header header, int imax){
     struct preamble preamble;
     uint64_t x, y, prev, c;
-    preamble.symbol_state = malloc(sizeof(uint32_t) * header.no_symbols);
-    preamble.cumalative_frequency = malloc(sizeof(uint64_t) * header.no_unique_symbols);
+    preamble.symbol_state = mymalloc(sizeof(uint32_t) * header.no_symbols);
+    preamble.cumalative_frequency = mymalloc(sizeof(uint64_t) * header.no_unique_symbols);
     if(imax == 1)
-        preamble.I_max = malloc(sizeof(uint64_t) * header.no_unique_symbols);
+        preamble.I_max = mymalloc(sizeof(uint64_t) * header.no_unique_symbols);
     x = 0;
     prev = 0;
     c = 0;
@@ -123,7 +123,7 @@ void rANS_decode(FILE * input_file, FILE * output_file, struct header header, un
     current = 0;
     writer.max_size = OUT_BUFFER_SIZE;
     writer.size = 0;
-    writer.buffer = malloc(sizeof(uint) * OUT_BUFFER_SIZE);
+    writer.buffer = mymalloc(sizeof(uint) * OUT_BUFFER_SIZE);
     writer.file = output_file;
     source = get_decoder_source(input_file, header_end, content_end);
     m = header.no_symbols;

@@ -15,9 +15,9 @@ void write_vector(struct prelude_code_data * metadata, vector_t * vector)
 vector_t * read_vector(struct prelude_code_data * metadata)
 {
     uint i;
-    vector_t * vector = malloc(sizeof(vector_t));
+    vector_t * vector = mymalloc(sizeof(vector_t));
     vector->length = elias_decode(metadata);
-    vector->data = malloc(sizeof(uint32_t) * vector->length);
+    vector->data = mymalloc(sizeof(uint32_t) * vector->length);
     for(i = 0; i < vector->length; i++)
     {
         read_bits(32, metadata->bit_reader_ptr);
@@ -49,8 +49,8 @@ unsigned char check_vector(vector_t * vector, uint32_t number)
 
 vector_t * get_blank_vector()
 {
-    vector_t * vector = malloc(sizeof(vector_t));
-    vector->data = malloc(sizeof(uint32_t));
+    vector_t * vector = mymalloc(sizeof(vector_t));
+    vector->data = mymalloc(sizeof(uint32_t));
     vector->data[0] = 0;
     vector->length = 1;
     return vector;
@@ -173,9 +173,9 @@ void process_vector_decode_block(struct reader * my_reader, FILE * output_file, 
     uint64_t state;
     uint32_t * output;
     struct block_header header = read_vector_block_header(&state, my_reader, my_prelude_functions);
-    output = malloc(sizeof(uint32_t) * header.block_len);
+    output = mymalloc(sizeof(uint32_t) * header.block_len);
     struct output_obj input;
-    input.output = malloc(sizeof(unsigned char) * header.content_length);
+    input.output = mymalloc(sizeof(unsigned char) * header.content_length);
     read_bytes(input.output, header.content_length, my_reader);
     input.head = header.content_length;
     while(i < header.block_len){
@@ -196,8 +196,8 @@ struct block_header read_vector_block_header(uint64_t * state, struct reader * m
     size_t ind = 0;
     uint32_t cumalative_freq = 0;
     read_vector_symbol_prelude(&(header.no_symbols), &(header.symbol), &(header.freq), state, &(header.content_length), my_reader, my_prelude_functions);
-    header.cumalative_freq = malloc(sizeof(uint32_t) * header.no_symbols);
-    header.symbol_state = malloc(sizeof(size_t) * BLOCK_SIZE);
+    header.cumalative_freq = mymalloc(sizeof(uint32_t) * header.no_symbols);
+    header.symbol_state = mymalloc(sizeof(size_t) * BLOCK_SIZE);
     while(i < header.no_symbols){
         header.cumalative_freq[i] = cumalative_freq;
         cumalative_freq += header.freq[i];
@@ -249,8 +249,8 @@ void read_vector_symbol_prelude(size_t * no_symbols, uint32_t ** symbols, uint32
     *content_length = elias_decode(metadata);
     vector = read_vector(metadata);
 
-    *symbols = malloc(sizeof(uint32_t) * (*no_symbols));
-    *symbol_frequencies = malloc(sizeof(uint32_t) * (*no_symbols));
+    *symbols = mymalloc(sizeof(uint32_t) * (*no_symbols));
+    *symbol_frequencies = mymalloc(sizeof(uint32_t) * (*no_symbols));
     while(i < *no_symbols){
         (*symbols)[i] = iterate_vector(last_symbol, vector);
         //fprintf(stderr, "S %d\n", last_symbol);

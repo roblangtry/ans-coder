@@ -9,7 +9,7 @@
 //}
 struct heap initialise_heap(uint size){
     struct heap heap;
-    heap.data = malloc(sizeof(struct heap_node) * (size + 1));
+    heap.data = mymalloc(sizeof(struct heap_node) * (size + 1));
     heap.elements = 0;
     return heap;
 }

@@ -30,8 +30,8 @@ void read_symbol_prelude(size_t * no_symbols, uint32_t ** symbols, uint32_t ** s
     //printf("state (%ld)\n", *state);
     //printf("no_symbols (%ld)\n", *no_symbols);
     //printf("content_length (%ld)\n", *content_length);
-    *symbols = malloc(sizeof(uint32_t) * (*no_symbols));
-    *symbol_frequencies = malloc(sizeof(uint32_t) * (*no_symbols));
+    *symbols = mymalloc(sizeof(uint32_t) * (*no_symbols));
+    *symbol_frequencies = mymalloc(sizeof(uint32_t) * (*no_symbols));
     while(i < *no_symbols){
         (*symbols)[i] = my_prelude_functions->func_decode(metadata) + last_symbol;
         last_symbol = (*symbols)[i];

@@ -7,7 +7,7 @@ void free_metadata(struct prelude_code_data * metadata)
     free(metadata);
 }
 struct prelude_code_data * prepare_metadata(struct reader * reader_ptr, struct writer * writer_ptr, uint64_t initial_state){
-    struct prelude_code_data * metadata = (struct prelude_code_data *)malloc(sizeof(struct prelude_code_data));
+    struct prelude_code_data * metadata = (struct prelude_code_data *)mymalloc(sizeof(struct prelude_code_data));
     metadata->state = initial_state;
     metadata->lo = 0;
     metadata->hi = 0;
@@ -170,7 +170,7 @@ void ans_flush(struct prelude_code_data * metadata)
     size_t output_index = 0;
     size_t meta_index = 0;
     size_t size = PRELUDE_BUFFER_SIZE * output_mod * sizeof(unsigned char);
-    unsigned char * output = (unsigned char *)malloc(size);
+    unsigned char * output = (unsigned char *)mymalloc(size);
     uint64_t b = 256;
     uint64_t m = metadata->hi - metadata->lo + 1;
     uint64_t x = m;
@@ -264,7 +264,7 @@ void ans_elias_flush(struct prelude_code_data * metadata)
     size_t output_index = 0;
     size_t meta_index = 0;
     size_t size = PRELUDE_BUFFER_SIZE * output_mod * sizeof(unsigned char);
-    unsigned char * output = (unsigned char *)malloc(size);
+    unsigned char * output = (unsigned char *)mymalloc(size);
     uint64_t b = 256;
     uint64_t * log_lookup = calloc(metadata->hi + 1, sizeof(uint64_t));
     log_lookup[metadata->hi] = flog2(metadata->hi);

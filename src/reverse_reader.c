@@ -29,7 +29,7 @@ struct reverse_reader get_reader(FILE * file){
     reader.current = 0;
     reader.buffer_start = reader.size;
     reader.buffer_size = 0;
-    reader.buffer = malloc(sizeof(uint) * READER_BUFFER);
+    reader.buffer = mymalloc(sizeof(uint) * READER_BUFFER);
     reader.stop = 0;
     if (reader.size == 0)
         reader.stop = 1;
@@ -53,7 +53,7 @@ struct decode_source get_decoder_source(FILE * file, size_t start, size_t end){
     source.buffer_start = end;
     source.current = 0;
     source.stop = 0;
-    source.buffer = malloc(sizeof(unsigned char) * READER_BUFFER);
+    source.buffer = mymalloc(sizeof(unsigned char) * READER_BUFFER);
     if(source.start == 1){
         source.buffer_start -= (sizeof(unsigned char));
         fseek(source.file, source.buffer_start, SEEK_SET);

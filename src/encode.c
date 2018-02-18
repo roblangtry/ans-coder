@@ -63,5 +63,6 @@ int encode(char * input_filename, char * output_filename, unsigned char method_f
 
     }
 
+    printmem();
     return 1;
 }

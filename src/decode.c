@@ -56,7 +56,9 @@ int decode(char * input_filename, char * output_filename, unsigned char verbose_
             if(verbose_flag == 1) fprintf(stderr, "bANS compression scheme\n");
             bANS_decode(input_file, output_file, my_prelude_functions, method);
         }
+        printmem();
         return -1;
     }
+    printmem();
     return 1;
 }

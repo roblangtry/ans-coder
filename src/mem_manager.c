@@ -15,5 +15,5 @@ void myfree(void * ptr)
 }
 void printmem()
 {
-    fprintf(stderr, "MAX MEM USAGE: %ld\n", max_usage);
+    if(DEBUG_FLAG == 1) fprintf(stderr, "MAX MEM USAGE: %ld\n", max_usage);
 }

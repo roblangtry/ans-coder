@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <stdio.h>
+#include "constants.h"
 #ifndef MEM_MNGR_CODE
 #define MEM_MNGR_CODE
 void * mymalloc(size_t size);

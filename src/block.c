@@ -30,7 +30,9 @@ void read_block(FILE * input_file, file_header_t * header, coding_signature_t si
     ignore = fread(block->data, sizeof(uint32_t), block->size, input_file);
 }
 
-void output_to_file(FILE * output_file, data_block_t data)
+void output_to_file(FILE * output_file, data_block_t * data)
 {
-    fwrite(data.data, sizeof(uint32_t), data.size, output_file);
+    fwrite(data->data, sizeof(uint32_t), data->size, output_file);
+    //sleep(1);
+
 }

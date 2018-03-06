@@ -15,10 +15,12 @@ typedef struct
 typedef struct
 {
     uint32_t no_blocks;
-    uint64_t symbols;
-    uint64_t unique_symbols;
-    uint64_t * freq;
-    uint64_t * cumalative_freq;
+    uint32_t symbols;
+    uint32_t unique_symbols;
+    uint32_t max;
+    uint32_t * freq;
+    uint32_t * cumalative_freq;
+    uint32_t * data;
 } file_header_t;
 
 void preprocess_file(FILE * input_file, coding_signature_t signature, file_header_t * header);

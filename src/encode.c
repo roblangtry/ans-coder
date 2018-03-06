@@ -80,6 +80,12 @@ int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     block.post_size = 0;
     block.post_max_size = POST_SIZE;
     file_header_t header;
+    header.freq = mymalloc(sizeof(uint32_t) * SYMBOL_MAP_SIZE);
+    header.cumalative_freq = mymalloc(sizeof(uint32_t) * SYMBOL_MAP_SIZE);
+    header.data = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
+    header.max = 0;
+    header.symbols = 0;
+    header.unique_symbols = 0;
     preprocess_file(input_file, signature, &header);
     output_file_header(output_file, &header, signature);
     for(int i = 0; i < header.no_blocks; i++)

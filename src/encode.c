@@ -79,11 +79,12 @@ int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     block.post = mymalloc(sizeof(uint32_t) * POST_SIZE);
     block.post_size = 0;
     block.post_max_size = POST_SIZE;
-    encoding_file_t file = preprocess_file(input_file, signature);
-    output_file_header(output_file, file, signature);
-    for(int i = 0; i < file.header.no_blocks; i++)
+    file_header_t header;
+    preprocess_file(input_file, signature, &header);
+    output_file_header(output_file, &header, signature);
+    for(int i = 0; i < header.no_blocks; i++)
     {
-        process_block(input_file, file.header, signature, &block);
+        process_block(input_file, &header, signature, &block);
         output_block(output_file, &block);
     }
     printmem();

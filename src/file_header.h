@@ -20,7 +20,7 @@ typedef struct
     data_block_t * blocks;
     file_header_t header;
 } encoding_file_t;
-encoding_file_t preprocess_file(FILE * input_file, coding_signature_t signature);
-void output_file_header(FILE * output_file, encoding_file_t file, coding_signature_t signature);
+void preprocess_file(FILE * input_file, coding_signature_t signature, file_header_t * header);
+void output_file_header(FILE * output_file, file_header_t * header, coding_signature_t signature);
 void read_file_header(FILE * input_file, coding_signature_t * signature, file_header_t * header);
 #endif

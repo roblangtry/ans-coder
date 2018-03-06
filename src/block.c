@@ -1,6 +1,6 @@
 #include "block.h"
 
-void process_block(FILE * input_file, file_header_t header, coding_signature_t signature, output_block_t * out_block)
+void process_block(FILE * input_file, file_header_t * header, coding_signature_t signature, output_block_t * out_block)
 {
     uint32_t size;
     out_block->pre_size = 0;
@@ -22,7 +22,7 @@ void output_block(FILE * output_file, output_block_t * block)
         fwrite(block->post, sizeof(uint32_t), block->post_size, output_file);
 }
 
-void read_block(FILE * input_file, file_header_t header, coding_signature_t signature, data_block_t * block)
+void read_block(FILE * input_file, file_header_t * header, coding_signature_t signature, data_block_t * block)
 {
     size_t size;
     size_t ignore;

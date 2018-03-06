@@ -72,7 +72,7 @@ int decode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     read_file_header(input_file, &signature, &header);
     for(int i = 0; i < header.no_blocks; i++)
     {
-        read_block(input_file, header, signature, &data);
+        read_block(input_file, &header, signature, &data);
         output_to_file(output_file, data);
     }
     myfree(data.data);

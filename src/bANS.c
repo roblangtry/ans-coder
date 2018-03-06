@@ -92,10 +92,10 @@ void process_encode_block(uint32_t * block, size_t block_size, struct writer * m
             }
             else if(block[i] > 65536 && block[i] <= 16777216)
             {
-                vbyte = block[i] % 256;
+                vbyte = (block[i] >> 8) % 256;
                 byte = vbyte;
                 write_byte(byte, my_writer);
-                vbyte = (block[i] >> 8) % 256;
+                vbyte = block[i] % 256;
                 byte = vbyte;
                 write_byte(byte, my_writer);
             }

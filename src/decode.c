@@ -39,7 +39,7 @@ int decode(char * input_filename, char * output_filename, unsigned char verbose_
             return -1;
         }
     } else{
-        method = flag_byte % 8;
+        method = flag_byte;
         // if(method == VECTOR_METHOD){
         //     if(verbose_flag == 1) fprintf(stderr, "vANS compression scheme\n");
         //     vANS_decode(input_file, output_file, my_prelude_functions);
@@ -67,6 +67,12 @@ int decode(char * input_filename, char * output_filename, unsigned char verbose_
 int decode_file(FILE * input_file, FILE * output_file, coding_signature_t signature)
 {
     file_header_t * header = mymalloc(sizeof(file_header_t));
+    header->freq = mymalloc(sizeof(uint32_t) * SYMBOL_MAP_SIZE);
+    header->cumalative_freq = mymalloc(sizeof(uint32_t) * SYMBOL_MAP_SIZE);
+    header->data = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
+    header->max = 0;
+    header->symbols = 0;
+    header->unique_symbols = 0;
     data_block_t * data = mymalloc(sizeof(data_block_t));
     data->data = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
     read_file_header(input_file, &signature, header);

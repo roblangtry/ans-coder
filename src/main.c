@@ -50,7 +50,8 @@ int main ( int argc, char *argv[] ){
                 verbose_flag = 1;
                 break;
             case 'm':
-                signature.symbol = SYMBOL_MSB;
+                method_flag = MSB_METHOD;
+                //signature.symbol = SYMBOL_MSB;
                 break;
         }
     }

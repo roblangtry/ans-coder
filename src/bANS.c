@@ -33,6 +33,14 @@ void standard_encode(uint32_t symbol, uint64_t * state, struct block_header * he
 {
     process_encode(symbol, state, header, output);
 }
+void msb_encode(uint32_t symbol, uint64_t * state, struct block_header * header, struct output_obj * output)
+{
+    uint32_t out_symbol;
+    if(symbol <= 256) out_symbol = symbol;
+    else if(symbol <= 65536) out_symbol = (symbol >> 8) + 256;
+    else if(symbol <= 16777216) out_symbol = (symbol >> 16) + 512;
+    process_encode(out_symbol, state, header, output);
+}
 void split_encode(uint32_t symbol, uint64_t * state, struct block_header * header, struct output_obj * output)
 {
     uint32_t value = symbol;
@@ -58,15 +66,42 @@ void split_encode(uint32_t symbol, uint64_t * state, struct block_header * heade
 }
 void process_encode_block(uint32_t * block, size_t block_size, struct writer * my_writer, struct prelude_functions * my_prelude_functions, int flag){
     uint64_t state = block_size;
+    uint32_t vbyte;
+    unsigned char byte;
     struct block_header header = calculate_block_header(block, block_size, flag);
     size_t i = block_size;
     struct output_obj output = get_output_obj(NULL);
     while(i > 0){
+        // if(i >= 510 && i <= 520) printf("[%d] = %d\n", i , block[i]);
         i--;
         if(flag == SPLIT_METHOD) split_encode(block[i], &state, &header, &output);
+        if(flag == MSB_METHOD) msb_encode(block[i], &state, &header, &output);
         else standard_encode(block[i], &state, &header, &output);
     }
     write_block(state, &header, &output, my_writer, my_prelude_functions);
+    if(flag == MSB_METHOD)
+    {
+        i = 0;
+        while(i < block_size)
+        {
+            if(block[i] > 256 && block[i] <= 65536)
+            {
+                vbyte = block[i] % 256;
+                byte = vbyte;
+                write_byte(byte, my_writer);
+            }
+            else if(block[i] > 65536 && block[i] <= 16777216)
+            {
+                vbyte = block[i] % 256;
+                byte = vbyte;
+                write_byte(byte, my_writer);
+                vbyte = (block[i] >> 8) % 256;
+                byte = vbyte;
+                write_byte(byte, my_writer);
+            }
+            i++;
+        }
+    }
     clear_block_header(header);
     free_output_obj(output);
 }
@@ -224,6 +259,14 @@ struct block_header calculate_block_header(uint32_t * block, size_t block_size, 
                 max_symbol = add_symbol_to_index(O, max_symbol, &ind, map, sym_lookup);
             }
         }
+        else if(flag == MSB_METHOD)
+        {
+            V = block[i];
+            if(V <= 256) O = V;
+            else if(V <= 65536) O = (V >> 8) + 256;
+            else if(V <= 16777216) O = (V >> 16) + 512;
+            max_symbol = add_symbol_to_index(O, max_symbol, &ind, map, sym_lookup);
+        }
         else
         {
             max_symbol = add_symbol_to_index(block[i], max_symbol, &ind, map, sym_lookup);
@@ -333,7 +376,7 @@ void process_decode_block(
 {
     size_t i = 0;
     uint64_t state;
-
+    unsigned char byte;
     uint32_t * output;
     struct block_header header = read_block_header(&state, my_reader, my_prelude_functions);
     if(flag == SPLIT_METHOD) reassess_len(&header, flag);
@@ -347,6 +390,44 @@ void process_decode_block(
         else standard_decode(&state, &header, &output[i], &input);
         i++;
     }
+    if(flag == MSB_METHOD)
+    {
+        i = 0;
+        // for(i=0;i<20;i++){
+        //     read_byte(&byte, my_reader);
+        //     // printf("(%d)\n", byte);
+        // }
+        while(i < header.block_len)
+        {
+
+            // if(i >= 510 && i <= 520) printf("[%d] = %d\n", i , output[i]);
+            if(output[i] > 256 && output[i] <= 512)
+            {
+                // if(i >= 510 && i <= 520) printf("[%d] = %d | ", i, output[i]);
+                output[i] -= 256;
+                // if(i >= 510 && i <= 520) printf("[%d] = %d | ", i, output[i]);
+                read_byte(&byte, my_reader);
+                // if(i >= 510 && i <= 520) printf("(%d)", byte);
+                output[i] = (output[i]<<8) + byte;
+                // if(i >= 510 && i <= 520) printf(" [%d] = %d\n", i, output[i]);
+                //read_byte(&byte, my_reader);
+                // sleep(1);
+            }
+            else if(output[i] > 512)
+            {
+                output[i] -= 512;
+                read_byte(&byte, my_reader);
+                output[i] = (output[i]<<8) + byte;
+                read_byte(&byte, my_reader);
+                output[i] = (output[i]<<8) + byte;
+            }
+            i++;
+        }
+    }
+    // for(int i = 510; i <= 520; i++)
+    // {
+    //     printf("[%d] = %d\n", i , output[i]);
+    // }
     fwrite(output, sizeof(uint32_t), header.block_len, output_file);
     myfree(output);
     myfree(input.output);

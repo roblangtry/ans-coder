@@ -21,6 +21,7 @@
 #define ESCAPE_METHOD 5
 #define SPLIT_METHOD 6
 #define SINGLE_HEADER_METHOD 7
+#define MSB_METHOD 8
 #define DEBUG_FLAG 1
 
 //Methods for encoding/decoding

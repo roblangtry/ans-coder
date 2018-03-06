@@ -40,11 +40,11 @@ int decode(char * input_filename, char * output_filename, unsigned char verbose_
         }
     } else{
         method = flag_byte % 8;
-        if(method == VECTOR_METHOD){
-            if(verbose_flag == 1) fprintf(stderr, "vANS compression scheme\n");
-            vANS_decode(input_file, output_file, my_prelude_functions);
-        }
-        else if(method == ESCAPE_METHOD){
+        // if(method == VECTOR_METHOD){
+        //     if(verbose_flag == 1) fprintf(stderr, "vANS compression scheme\n");
+        //     vANS_decode(input_file, output_file, my_prelude_functions);
+        // }
+        if(method == ESCAPE_METHOD){
             if(verbose_flag == 1) fprintf(stderr, "xANS compression scheme\n");
             bANS_decode(input_file, output_file, my_prelude_functions, method);
         }

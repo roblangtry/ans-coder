@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "rANS.h"
 #include "bANS.h"
-#include "vANS.h"
 #include "preprocessing.h"
 #include "prelude_code.h"
 #include "constants.h"

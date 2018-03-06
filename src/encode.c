@@ -66,3 +66,26 @@ int encode(char * input_filename, char * output_filename, unsigned char method_f
     printmem();
     return 1;
 }
+
+int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signature)
+{
+    output_block_t block;
+    block.pre = mymalloc(sizeof(uint32_t) * PRE_SIZE);
+    block.pre_size = 0;
+    block.pre_max_size = PRE_SIZE;
+    block.content = mymalloc(sizeof(uint32_t) * CONTENT_SIZE);
+    block.content_size = 0;
+    block.content_max_size = CONTENT_SIZE;
+    block.post = mymalloc(sizeof(uint32_t) * POST_SIZE);
+    block.post_size = 0;
+    block.post_max_size = POST_SIZE;
+    encoding_file_t file = preprocess_file(input_file, signature);
+    output_file_header(output_file, file, signature);
+    for(int i = 0; i < file.header.no_blocks; i++)
+    {
+        process_block(input_file, file.header, signature, &block);
+        output_block(output_file, &block);
+    }
+    printmem();
+    return 1;
+}

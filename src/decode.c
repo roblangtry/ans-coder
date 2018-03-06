@@ -62,3 +62,20 @@ int decode(char * input_filename, char * output_filename, unsigned char verbose_
     printmem();
     return 1;
 }
+
+
+int decode_file(FILE * input_file, FILE * output_file, coding_signature_t signature)
+{
+    data_block_t data;
+    data.data = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
+    file_header_t header;
+    read_file_header(input_file, &signature, &header);
+    for(int i = 0; i < header.no_blocks; i++)
+    {
+        read_block(input_file, header, signature, &data);
+        output_to_file(output_file, data);
+    }
+    myfree(data.data);
+    printmem();
+    return 1;
+}

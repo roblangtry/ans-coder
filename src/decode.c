@@ -82,11 +82,17 @@ int decode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
         output_to_file(output_file, data);
     }
     myfree(data->data);
+    data->data = NULL;
     myfree(data);
+    data = NULL;
     myfree(header->cumalative_freq);
+    header->cumalative_freq = NULL;
     myfree(header->freq);
+    header->freq = NULL;
     myfree(header->data);
+    header->data = NULL;
     myfree(header);
+    header = NULL;
     printmem();
     return 1;
 }

@@ -5,7 +5,7 @@ void * mymalloc(size_t size)
 {
     void * ptr = malloc(size);
     if(ptr == NULL){
-        fprintf(stderr, "Malloc failed (stack size at failure %ld)\n", total_usage);
+        fprintf(stderr, "Malloc failed on allocation of %zu (stack size at failure %ld)\n", size, total_usage);
         exit(-2);
     }
     total_usage += malloc_usable_size(ptr);
@@ -14,8 +14,10 @@ void * mymalloc(size_t size)
 }
 void myfree(void * ptr)
 {
-    total_usage -= malloc_usable_size(ptr);
-    free(ptr);
+    if(ptr != NULL){
+        total_usage -= malloc_usable_size(ptr);
+        free(ptr);
+    }
 }
 void printmem()
 {

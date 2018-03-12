@@ -6,6 +6,7 @@
 #include "file_header.h"
 #include "writer.h"
 #include "reader.h"
+#include "prelude_code.h"
 
 #ifndef BLOCK_CODE
 #define BLOCK_CODE

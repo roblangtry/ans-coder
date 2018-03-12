@@ -5,6 +5,7 @@
 #include "mem_manager.h"
 #include "writer.h"
 #include "reader.h"
+#include "prelude_code.h"
 
 #ifndef FILE_HEADER_CODE
 #define FILE_HEADER_CODE

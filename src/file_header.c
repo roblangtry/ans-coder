@@ -19,10 +19,12 @@ void preprocess_file(FILE * input_file, coding_signature_t signature, file_heade
 void output_file_header(struct writer * my_writer, file_header_t * header, coding_signature_t signature)
 {
     write_uint32_t(MAGIC, my_writer);
-    write_uint32_t(signature.symbol, my_writer);
-    write_uint32_t(signature.header, my_writer);
-    write_uint32_t(signature.ans, my_writer);
-    write_uint32_t(header->no_blocks, my_writer);
+    struct prelude_code_data * metadata = prepare_metadata(NULL, my_writer, 0);
+    elias_encode(metadata, signature.symbol);
+    elias_encode(metadata, signature.header);
+    elias_encode(metadata, signature.ans);
+    elias_encode(metadata, header->no_blocks);
+    elias_flush(metadata);
 }
 
 void read_file_header(struct reader * my_reader, coding_signature_t * signature, file_header_t * header)
@@ -34,8 +36,9 @@ void read_file_header(struct reader * my_reader, coding_signature_t * signature,
         fprintf(stderr, "This file doesn't appear to have been encoded properly\n");
         exit(-1);
     }
-    read_uint32_t(&((*signature).symbol), my_reader);
-    read_uint32_t(&((*signature).header), my_reader);
-    read_uint32_t(&((*signature).ans), my_reader);
-    read_uint32_t(&(header->no_blocks), my_reader);
+    struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
+    (*signature).symbol = elias_decode(metadata);
+    (*signature).header = elias_decode(metadata);
+    (*signature).ans = elias_decode(metadata);
+    header->no_blocks = elias_decode(metadata);
 }

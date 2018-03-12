@@ -25,10 +25,10 @@ size_t read_byte(unsigned char * target, struct reader * my_reader){
     }
 }
 size_t read_uint32_t(uint32_t * target, struct reader * my_reader){
-    read_bytes(target, 4, my_reader);
+    return read_bytes((unsigned char *)target, 4, my_reader);
 }
 size_t read_uint64_t(uint64_t * target, struct reader * my_reader){
-    read_bytes(target, 8, my_reader);
+    return read_bytes((unsigned char *)target, 8, my_reader);
 }
 size_t read_bytes(unsigned char * target, size_t no_bytes, struct reader * my_reader){
     size_t index = 0;

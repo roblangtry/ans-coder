@@ -35,7 +35,7 @@ void standard_encode(uint32_t symbol, uint64_t * state, struct block_header * he
 }
 void msb_encode(uint32_t symbol, uint64_t * state, struct block_header * header, struct output_obj * output)
 {
-    uint32_t out_symbol;
+    uint32_t out_symbol = 0;
     if(symbol <= 256) out_symbol = symbol;
     else if(symbol <= 65536) out_symbol = (symbol >> 8) + 256;
     else if(symbol <= 16777216) out_symbol = (symbol >> 16) + 512;
@@ -241,7 +241,7 @@ struct block_header calculate_block_header(uint32_t * block, size_t block_size, 
     lookup_t * sym_lookup = build_lookup();
     size_t i = 0;
     size_t ind = 0;
-    uint32_t V, O;
+    uint32_t V=0, O=0;
     uint32_t max_symbol = 0;
     uint32_t cumalative_freq = 0;
     uint64_t c = 0;

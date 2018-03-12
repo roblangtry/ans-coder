@@ -75,25 +75,24 @@ void process_block(FILE * input_file, file_header_t * header, coding_signature_t
 void output_block(struct writer * my_writer, output_block_t * block)
 {
     if(block->pre_size){
-        write_bytes(block->pre, block->pre_size << 2, my_writer);
+        write_bytes((unsigned char *)block->pre, block->pre_size << 2, my_writer);
     }
     if(block->content_size){
-        write_bytes(block->content, block->content_size << 2, my_writer);
+        write_bytes((unsigned char *)block->content, block->content_size << 2, my_writer);
     }
     if(block->post_size){
-        write_bytes(block->post, block->post_size << 2, my_writer);
+        write_bytes((unsigned char *)block->post, block->post_size << 2, my_writer);
     }
 }
 
 void read_block(struct reader * my_reader, file_header_t * header, coding_signature_t signature, data_block_t * block)
 {
-    size_t ignore;
     uint32_t cumal = 0;
-    uint32_t sym, usym;
+    uint32_t usym;
     uint32_t * symbol = NULL;
     uint32_t * freq = NULL;
     uint32_t * sym_lookup = NULL;
-    uint64_t state, ls, bs, m, Is, B = 32;
+    uint64_t state, ls, bs, m, B = 32;
     uint32_t S, content_size;
     uint ind = 0;
     uint32_t read=0;
@@ -110,8 +109,8 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         header->unique_symbols = usym;
         symbol = mymalloc(sizeof(uint32_t) * usym);
         freq = mymalloc(sizeof(uint32_t) * usym);
-        read_bytes(symbol, sizeof(uint32_t) * usym, my_reader);
-        read_bytes(freq, sizeof(uint32_t) * usym, my_reader);
+        read_bytes((unsigned char *)symbol, sizeof(uint32_t) * usym, my_reader);
+        read_bytes((unsigned char *)freq, sizeof(uint32_t) * usym, my_reader);
 
         for(int i = 0; i < usym; i++)
         {
@@ -132,7 +131,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     state = state << 32;
     state = state + S;
     read_uint32_t(&content_size, my_reader);
-    read_bytes(header->data, sizeof(uint32_t) * content_size, my_reader);
+    read_bytes((unsigned char *)header->data, sizeof(uint32_t) * content_size, my_reader);
     for(uint i=0; i<m; i++)
     {
         S = sym_lookup[state % m];

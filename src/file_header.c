@@ -25,36 +25,17 @@ void output_file_header(struct writer * my_writer, file_header_t * header, codin
     write_uint32_t(header->no_blocks, my_writer);
 }
 
-void read_file_header(FILE * input_file, coding_signature_t * signature, file_header_t * header)
+void read_file_header(struct reader * my_reader, coding_signature_t * signature, file_header_t * header)
 {
     uint32_t magic = 0;
-    if(fread(&magic, sizeof(uint32_t), 1, input_file) == 0)
-    {
-        fprintf(stderr, "Read Failure\n");
-        exit(-1);
-    }
+        read_uint32_t(&magic, my_reader);
+
     if(magic != MAGIC){
         fprintf(stderr, "This file doesn't appear to have been encoded properly\n");
         exit(-1);
     }
-    if(fread(&((*signature).symbol), sizeof(uint32_t), 1, input_file) == 0)
-    {
-        fprintf(stderr, "Read Failure\n");
-        exit(-1);
-    }
-    if(fread(&((*signature).header), sizeof(uint32_t), 1, input_file) == 0)
-    {
-        fprintf(stderr, "Read Failure\n");
-        exit(-1);
-    }
-    if(fread(&((*signature).ans), sizeof(uint32_t), 1, input_file) == 0)
-    {
-        fprintf(stderr, "Read Failure\n");
-        exit(-1);
-    }
-    if(fread(&(header->no_blocks), sizeof(uint32_t), 1, input_file) == 0)
-    {
-        fprintf(stderr, "Read Failure\n");
-        exit(-1);
-    }
+    read_uint32_t(&((*signature).symbol), my_reader);
+    read_uint32_t(&((*signature).header), my_reader);
+    read_uint32_t(&((*signature).ans), my_reader);
+    read_uint32_t(&(header->no_blocks), my_reader);
 }

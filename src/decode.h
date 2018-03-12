@@ -10,6 +10,7 @@
 #include "mem_manager.h"
 #include "file_header.h"
 #include "block.h"
+#include "reader.h"
 #ifndef DECODE_CODE
 #define DECODE_CODE
 int decode(char * input_filename, char * output_filename, unsigned char verbose_flag);

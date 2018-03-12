@@ -75,10 +75,11 @@ int decode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     header->unique_symbols = 0;
     data_block_t * data = mymalloc(sizeof(data_block_t));
     data->data = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
-    read_file_header(input_file, &signature, header);
+    struct reader * my_reader = initialise_reader(input_file);
+    read_file_header(my_reader, &signature, header);
     for(int i = 0; i < header->no_blocks; i++)
     {
-        read_block(input_file, header, signature, data);
+        read_block(my_reader, header, signature, data);
         output_to_file(output_file, data);
     }
     myfree(data->data);

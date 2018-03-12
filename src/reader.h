@@ -22,6 +22,8 @@ struct bit_reader
 //reader functions
 struct reader * initialise_reader(FILE * input_file);
 size_t read_byte(unsigned char * target, struct reader * my_reader);
+size_t read_uint32_t(uint32_t * target, struct reader * my_reader);
+size_t read_uint64_t(uint64_t * target, struct reader * my_reader);
 size_t read_bytes(unsigned char * target, size_t no_bytes, struct reader * my_reader);
 //bit reader functions
 struct bit_reader * initialise_bit_reader(struct reader * my_reader);

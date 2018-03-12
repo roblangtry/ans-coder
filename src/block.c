@@ -85,7 +85,7 @@ void output_block(struct writer * my_writer, output_block_t * block)
     }
 }
 
-void read_block(FILE * input_file, file_header_t * header, coding_signature_t signature, data_block_t * block)
+void read_block(struct reader * my_reader, file_header_t * header, coding_signature_t signature, data_block_t * block)
 {
     size_t ignore;
     uint32_t cumal = 0;
@@ -104,22 +104,21 @@ void read_block(FILE * input_file, file_header_t * header, coding_signature_t si
             header->freq[i] = 0;
             header->cumalative_freq[i] = 0;
         }
-        ignore = fread(&(header->symbols), sizeof(uint32_t), 1, input_file);
+        read_uint32_t(&(header->symbols), my_reader);
         sym_lookup = mymalloc(sizeof(uint32_t) * (header->symbols));
-        ignore = fread(&usym, sizeof(uint32_t), 1, input_file);
+        read_uint32_t(&usym, my_reader);
         header->unique_symbols = usym;
         symbol = mymalloc(sizeof(uint32_t) * usym);
         freq = mymalloc(sizeof(uint32_t) * usym);
-        ignore = fread(symbol, sizeof(uint32_t), usym, input_file);
-        ignore = fread(freq, sizeof(uint32_t), usym, input_file);
+        read_bytes(symbol, sizeof(uint32_t) * usym, my_reader);
+        read_bytes(freq, sizeof(uint32_t) * usym, my_reader);
+
         for(int i = 0; i < usym; i++)
         {
             header->cumalative_freq[symbol[i]] = cumal;
             header->freq[symbol[i]] = freq[i];
             for(uint j = 0; j < freq[i]; j++){
                 sym_lookup[ind++] = symbol[i];
-                if(ind > (header->symbols))
-                printf("I %d [%d]\n", ind, header->symbols);
             }
             cumal += freq[i];
             header->max = symbol[i];
@@ -127,13 +126,13 @@ void read_block(FILE * input_file, file_header_t * header, coding_signature_t si
     }
     block->size = 0;
     m = header->symbols;
-    ignore = fread(&S, sizeof(uint32_t), 1, input_file);
+    read_uint32_t(&S, my_reader);
     state = S;
-    ignore = fread(&S, sizeof(uint32_t), 1, input_file);
+    read_uint32_t(&S, my_reader);
     state = state << 32;
     state = state + S;
-    ignore = fread(&content_size, sizeof(uint32_t), 1, input_file);
-    ignore = fread(header->data, sizeof(uint32_t), content_size, input_file);
+    read_uint32_t(&content_size, my_reader);
+    read_bytes(header->data, sizeof(uint32_t) * content_size, my_reader);
     for(uint i=0; i<m; i++)
     {
         S = sym_lookup[state % m];

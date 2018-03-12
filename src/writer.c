@@ -18,6 +18,14 @@ uint64_t write_byte(unsigned char byte, struct writer * my_writer)
     }
     return 0;
 }
+uint64_t write_uint32_t(uint32_t number, struct writer * my_writer)
+{
+    return write_bytes(&number, 4, my_writer);
+}
+uint64_t write_uint64_t(uint64_t number, struct writer * my_writer)
+{
+    return write_bytes(&number, 8, my_writer);
+}
 uint64_t write_bytes(unsigned char * byte_array, size_t no_bytes, struct writer * my_writer)
 {
     uint64_t size = 0;

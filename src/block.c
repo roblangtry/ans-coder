@@ -72,16 +72,16 @@ void process_block(FILE * input_file, file_header_t * header, coding_signature_t
 
 }
 
-void output_block(FILE * output_file, output_block_t * block)
+void output_block(struct writer * my_writer, output_block_t * block)
 {
     if(block->pre_size){
-        fwrite(block->pre, sizeof(uint32_t), block->pre_size, output_file);
+        write_bytes(block->pre, block->pre_size << 2, my_writer);
     }
     if(block->content_size){
-        fwrite(block->content, sizeof(uint32_t), block->content_size, output_file);
+        write_bytes(block->content, block->content_size << 2, my_writer);
     }
     if(block->post_size){
-        fwrite(block->post, sizeof(uint32_t), block->post_size, output_file);
+        write_bytes(block->post, block->post_size << 2, my_writer);
     }
 }
 

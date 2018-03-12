@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "constants.h"
 #include "mem_manager.h"
+#include "writer.h"
 
 #ifndef FILE_HEADER_CODE
 #define FILE_HEADER_CODE
@@ -24,6 +25,6 @@ typedef struct
 } file_header_t;
 
 void preprocess_file(FILE * input_file, coding_signature_t signature, file_header_t * header);
-void output_file_header(FILE * output_file, file_header_t * header, coding_signature_t signature);
+void output_file_header(struct writer * my_writer, file_header_t * header, coding_signature_t signature);
 void read_file_header(FILE * input_file, coding_signature_t * signature, file_header_t * header);
 #endif

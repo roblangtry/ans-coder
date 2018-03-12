@@ -21,6 +21,8 @@ struct bit_writer
 //writer functions
 struct writer * initialise_writer(FILE * output_file);
 uint64_t write_byte(unsigned char byte, struct writer * my_writer);
+uint64_t write_uint32_t(uint32_t number, struct writer * my_writer);
+uint64_t write_uint64_t(uint64_t number, struct writer * my_writer);
 uint64_t write_bytes(unsigned char * byte_array, size_t no_bytes, struct writer * my_writer);
 uint64_t flush_writer(struct writer * my_writer);
 //bit writer functions

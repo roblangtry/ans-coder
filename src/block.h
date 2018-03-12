@@ -4,6 +4,7 @@
 #include "constants.h"
 #include "mem_manager.h"
 #include "file_header.h"
+#include "writer.h"
 
 #ifndef BLOCK_CODE
 #define BLOCK_CODE
@@ -21,7 +22,7 @@ typedef struct
 } output_block_t;
 
 void process_block(FILE * input_file, file_header_t * header, coding_signature_t signature, output_block_t * out_block);
-void output_block(FILE * output_file, output_block_t * block);
+void output_block(struct writer * my_writer, output_block_t * block);
 void read_block(FILE * input_file, file_header_t * header, coding_signature_t signature, data_block_t * block);
 void output_to_file(FILE * output_file, data_block_t * data);
 #endif

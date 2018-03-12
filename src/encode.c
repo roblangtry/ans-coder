@@ -86,13 +86,15 @@ int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     header.max = 0;
     header.symbols = 0;
     header.unique_symbols = 0;
+    struct writer * my_writer = initialise_writer(output_file);
     preprocess_file(input_file, signature, &header);
-    output_file_header(output_file, &header, signature);
+    output_file_header(my_writer, &header, signature);
     for(int i = 0; i < header.no_blocks; i++)
     {
         process_block(input_file, &header, signature, &block);
-        output_block(output_file, &block);
+        output_block(my_writer, &block);
     }
+    flush_writer(my_writer);
     printmem();
     return 1;
 }

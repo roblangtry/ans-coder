@@ -16,14 +16,13 @@ void preprocess_file(FILE * input_file, coding_signature_t signature, file_heade
     fseek(input_file, 0, SEEK_SET);
 }
 
-void output_file_header(FILE * output_file, file_header_t * header, coding_signature_t signature)
+void output_file_header(struct writer * my_writer, file_header_t * header, coding_signature_t signature)
 {
-    uint32_t magic = MAGIC;
-    fwrite(&magic, sizeof(uint32_t), 1, output_file);
-    fwrite(&signature.symbol, sizeof(uint32_t), 1, output_file);
-    fwrite(&signature.header, sizeof(uint32_t), 1, output_file);
-    fwrite(&signature.ans, sizeof(uint32_t), 1, output_file);
-    fwrite(&(header->no_blocks), sizeof(uint32_t), 1, output_file);
+    write_uint32_t(MAGIC, my_writer);
+    write_uint32_t(signature.symbol, my_writer);
+    write_uint32_t(signature.header, my_writer);
+    write_uint32_t(signature.ans, my_writer);
+    write_uint32_t(header->no_blocks, my_writer);
 }
 
 void read_file_header(FILE * input_file, coding_signature_t * signature, file_header_t * header)

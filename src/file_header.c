@@ -25,6 +25,7 @@ void output_file_header(struct writer * my_writer, file_header_t * header, codin
     elias_encode(metadata, signature.ans);
     elias_encode(metadata, header->no_blocks);
     elias_flush(metadata);
+    free_metadata(metadata);
 }
 
 void read_file_header(struct reader * my_reader, coding_signature_t * signature, file_header_t * header)
@@ -41,4 +42,5 @@ void read_file_header(struct reader * my_reader, coding_signature_t * signature,
     (*signature).header = elias_decode(metadata);
     (*signature).ans = elias_decode(metadata);
     header->no_blocks = elias_decode(metadata);
+    free_metadata(metadata);
 }

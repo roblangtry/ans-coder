@@ -130,11 +130,10 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     uint i;
     if(signature.header == HEADER_BLOCK)
     {
-        for(uint i=0; i<header->max; i++)
-        {
-            header->freq[i] = 0;
-            header->cumalative_freq[i] = 0;
-        }
+        free(header->freq);
+        free(header->cumalative_freq);
+        header->freq = calloc(SYMBOL_MAP_SIZE , sizeof(uint32_t));
+        header->cumalative_freq = calloc(SYMBOL_MAP_SIZE , sizeof(uint32_t));
         header->symbols = elias_decode(metadata);
         len = header->symbols;
         header->unique_symbols = elias_decode(metadata);

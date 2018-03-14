@@ -4,6 +4,7 @@ void preprocess_file(FILE * input_file, coding_signature_t signature, file_heade
 {
     uint32_t no_blocks = 0;
     uint64_t cumal = 0;
+    uint32_t symbol;
     size_t prev = 1;
     header->max = 0;
     header->symbols = 0;
@@ -15,8 +16,11 @@ void preprocess_file(FILE * input_file, coding_signature_t signature, file_heade
             prev = fread (block, sizeof(uint32_t), BLOCK_SIZE, input_file);
             for(uint i=0; i<prev; i++)
             {
-                header->freq[block[i]]++;
-                if(block[i]>header->max) header->max=block[i];
+                if(signature.symbol == SYMBOL_DIRECT) symbol = block[i];
+                else if(signature.symbol == SYMBOL_MSB) symbol = get_msb_symbol(block[i]);
+                else exit(-1);
+                header->freq[symbol]++;
+                if(symbol>header->max) header->max=block[i];
                 header->symbols++;
             }
             if(prev > 0) no_blocks++;
@@ -84,7 +88,6 @@ void read_file_header(struct reader * my_reader, coding_signature_t * signature,
         }
         header->symbols = total;
         header->symbol_state = mymalloc(sizeof(uint32_t) * total);
-        printf("ASS %lu\n", total);
         for(uint i = 0; i<=header->max; i++)
         {
             for(uint j = 0; j < header->freq[i]; j++)

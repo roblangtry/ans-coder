@@ -6,6 +6,7 @@
 #include "writer.h"
 #include "reader.h"
 #include "prelude_code.h"
+#include "msb.h"
 
 #ifndef FILE_HEADER_CODE
 #define FILE_HEADER_CODE

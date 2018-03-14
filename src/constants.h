@@ -12,6 +12,7 @@
 #define POST_SIZE 131072
 #define DONE 123456
 #define MAGIC 19931207
+#define MSB_BITS 8
 #define MAGIC_LENGTH 32
 #define RANGE_METHOD 0
 #define BLOCK_METHOD 2

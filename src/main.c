@@ -27,7 +27,7 @@ int main ( int argc, char *argv[] ){
                 method_flag = TABLE_METHOD;
                 break;
             case 'b':
-                method_flag = BLOCK_METHOD;
+                signature.header = HEADER_BLOCK;
                 // indent = 1;
                 break;
             case 'x':

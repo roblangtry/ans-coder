@@ -43,9 +43,11 @@ function encode2_test {
     rm g9-enc
 }
 
-encode_test Block ./ans-coder "-e -b fcc.data g9-enc" "-d -b g9-enc g9-dec"
-encode_test MSB ./ans-coder "-e -m fcc.data g9-enc" "-d -m g9-enc g9-dec"
-# encode_test Split ./ans-coder "-e -s fcc.data g9-enc" "-d -s g9-enc g9-dec"
+encode_test "MSB Block" ./ans-coder "-e -m -b fcc.data g9-enc" "-d g9-enc g9-dec"
+encode_test "MSB Full" ./ans-coder "-e -m fcc.data g9-enc" "-d g9-enc g9-dec"
+encode_test Full ./ans-coder "-e fcc.data g9-enc" "-d g9-enc g9-dec"
+encode_test Block ./ans-coder "-e -b fcc.data g9-enc" "-d g9-enc g9-dec"
+encode_test Split ./ans-coder "-e -s fcc.data g9-enc" "-d -s g9-enc g9-dec"
 encode_test Escape ./ans-coder "-e -x fcc.data g9-enc" "-d -x g9-enc g9-dec"
 #encode_test Vector ./ans-coder "-e -V fcc.data g9-enc" "-d -V g9-enc g9-dec"
 #encode_test Full ./ans-coder "-e fcc.data g9-enc" "-d g9-enc g9-dec"

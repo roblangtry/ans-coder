@@ -213,6 +213,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
             }
             i++;
         }
+        myfree(msb_bytes);
     }
     if(signature.header == HEADER_BLOCK)
     {

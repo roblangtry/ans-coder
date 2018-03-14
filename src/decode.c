@@ -75,6 +75,7 @@ int decode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     header->unique_symbols = 0;
     data_block_t * data = mymalloc(sizeof(data_block_t));
     data->data = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
+    if(signature.header == HEADER_BLOCK) header->symbol_state = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
     struct reader * my_reader = initialise_reader(input_file);
     read_file_header(my_reader, &signature, header);
     for(int i = 0; i < header->no_blocks; i++)
@@ -92,6 +93,8 @@ int decode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     header->freq = NULL;
     myfree(header->data);
     header->data = NULL;
+    myfree(header->symbol_state);
+    header->symbol_state = NULL;
     myfree(header);
     header = NULL;
     printmem();

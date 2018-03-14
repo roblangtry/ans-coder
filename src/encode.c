@@ -95,6 +95,12 @@ int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
         output_block(my_writer, &block);
     }
     flush_writer(my_writer);
+    myfree(block.pre);
+    myfree(block.content);
+    myfree(block.post);
+    myfree(header.freq);
+    myfree(header.cumalative_freq);
+    myfree(header.data);
     printmem();
     return 1;
 }

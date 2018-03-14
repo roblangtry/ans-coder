@@ -14,6 +14,8 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     size = fread(header->data, sizeof(uint32_t), BLOCK_SIZE, input_file);
     if(signature.header == HEADER_BLOCK)
     {
+
+        header->symbols = size;
         //clear the header
         for(uint i=0; i<=header->max; i++)
         {
@@ -49,10 +51,14 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
             }
         }
     }
+    else if(signature.header == HEADER_SINGLE)
+    {
+        elias_encode(metadata, size);
+    }
 
 
-    state = size;
-    m = size;
+    state = header->symbols;
+    m = header->symbols;
     for(int i=size-1; i>=0; i--)
     {
         symbol = header->data[i];
@@ -87,11 +93,10 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     uint32_t cumal = 0;
     uint32_t * symbol = NULL;
     uint32_t * freq = NULL;
-    uint32_t * sym_lookup = NULL;
     uint64_t state, ls, bs, m, B = 32;
     uint32_t S, content_size;
     uint ind = 0;
-    uint32_t read=0;
+    uint32_t read=0, len = 0;
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
     if(signature.header == HEADER_BLOCK)
     {
@@ -101,7 +106,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
             header->cumalative_freq[i] = 0;
         }
         header->symbols = elias_decode(metadata);
-        sym_lookup = mymalloc(sizeof(uint32_t) * (header->symbols));
+        len = header->symbols;
         header->unique_symbols = elias_decode(metadata);
         symbol = mymalloc(sizeof(uint32_t) * header->unique_symbols);
         freq = mymalloc(sizeof(uint32_t) * header->unique_symbols);
@@ -116,21 +121,24 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
             header->cumalative_freq[symbol[i]] = cumal;
             header->freq[symbol[i]] = freq[i];
             for(uint j = 0; j < freq[i]; j++){
-                sym_lookup[ind++] = symbol[i];
+                header->symbol_state[ind++] = symbol[i];
             }
             cumal += freq[i];
             header->max = symbol[i];
         }
     }
+    else if(signature.header == HEADER_SINGLE)
+    {
+        len = elias_decode(metadata);
+    }
     block->size = 0;
     m = header->symbols;
     content_size = elias_decode(metadata);
-    state = elias_decode(metadata);
     read_uint64_t(&state, my_reader);
     read_bytes((unsigned char *)header->data, sizeof(uint32_t) * content_size, my_reader);
-    for(uint i=0; i<m; i++)
+    for(uint i=0; i<len; i++)
     {
-        S = sym_lookup[state % m];
+        S = header->symbol_state[state % m];
         ls = header->freq[S];
         bs = header->cumalative_freq[S];
         block->data[block->size++] = S;
@@ -142,8 +150,6 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     }
     if(signature.header == HEADER_BLOCK)
     {
-        myfree(sym_lookup);
-        sym_lookup = NULL;
         myfree(symbol);
         symbol = NULL;
         myfree(freq);

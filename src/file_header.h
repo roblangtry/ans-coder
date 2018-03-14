@@ -18,8 +18,8 @@ typedef struct
 typedef struct
 {
     uint32_t no_blocks;
-    uint32_t symbols;
-    uint32_t unique_symbols;
+    uint64_t symbols;
+    uint64_t unique_symbols;
     uint32_t max;
     uint32_t * freq;
     uint32_t * cumalative_freq;

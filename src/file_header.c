@@ -3,12 +3,34 @@
 void preprocess_file(FILE * input_file, coding_signature_t signature, file_header_t * header)
 {
     uint32_t no_blocks = 0;
+    uint64_t cumal = 0;
     size_t prev = 1;
+    header->max = 0;
+    header->symbols = 0;
+    header->unique_symbols = 0;
     uint32_t * block = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
-    while(prev > 0)
-    {
-        prev = fread (block, sizeof(uint32_t), BLOCK_SIZE, input_file);
-        if(prev > 0) no_blocks++;
+    if(signature.header == HEADER_SINGLE){
+        while(prev > 0)
+        {
+            prev = fread (block, sizeof(uint32_t), BLOCK_SIZE, input_file);
+            for(uint i=0; i<prev; i++)
+            {
+                header->freq[block[i]]++;
+                if(block[i]>header->max) header->max=block[i];
+                header->symbols++;
+            }
+            if(prev > 0) no_blocks++;
+        }
+        header->unique_symbols = header->max+1;
+        for(uint i=0; i<=header->max; i++)
+        {
+            header->cumalative_freq[i] = cumal;
+            cumal = cumal + header->freq[i];
+        }
+    } else if (signature.header == HEADER_BLOCK){
+        fseek(input_file, 0, SEEK_END);
+        no_blocks = ftell(input_file)/BLOCK_SIZE;
+        if(ftell(input_file)%BLOCK_SIZE) no_blocks++;
     }
     myfree(block);
     block = NULL;
@@ -24,6 +46,13 @@ void output_file_header(struct writer * my_writer, file_header_t * header, codin
     elias_encode(metadata, signature.header);
     elias_encode(metadata, signature.ans);
     elias_encode(metadata, header->no_blocks);
+    if(signature.header == HEADER_SINGLE){
+        elias_encode(metadata, header->max);
+        for(uint i = 0; i<=header->max; i++)
+        {
+            elias_encode(metadata, header->freq[i]);
+        }
+    }
     elias_flush(metadata);
     free_metadata(metadata);
 }
@@ -31,10 +60,11 @@ void output_file_header(struct writer * my_writer, file_header_t * header, codin
 void read_file_header(struct reader * my_reader, coding_signature_t * signature, file_header_t * header)
 {
     uint32_t magic = 0;
-        read_uint32_t(&magic, my_reader);
+    uint64_t total = 0, k = 0, cumal = 0;
+    read_uint32_t(&magic, my_reader);
 
     if(magic != MAGIC){
-        fprintf(stderr, "This file doesn't appear to have been encoded properly\n");
+        fprintf(stderr, "This file doesn't appear to have been encoded properly (%d)\n", magic);
         exit(-1);
     }
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
@@ -42,5 +72,28 @@ void read_file_header(struct reader * my_reader, coding_signature_t * signature,
     (*signature).header = elias_decode(metadata);
     (*signature).ans = elias_decode(metadata);
     header->no_blocks = elias_decode(metadata);
+    if(signature->header == HEADER_SINGLE){
+        header->max = elias_decode(metadata);
+        header->symbols = 0;
+        header->unique_symbols = header->max + 1;
+        for(uint i = 0; i<=header->max; i++)
+        {
+            header->freq[i] = elias_decode(metadata);
+
+            total += header->freq[i];
+        }
+        header->symbols = total;
+        header->symbol_state = mymalloc(sizeof(uint32_t) * total);
+        printf("ASS %lu\n", total);
+        for(uint i = 0; i<=header->max; i++)
+        {
+            for(uint j = 0; j < header->freq[i]; j++)
+            {
+                header->symbol_state[k++] = i;
+            }
+            header->cumalative_freq[i] = cumal;
+            cumal = cumal + header->freq[i];
+        }
+    }
     free_metadata(metadata);
 }

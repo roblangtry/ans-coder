@@ -120,10 +120,8 @@ void output_block(struct writer * my_writer, output_block_t * block)
 void read_block(struct reader * my_reader, file_header_t * header, coding_signature_t signature, data_block_t * block)
 {
     uint32_t cumal = 0;
-    uint32_t * symbol = NULL;
-    uint32_t * freq = NULL;
     uint64_t state, ls, bs, m, B = 32;
-    uint32_t S, content_size, post_size;
+    uint32_t S, F, content_size, post_size;
     uint ind = 0, msb_ind = 0, msb_offset = 0;
     uint32_t read=0, len = 0;
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
@@ -140,23 +138,19 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         header->symbols = elias_decode(metadata);
         len = header->symbols;
         header->unique_symbols = elias_decode(metadata);
-        symbol = mymalloc(sizeof(uint32_t) * header->unique_symbols);
-        freq = mymalloc(sizeof(uint32_t) * header->unique_symbols);
+        // symbol = mymalloc(sizeof(uint32_t) * header->unique_symbols);
+        // freq = mymalloc(sizeof(uint32_t) * header->unique_symbols);
         S = 0;
         for(uint i=0; i<header->unique_symbols; i++){
-            symbol[i] = elias_decode(metadata) + S;
-            S = symbol[i];
-            freq[i] = elias_decode(metadata);
-        }
-        for(int i = 0; i < header->unique_symbols; i++)
-        {
-            header->cumalative_freq[symbol[i]] = cumal;
-            header->freq[symbol[i]] = freq[i];
-            for(uint j = 0; j < freq[i]; j++){
-                header->symbol_state[ind++] = symbol[i];
+            S = elias_decode(metadata) + S;
+            F = elias_decode(metadata);
+            header->cumalative_freq[S] = cumal;
+            header->freq[S] = F;
+            for(uint j = 0; j < F; j++){
+                header->symbol_state[ind++] = S;
             }
-            cumal += freq[i];
-            header->max = symbol[i];
+            cumal += F;
+            header->max = S;
         }
     }
     else if(signature.header == HEADER_SINGLE)
@@ -215,13 +209,13 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         }
         myfree(msb_bytes);
     }
-    if(signature.header == HEADER_BLOCK)
-    {
-        myfree(symbol);
-        symbol = NULL;
-        myfree(freq);
-        freq = NULL;
-    }
+    // if(signature.header == HEADER_BLOCK)
+    // {
+    //     myfree(symbol);
+    //     symbol = NULL;
+    //     myfree(freq);
+    //     freq = NULL;
+    // }
     free_metadata(metadata);
 }
 

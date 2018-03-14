@@ -24,6 +24,7 @@ typedef struct
     uint32_t * freq;
     uint32_t * cumalative_freq;
     uint32_t * data;
+    uint32_t * symbol_state;
 } file_header_t;
 
 void preprocess_file(FILE * input_file, coding_signature_t signature, file_header_t * header);

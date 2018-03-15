@@ -94,7 +94,7 @@ int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
         process_block(input_file, my_writer, &header, signature, &block);
         output_block(my_writer, &block);
     }
-    flush_writer(my_writer);
+    myfree(my_writer);
     myfree(block.pre);
     myfree(block.content);
     myfree(block.post);

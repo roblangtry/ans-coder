@@ -83,6 +83,7 @@ int decode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
         read_block(my_reader, header, signature, data);
         output_to_file(output_file, data);
     }
+    myfree(my_reader);
     myfree(data->data);
     data->data = NULL;
     myfree(data);

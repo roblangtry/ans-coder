@@ -11,10 +11,18 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     uint32_t msb_ind = 0;
     unsigned char vbyte, byte;
     struct prelude_code_data * metadata = prepare_metadata(NULL, my_writer, 0);
+    int_page_t * ans_pages = get_int_page();
+    char_page_t * msb_pages;
+    if(signature.symbol == SYMBOL_MSB) msb_pages = get_char_page();
     out_block->pre_size = 0;
     out_block->content_size = 0;
     out_block->post_size = 0;
     size = fread(header->data, sizeof(uint32_t), BLOCK_SIZE, input_file);
+
+    // ------------- //
+    // PRE
+    // ------------- //
+
     if(signature.header == HEADER_BLOCK)
     {
 
@@ -73,7 +81,7 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
         bs = header->cumalative_freq[symbol];
         Is = (ls << B) - 1;
         while(state > Is){
-            out_block->content[out_block->content_size++] = state % (1 << B);
+            add_to_int_page(state % (1 << B), ans_pages);
             state = state >> B;
         }
         state = m * (state / ls) + bs + (state % ls);
@@ -83,27 +91,37 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
             {
                 vbyte = header->data[i] % 256;
                 byte = vbyte;
-                msb_link[msb_ind++] = byte;
+                add_to_char_page(byte, msb_pages);
             }
             else if(header->data[i] > 65536 && header->data[i] <= 16777216)
             {
                 vbyte = (header->data[i] >> 8) % 256;
                 byte = vbyte;
-                msb_link[msb_ind++] = byte;
+                add_to_char_page(byte, msb_pages);
                 vbyte = header->data[i] % 256;
                 byte = vbyte;
-                msb_link[msb_ind++] = byte;
+                add_to_char_page(byte, msb_pages);
             }
             out_block->post_size = msb_ind / 4;
             if(msb_ind % 4) out_block->post_size++;
         }
     }
-    elias_encode(metadata, out_block->content_size);
-    if(signature.symbol == SYMBOL_MSB) elias_encode(metadata, out_block->post_size);
-    if(signature.symbol == SYMBOL_MSB) elias_encode(metadata, msb_ind % 4);
+    elias_encode(metadata, ans_pages->current_size);
+    if(signature.symbol == SYMBOL_MSB) elias_encode(metadata, msb_pages->current_size);
     elias_flush(metadata);
     free_metadata(metadata);
     write_uint64_t(state, my_writer);
+
+    // ------------- //
+    // Content
+    // ------------- //
+    output_int_page(my_writer, ans_pages);
+    // ------------- //
+    // Post
+    // ------------- //
+    if(signature.symbol == SYMBOL_MSB) output_char_page(my_writer, msb_pages);
+    free_int_page(ans_pages);
+    if(signature.symbol == SYMBOL_MSB) free_char_page(msb_pages);
 
 }
 
@@ -161,16 +179,13 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     block->size = 0;
     m = header->symbols;
     content_size = elias_decode(metadata);
-    if(signature.symbol == SYMBOL_MSB){
-        post_size = elias_decode(metadata);
-        msb_offset = elias_decode(metadata);
-        if(msb_offset) msb_ind = ((post_size-1) << 2) + msb_offset;
-        else msb_ind = post_size << 2;
-        msb_bytes = mymalloc(sizeof(uint32_t) * post_size);
-    }
+    if(signature.symbol == SYMBOL_MSB) post_size = elias_decode(metadata);
     read_uint64_t(&state, my_reader);
     read_bytes((unsigned char *)header->data, sizeof(uint32_t) * content_size, my_reader);
-    if(signature.symbol == SYMBOL_MSB) read_bytes(msb_bytes, sizeof(uint32_t) * post_size, my_reader);
+    if(signature.symbol == SYMBOL_MSB){
+        msb_bytes = mymalloc(sizeof(unsigned char) * post_size);
+        read_bytes(msb_bytes, sizeof(unsigned char) * post_size, my_reader);
+    }
     for(i=0; i<len; i++)
     {
         S = header->symbol_state[state % m];
@@ -186,37 +201,28 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     if(signature.symbol == SYMBOL_MSB)
     {
         i = 0;
-        msb_ind--;
+        post_size--;
         while(i < len)
         {
 
             if(block->data[i] > 256 && block->data[i] <= 512)
             {
-                // printf("%u) %u[%u] (%u)\n", i, block->data[i],msb_bytes[msb_ind], ((block->data[i] - 256)<<8) + msb_bytes[msb_ind]);
-                // sleep(1);
                 block->data[i] -= 256;
-                byte = msb_bytes[msb_ind--];
+                byte = msb_bytes[post_size--];
                 block->data[i] = (block->data[i]<<8) + byte;
             }
             else if(block->data[i] > 512)
             {
                 block->data[i] -= 512;
-                byte = msb_bytes[msb_ind--];
+                byte = msb_bytes[post_size--];
                 block->data[i] = (block->data[i]<<16) + byte;
-                byte = msb_bytes[msb_ind--];
+                byte = msb_bytes[post_size--];
                 block->data[i] = (block->data[i]) + (byte<<8);
             }
             i++;
         }
         myfree(msb_bytes);
     }
-    // if(signature.header == HEADER_BLOCK)
-    // {
-    //     myfree(symbol);
-    //     symbol = NULL;
-    //     myfree(freq);
-    //     freq = NULL;
-    // }
     free_metadata(metadata);
 }
 

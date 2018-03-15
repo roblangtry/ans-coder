@@ -94,7 +94,6 @@ int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     for(int i = 0; i < header.no_blocks; i++)
     {
         process_block(input_file, my_writer, &header, signature, &block);
-        output_block(my_writer, &block);
     }
     flush_writer(my_writer);
     myfree(my_writer);

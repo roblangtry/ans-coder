@@ -8,6 +8,7 @@
 #include "reader.h"
 #include "prelude_code.h"
 #include "msb.h"
+#include "page.h"
 
 #ifndef BLOCK_CODE
 #define BLOCK_CODE

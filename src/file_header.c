@@ -20,7 +20,7 @@ void preprocess_file(FILE * input_file, coding_signature_t signature, file_heade
                 else if(signature.symbol == SYMBOL_MSB) symbol = get_msb_symbol(block[i]);
                 else exit(-1);
                 header->freq[symbol]++;
-                if(symbol>header->max) header->max=block[i];
+                if(symbol>header->max) header->max=symbol;
                 header->symbols++;
             }
             if(prev > 0) no_blocks++;

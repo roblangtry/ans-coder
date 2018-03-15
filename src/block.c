@@ -120,7 +120,7 @@ void output_block(struct writer * my_writer, output_block_t * block)
 void read_block(struct reader * my_reader, file_header_t * header, coding_signature_t signature, data_block_t * block)
 {
     uint32_t cumal = 0;
-    uint64_t state, ls, bs, m, B = 32;
+    uint64_t state, ls, bs, m, B = 32, sym_map_size;
     uint32_t S, F, content_size, post_size;
     uint ind = 0, msb_ind = 0, msb_offset = 0;
     uint32_t read=0, len = 0;
@@ -132,8 +132,10 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     {
         free(header->freq);
         free(header->cumalative_freq);
-        header->freq = calloc(SYMBOL_MAP_SIZE , sizeof(uint32_t));
-        header->cumalative_freq = calloc(SYMBOL_MAP_SIZE , sizeof(uint32_t));
+        sym_map_size = SYMBOL_MAP_SIZE;
+        if(signature.symbol == SYMBOL_MSB) sym_map_size = get_msb_symbol(SYMBOL_MAP_SIZE);
+        header->freq = calloc(sym_map_size , sizeof(uint32_t));
+        header->cumalative_freq = calloc(sym_map_size , sizeof(uint32_t));
         header->symbols = elias_decode(metadata);
         len = header->symbols;
         header->unique_symbols = elias_decode(metadata);

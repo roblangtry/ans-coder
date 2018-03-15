@@ -4,6 +4,7 @@ struct reader * initialise_reader(FILE * input_file){
     struct reader * my_reader = mymalloc(sizeof(struct reader));
     my_reader->index = 0;
     my_reader->size = 0;
+    my_reader->buffer = mymalloc(sizeof(unsigned char) * READ_BUFFER);
     my_reader->input_file = input_file;
     return my_reader;
 }

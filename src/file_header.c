@@ -9,8 +9,9 @@ void preprocess_file(FILE * input_file, coding_signature_t signature, file_heade
     header->max = 0;
     header->symbols = 0;
     header->unique_symbols = 0;
-    uint32_t * block = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
+    uint32_t * block;
     if(signature.header == HEADER_SINGLE){
+        block = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
         while(prev > 0)
         {
             prev = fread (block, sizeof(uint32_t), BLOCK_SIZE, input_file);
@@ -31,13 +32,13 @@ void preprocess_file(FILE * input_file, coding_signature_t signature, file_heade
             header->cumalative_freq[i] = cumal;
             cumal = cumal + header->freq[i];
         }
+        myfree(block);
+        block = NULL;
     } else if (signature.header == HEADER_BLOCK){
         fseek(input_file, 0, SEEK_END);
         no_blocks = ftell(input_file)/BLOCK_SIZE;
         if(ftell(input_file)%BLOCK_SIZE) no_blocks++;
     }
-    myfree(block);
-    block = NULL;
     header->no_blocks = no_blocks;
     fseek(input_file, 0, SEEK_SET);
 }
@@ -60,23 +61,23 @@ void output_file_header(struct writer * my_writer, file_header_t * header, codin
     elias_flush(metadata);
     free_metadata(metadata);
 }
-
-void read_file_header(struct reader * my_reader, coding_signature_t * signature, file_header_t * header)
+void read_signature(struct reader * my_reader, coding_signature_t * signature, struct prelude_code_data * metadata)
 {
     uint32_t magic = 0;
-    uint64_t total = 0, k = 0, cumal = 0;
     read_uint32_t(&magic, my_reader);
-
     if(magic != MAGIC){
         fprintf(stderr, "This file doesn't appear to have been encoded properly (%d)\n", magic);
         exit(-1);
     }
-    struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
     (*signature).symbol = elias_decode(metadata);
     (*signature).header = elias_decode(metadata);
     (*signature).ans = elias_decode(metadata);
+}
+void read_file_header(struct reader * my_reader, coding_signature_t signature, file_header_t * header, struct prelude_code_data * metadata)
+{
+    uint64_t total = 0, k = 0, cumal = 0;
     header->no_blocks = elias_decode(metadata);
-    if(signature->header == HEADER_SINGLE){
+    if(signature.header == HEADER_SINGLE){
         header->max = elias_decode(metadata);
         header->symbols = 0;
         header->unique_symbols = header->max + 1;

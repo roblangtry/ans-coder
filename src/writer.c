@@ -5,6 +5,7 @@ struct writer * initialise_writer(FILE * output_file)
     
     struct writer * my_writer = (struct writer *)mymalloc(sizeof(struct writer));
     my_writer->index = 0;
+    my_writer->buffer = mymalloc(sizeof(unsigned char) * WRITE_BUFFER);
     my_writer->output_file = output_file;
     return my_writer;
 }

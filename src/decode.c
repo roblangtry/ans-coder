@@ -66,6 +66,9 @@ int decode(char * input_filename, char * output_filename, unsigned char verbose_
 
 int decode_file(FILE * input_file, FILE * output_file, coding_signature_t signature)
 {
+    struct reader * my_reader = initialise_reader(input_file);
+    struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
+    read_signature(my_reader, &signature, metadata);
     file_header_t * header = mymalloc(sizeof(file_header_t));
     uint64_t sym_map_size = SYMBOL_MAP_SIZE;
     if(signature.symbol == SYMBOL_MSB) sym_map_size = get_msb_symbol(SYMBOL_MAP_SIZE);
@@ -77,8 +80,7 @@ int decode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     header->unique_symbols = 0;
     data_block_t * data = mymalloc(sizeof(data_block_t));
     data->data = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
-    struct reader * my_reader = initialise_reader(input_file);
-    read_file_header(my_reader, &signature, header);
+    read_file_header(my_reader, signature, header, metadata);
     if(signature.header == HEADER_BLOCK) header->symbol_state = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
     for(int i = 0; i < header->no_blocks; i++)
     {

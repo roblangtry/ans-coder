@@ -3,12 +3,12 @@
 #include <stdint.h>
 #include <math.h>
 #include "mem_manager.h"
+#include "constants.h"
 #ifndef WRITER_CODE
 #define WRITER_CODE
-#define WRITE_BUFFER 1048576
 struct writer
 {
-    unsigned char buffer[WRITE_BUFFER];
+    unsigned char  * buffer;
     size_t index;
     FILE * output_file;
 };

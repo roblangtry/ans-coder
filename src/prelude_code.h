@@ -18,7 +18,7 @@ struct prelude_code_data
     uint64_t state;
     uint64_t lo;
     uint64_t hi;
-    uint64_t buffer[PRELUDE_BUFFER_SIZE];
+    // uint64_t buffer[PRELUDE_BUFFER_SIZE];
     size_t index;
  };
  struct prelude_functions

@@ -3,12 +3,12 @@
 #include <stdint.h>
 #include <math.h>
 #include "mem_manager.h"
+#include "constants.h"
 #ifndef READER_CODE
 #define READER_CODE
-#define READ_BUFFER 1048576
 struct reader
 {
-	unsigned char buffer[READ_BUFFER];
+	unsigned char * buffer;
     size_t index;
     size_t size;
     FILE * input_file;

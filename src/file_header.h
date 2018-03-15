@@ -30,5 +30,6 @@ typedef struct
 
 void preprocess_file(FILE * input_file, coding_signature_t signature, file_header_t * header);
 void output_file_header(struct writer * my_writer, file_header_t * header, coding_signature_t signature);
-void read_file_header(struct reader * my_reader, coding_signature_t * signature, file_header_t * header);
+void read_signature(struct reader * my_reader, coding_signature_t * signature, struct prelude_code_data * metadata);
+void read_file_header(struct reader * my_reader, coding_signature_t signature, file_header_t * header, struct prelude_code_data * metadata);
 #endif

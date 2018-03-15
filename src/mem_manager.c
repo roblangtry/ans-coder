@@ -38,6 +38,6 @@ void printmem()
         fprintf(stderr, "MAX MEM USAGE:");
         fprintf(stderr, " %ld MiB", max_usage / 1048576);
         fprintf(stderr, " %ld KiB", (max_usage % 1048576) / 1024);
-        fprintf(stderr, " %ld B\n", max_usage / 1024);
+        fprintf(stderr, " %ld B\n", max_usage % 1024);
     }
 }

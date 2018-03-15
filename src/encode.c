@@ -70,13 +70,10 @@ int encode(char * input_filename, char * output_filename, unsigned char method_f
 int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signature)
 {
     output_block_t block;
-    block.pre = mymalloc(sizeof(uint32_t) * PRE_SIZE);
     block.pre_size = 0;
     block.pre_max_size = PRE_SIZE;
-    block.content = mymalloc(sizeof(uint32_t) * CONTENT_SIZE);
     block.content_size = 0;
     block.content_max_size = CONTENT_SIZE;
-    block.post = mymalloc(sizeof(uint32_t) * POST_SIZE);
     block.post_size = 0;
     block.post_max_size = POST_SIZE;
     file_header_t header;
@@ -97,9 +94,6 @@ int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     }
     flush_writer(my_writer);
     myfree(my_writer);
-    myfree(block.pre);
-    myfree(block.content);
-    myfree(block.post);
     myfree(header.freq);
     myfree(header.cumalative_freq);
     myfree(header.data);

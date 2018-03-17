@@ -13,7 +13,7 @@ typedef struct
 } int_page_t;
 int_page_t * get_int_page();
 void add_to_int_page(uint32_t value, int_page_t * page);
-void output_int_page(struct writer * my_writer, int_page_t * page);
+void output_int_page(struct writer * my_writer, int_page_t * page, uint32_t B);
 void free_int_page(int_page_t * page);
 
 typedef struct

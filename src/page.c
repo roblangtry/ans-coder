@@ -18,9 +18,13 @@ void add_to_int_page(uint32_t value, int_page_t * page)
     page->data[page->current_size++] = value;
 
 }
-void output_int_page(struct writer * my_writer, int_page_t * page)
+void output_int_page(struct writer * my_writer, int_page_t * page, uint32_t bits)
 {
-    write_bytes((unsigned char *)page->data, page->current_size << 2, my_writer);
+    struct bit_writer * bwriter = initialise_bit_writer(my_writer);
+    for(uint i = 0; i < page->current_size; i++)
+        write_bits(page->data[i], bits, bwriter);
+    flush_bit_writer(bwriter);
+    free_bit_writer(bwriter);
 }
 void free_int_page(int_page_t * page)
 {

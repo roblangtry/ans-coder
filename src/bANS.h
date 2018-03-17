@@ -9,7 +9,6 @@
 #include "mem_manager.h"
 #ifndef BANS_CODE
 #define BANS_CODE
-#define B 256
 #define Bbits 8
 struct output_obj
 {

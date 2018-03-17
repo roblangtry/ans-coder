@@ -111,7 +111,7 @@ void process_encode(uint32_t symbol, uint64_t * state, struct block_header * hea
     size_t index = get_symbol_index(symbol, header->index);
     uint32_t ls = header->freq[index];
     uint32_t bs = header->cumalative_freq[index];
-    uint32_t Is = (ls * B) - 1;
+    uint32_t Is = (ls * (1 << Bbits)) - 1;
     while(*state > Is){
         write_output(state, output);
     }
@@ -122,7 +122,7 @@ void process_encode(uint32_t symbol, uint64_t * state, struct block_header * hea
 
 void write_output(uint64_t * state, struct output_obj * output)
 {
-    output->output[output->head] = *state % B;
+    output->output[output->head] = *state % (1 << Bbits);
     *state = *state >> Bbits;
     output->head += 1;
 }

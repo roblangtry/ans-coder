@@ -12,21 +12,7 @@
 
 #ifndef BLOCK_CODE
 #define BLOCK_CODE
-typedef struct
-{
-    uint32_t * pre;
-    uint32_t pre_size;
-    uint32_t pre_max_size;
-    uint32_t * content;
-    uint32_t content_size;
-    uint32_t content_max_size;
-    uint32_t * post;
-    uint32_t post_size;
-    uint32_t post_max_size;
-} output_block_t;
-
 void process_block(FILE * input_file, struct writer * my_writer, file_header_t * header, coding_signature_t signature);
-void output_block(struct writer * my_writer, output_block_t * block);
 void read_block(struct reader * my_reader, file_header_t * header, coding_signature_t signature, data_block_t * block);
 void output_to_file(FILE * output_file, data_block_t * data);
 #endif

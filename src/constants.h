@@ -38,12 +38,15 @@
 #define HEADER_BLOCK 1
 //encoding
 #define ANS_RANGE 0
+// bit factor
+#define DEFAULT_BIT_FACTOR 13
 
 typedef struct
 {
     uint32_t symbol;
     uint32_t header;
     uint32_t ans;
+    uint32_t bit_factor;
 } coding_signature_t;
 
 coding_signature_t get_signature();

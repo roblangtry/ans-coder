@@ -5,5 +5,6 @@ coding_signature_t get_signature()
     signature.symbol = SYMBOL_DIRECT;
     signature.header = HEADER_SINGLE;
     signature.ans = ANS_RANGE;
+    signature.bit_factor = DEFAULT_BIT_FACTOR;
     return signature;
 }

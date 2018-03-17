@@ -6,7 +6,7 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     uint32_t cumal = 0;
     uint32_t symbol;
     uint32_t no_unique = 0;
-    uint64_t state, ls, bs, Is, m, bits = 32;
+    uint64_t state, ls, bs, Is, m, bits = signature.bit_factor;
     unsigned char vbyte, byte;
     struct prelude_code_data * metadata = prepare_metadata(NULL, my_writer, 0);
     int_page_t * ans_pages = get_int_page();
@@ -118,21 +118,12 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
 
 }
 
-void output_block(struct writer * my_writer, output_block_t * block)
-{
-    if(block->content_size){
-        write_bytes((unsigned char *)block->content, block->content_size << 2, my_writer);
-    }
-    if(block->post_size){
-        write_bytes((unsigned char *)block->post, block->post_size << 2, my_writer);
-    }
-}
-
 void read_block(struct reader * my_reader, file_header_t * header, coding_signature_t signature, data_block_t * block)
 {
     uint32_t cumal = 0;
-    uint64_t state, ls, bs, m, bits = 32, sym_map_size;
+    uint64_t state, ls, bs, m, bits = signature.bit_factor, sym_map_size;
     uint32_t S, F, content_size, post_size = 0;
+    uint32_t * indata;
     uint ind = 0;
     uint32_t read=0, len = 0;
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
@@ -150,8 +141,6 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         header->symbols = elias_decode(metadata);
         len = header->symbols;
         header->unique_symbols = elias_decode(metadata);
-        // symbol = mymalloc(sizeof(uint32_t) * header->unique_symbols);
-        // freq = mymalloc(sizeof(uint32_t) * header->unique_symbols);
         S = 0;
         for(uint i=0; i<header->unique_symbols; i++){
             S = elias_decode(metadata) + S;
@@ -176,8 +165,11 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     read_uint64_t(&state, my_reader);
 
     struct bit_reader * breader = initialise_bit_reader(my_reader);
-    for(uint n = 0; n < content_size; n++)
-        header->data[n] = read_bits(bits, breader);
+    if(header->data != NULL) myfree(header->data);
+    header->data = mymalloc(sizeof(uint32_t) * content_size);
+    for(uint n = 0; n < content_size; n++){
+        header->data[n] = (uint32_t)read_bits(bits, breader);
+    }
     free_bit_reader(breader);
     if(signature.symbol == SYMBOL_MSB){
         msb_bytes = mymalloc(sizeof(unsigned char) * post_size);

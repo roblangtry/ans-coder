@@ -123,7 +123,6 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     uint32_t cumal = 0;
     uint64_t state, ls, bs, m, bits = signature.bit_factor, sym_map_size;
     uint32_t S, F, content_size, post_size = 0;
-    uint32_t * indata;
     uint ind = 0;
     uint32_t read=0, len = 0;
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);

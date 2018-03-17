@@ -3,7 +3,6 @@
 void process_block(FILE * input_file, struct writer * my_writer, file_header_t * header, coding_signature_t signature)
 {
     uint32_t size;
-    uint32_t cumal = 0;
     uint32_t symbol;
     uint32_t no_unique = 0;
     uint64_t state, ls, bs, Is, m, bits = signature.bit_factor;
@@ -116,7 +115,6 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
 
 void read_block(struct reader * my_reader, file_header_t * header, coding_signature_t signature, data_block_t * block)
 {
-    uint32_t cumal = 0;
     uint64_t state, ls, bs, m, bits = signature.bit_factor, sym_map_size;
     uint32_t S, F, content_size, post_size = 0;
     uint ind = 0;
@@ -166,10 +164,6 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         header->data[n] = (uint32_t)read_bits(bits, breader);
     }
     free_bit_reader(breader);
-    if(signature.symbol == SYMBOL_MSB){
-        msb_bytes = mymalloc(sizeof(unsigned char) * post_size);
-        read_bytes(msb_bytes, sizeof(unsigned char) * post_size, my_reader);
-    }
     for(i=0; i<len; i++)
     {
         S = header->symbol_state[state % m];
@@ -182,8 +176,9 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
             state = (state << bits) + header->data[content_size-read];
         }
     }
-    if(signature.symbol == SYMBOL_MSB)
-    {
+    if(signature.symbol == SYMBOL_MSB){
+        msb_bytes = mymalloc(sizeof(unsigned char) * post_size);
+        read_bytes(msb_bytes, sizeof(unsigned char) * post_size, my_reader);
         i = 0;
         post_size--;
         while(i < len)

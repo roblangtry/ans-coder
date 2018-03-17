@@ -23,10 +23,9 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
 
         header->symbols = size;
         //clear the header
-        for(uint i=0; i<=header->max; i++)
+        for(uint i=0; i<=(header->max+1); i++)
         {
             header->freq[i] = 0;
-            header->cumalative_freq[i] = 0;
         }
         header->max = 0;
         //read the block
@@ -36,26 +35,23 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
             if(signature.symbol == SYMBOL_DIRECT) symbol = header->data[i];
             else if(signature.symbol == SYMBOL_MSB) symbol = get_msb_symbol(header->data[i]);
             else exit(-1);
-            header->freq[symbol]++;
+            if(!header->freq[symbol+1]) no_unique++;
+            header->freq[symbol+1]++;
             if(symbol > header->max) header->max = symbol;
         }
         //calculate cumalative frequency
-        for(uint i=0; i<=header->max; i++)
+        for(uint i=1; (i<=header->max+1); i++)
         {
-            if(header->freq[i]){
-                header->cumalative_freq[i] = cumal;
-                cumal += header->freq[i];
-                no_unique++;
-            }
+            header->freq[i] += header->freq[i-1];
         }
         elias_encode(metadata, no_unique);
         symbol = 0;
         for(uint i=0; i<=header->max; i++)
         {
-            if(header->freq[i]){
+            if(header->freq[i]<header->freq[i+1]){
                 elias_encode(metadata, i - symbol);
                 symbol = i;
-                elias_encode(metadata, header->freq[i]);
+                elias_encode(metadata, header->freq[i+1] - header->freq[i]);
             }
         }
     }
@@ -72,8 +68,8 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
         if(signature.symbol == SYMBOL_DIRECT) symbol = header->data[i];
         else if(signature.symbol == SYMBOL_MSB) symbol = get_msb_symbol(header->data[i]);
         else exit(-1);
-        ls = header->freq[symbol];
-        bs = header->cumalative_freq[symbol];
+        ls = header->freq[symbol+1] - header->freq[symbol];
+        bs = header->freq[symbol];
         Is = (ls << bits) - 1;
         while(state > Is){
             add_to_int_page(state % (1 << bits), ans_pages);
@@ -132,11 +128,9 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     if(signature.header == HEADER_BLOCK)
     {
         free(header->freq);
-        free(header->cumalative_freq);
         sym_map_size = SYMBOL_MAP_SIZE;
         if(signature.symbol == SYMBOL_MSB) sym_map_size = get_msb_symbol(SYMBOL_MAP_SIZE);
         header->freq = calloc(sym_map_size , sizeof(uint32_t));
-        header->cumalative_freq = calloc(sym_map_size , sizeof(uint32_t));
         header->symbols = elias_decode(metadata);
         len = header->symbols;
         header->unique_symbols = elias_decode(metadata);
@@ -144,13 +138,15 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         for(uint i=0; i<header->unique_symbols; i++){
             S = elias_decode(metadata) + S;
             F = elias_decode(metadata);
-            header->cumalative_freq[S] = cumal;
-            header->freq[S] = F;
+            header->freq[S+1] = F;
             for(uint j = 0; j < F; j++){
                 header->symbol_state[ind++] = S;
             }
-            cumal += F;
             header->max = S;
+        }
+        for (uint i = 1; i <= (S+1) ; i++)
+        {
+            header->freq[i] += header->freq[i-1];
         }
     }
     else if(signature.header == HEADER_SINGLE)
@@ -177,8 +173,8 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     for(i=0; i<len; i++)
     {
         S = header->symbol_state[state % m];
-        ls = header->freq[S];
-        bs = header->cumalative_freq[S];
+        ls = header->freq[S+1] - header->freq[S];
+        bs = header->freq[S];
         block->data[block->size++] = S;
         state = ls * (state / m) + (state % m) - bs;
         while(state < m && (content_size-read) > 0){

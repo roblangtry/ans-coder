@@ -73,7 +73,6 @@ int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     uint64_t sym_map_size = SYMBOL_MAP_SIZE;
     if(signature.symbol == SYMBOL_MSB) sym_map_size = get_msb_symbol(SYMBOL_MAP_SIZE);
     header.freq = mymalloc(sizeof(uint32_t) * sym_map_size);
-    header.cumalative_freq = mymalloc(sizeof(uint32_t) * sym_map_size);
     header.data = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
     header.max = 0;
     header.symbols = 0;
@@ -88,7 +87,6 @@ int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     flush_writer(my_writer);
     myfree(my_writer);
     myfree(header.freq);
-    myfree(header.cumalative_freq);
     myfree(header.data);
     printmem();
     return 1;

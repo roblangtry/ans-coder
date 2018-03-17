@@ -33,7 +33,7 @@ void myfree(void * ptr)
 }
 void printmem()
 {
-    #if DEBUG
+    #if VERB_PROFILE
         fprintf(stderr, "MAX MEM USAGE:");
         fprintf(stderr, " %ld MiB", max_usage / 1048576);
         fprintf(stderr, " %ld KiB", (max_usage % 1048576) / 1024);

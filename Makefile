@@ -4,6 +4,9 @@ CFLAGS = -Wall -pedantic -O3 -fopenmp
 build:
 	gcc $(CFLAGS) src/*.c -lm -o $(EXECUTABLE_NAME)
 
+build_profile:
+	gcc $(CFLAGS) -D VERB_PROFILE src/*.c -lm -o $(EXECUTABLE_NAME)
+
 build_debug:
 	gcc $(CFLAGS) -g src/*.c -lm -o $(EXECUTABLE_NAME)
 

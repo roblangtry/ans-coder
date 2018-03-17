@@ -1,22 +1,17 @@
 #include "block.h"
 
-void process_block(FILE * input_file, struct writer * my_writer, file_header_t * header, coding_signature_t signature, output_block_t * out_block)
+void process_block(FILE * input_file, struct writer * my_writer, file_header_t * header, coding_signature_t signature)
 {
     uint32_t size;
     uint32_t cumal = 0;
     uint32_t symbol;
     uint32_t no_unique = 0;
     uint64_t state, ls, bs, Is, m, B = 32;
-    unsigned char * msb_link = (unsigned char *)out_block->post;
-    uint32_t msb_ind = 0;
     unsigned char vbyte, byte;
     struct prelude_code_data * metadata = prepare_metadata(NULL, my_writer, 0);
     int_page_t * ans_pages = get_int_page();
     char_page_t * msb_pages;
     if(signature.symbol == SYMBOL_MSB) msb_pages = get_char_page();
-    out_block->pre_size = 0;
-    out_block->content_size = 0;
-    out_block->post_size = 0;
     size = fread(header->data, sizeof(uint32_t), BLOCK_SIZE, input_file);
 
     // ------------- //
@@ -102,8 +97,6 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
                 byte = vbyte;
                 add_to_char_page(byte, msb_pages);
             }
-            out_block->post_size = msb_ind / 4;
-            if(msb_ind % 4) out_block->post_size++;
         }
     }
     elias_encode(metadata, ans_pages->current_size);
@@ -139,11 +132,11 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
 {
     uint32_t cumal = 0;
     uint64_t state, ls, bs, m, B = 32, sym_map_size;
-    uint32_t S, F, content_size, post_size;
-    uint ind = 0, msb_ind = 0, msb_offset = 0;
+    uint32_t S, F, content_size, post_size = 0;
+    uint ind = 0;
     uint32_t read=0, len = 0;
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
-    unsigned char * msb_bytes;
+    unsigned char * msb_bytes = NULL;
     unsigned char byte;
     uint i;
     if(signature.header == HEADER_BLOCK)

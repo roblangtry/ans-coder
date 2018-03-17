@@ -69,13 +69,6 @@ int encode(char * input_filename, char * output_filename, unsigned char method_f
 
 int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signature)
 {
-    output_block_t block;
-    block.pre_size = 0;
-    block.pre_max_size = PRE_SIZE;
-    block.content_size = 0;
-    block.content_max_size = CONTENT_SIZE;
-    block.post_size = 0;
-    block.post_max_size = POST_SIZE;
     file_header_t header;
     uint64_t sym_map_size = SYMBOL_MAP_SIZE;
     if(signature.symbol == SYMBOL_MSB) sym_map_size = get_msb_symbol(SYMBOL_MAP_SIZE);
@@ -90,7 +83,7 @@ int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     output_file_header(my_writer, &header, signature);
     for(int i = 0; i < header.no_blocks; i++)
     {
-        process_block(input_file, my_writer, &header, signature, &block);
+        process_block(input_file, my_writer, &header, signature);
     }
     flush_writer(my_writer);
     myfree(my_writer);

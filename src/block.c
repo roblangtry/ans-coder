@@ -5,12 +5,12 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     uint32_t size;
     uint32_t symbol;
     uint32_t no_unique = 0;
-    uint64_t state, ls, bs, Is, m, bits = signature.bit_factor;
+    uint64_t state, ls, bs, Is, m, bits = signature.bit_factor, msb_bits = signature.msb_bit_factor;
     unsigned char vbyte, byte;
     struct prelude_code_data * metadata = prepare_metadata(NULL, my_writer, 0);
     int_page_t * ans_pages = get_int_page();
-    char_page_t * msb_pages;
-    if(signature.symbol == SYMBOL_MSB) msb_pages = get_char_page();
+    int_page_t * msb_pages;
+    if(signature.symbol == SYMBOL_MSB) msb_pages = get_int_page();
     size = fread(header->data, sizeof(uint32_t), BLOCK_SIZE, input_file);
 
     // ------------- //
@@ -81,16 +81,16 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
             {
                 vbyte = header->data[i] % 256;
                 byte = vbyte;
-                add_to_char_page(byte, msb_pages);
+                add_to_int_page(byte, msb_pages);
             }
             else if(header->data[i] > 65536 && header->data[i] <= 16777216)
             {
                 vbyte = (header->data[i] >> 8) % 256;
                 byte = vbyte;
-                add_to_char_page(byte, msb_pages);
+                add_to_int_page(byte, msb_pages);
                 vbyte = header->data[i] % 256;
                 byte = vbyte;
-                add_to_char_page(byte, msb_pages);
+                add_to_int_page(byte, msb_pages);
             }
         }
     }
@@ -107,20 +107,21 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     // ------------- //
     // Post
     // ------------- //
-    if(signature.symbol == SYMBOL_MSB) output_char_page(my_writer, msb_pages);
     free_int_page(ans_pages);
-    if(signature.symbol == SYMBOL_MSB) free_char_page(msb_pages);
-
+    if(signature.symbol == SYMBOL_MSB){
+        output_int_page(my_writer, msb_pages, msb_bits);
+        free_int_page(msb_pages);
+    }
 }
 
 void read_block(struct reader * my_reader, file_header_t * header, coding_signature_t signature, data_block_t * block)
 {
-    uint64_t state, ls, bs, m, bits = signature.bit_factor, sym_map_size;
+    uint64_t state, ls, bs, m, bits = signature.bit_factor, msb_bits = signature.msb_bit_factor, sym_map_size;
     uint32_t S, F, S0 = 1, content_size, post_size = 0;
     uint ind = 0;
     uint32_t read=0, len = 0;
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
-    unsigned char * msb_bytes = NULL;
+    uint32_t * msb_bytes = NULL;
     unsigned char byte;
     uint i;
     if(signature.header == HEADER_BLOCK)
@@ -178,8 +179,11 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         }
     }
     if(signature.symbol == SYMBOL_MSB){
-        msb_bytes = mymalloc(sizeof(unsigned char) * post_size);
-        read_bytes(msb_bytes, sizeof(unsigned char) * post_size, my_reader);
+        msb_bytes = mymalloc(sizeof(uint32_t) * post_size);
+        struct bit_reader * breader = initialise_bit_reader(my_reader);
+        for(uint i=0; i<post_size;i++)
+            msb_bytes[i] = (uint32_t)read_bits(msb_bits, breader);
+        free_bit_reader(breader);
         i = 0;
         post_size--;
         while(i < len)

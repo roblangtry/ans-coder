@@ -116,7 +116,7 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
 void read_block(struct reader * my_reader, file_header_t * header, coding_signature_t signature, data_block_t * block)
 {
     uint64_t state, ls, bs, m, bits = signature.bit_factor, sym_map_size;
-    uint32_t S, F, content_size, post_size = 0;
+    uint32_t S, F, S0 = 1, content_size, post_size = 0;
     uint ind = 0;
     uint32_t read=0, len = 0;
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
@@ -135,6 +135,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         S = 0;
         for(uint i=0; i<header->unique_symbols; i++){
             S = elias_decode(metadata) + S;
+            if(i==0) S0 = S;
             F = elias_decode(metadata);
             header->freq[S+1] = F;
             for(uint j = 0; j < F; j++){
@@ -142,7 +143,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
             }
             header->max = S;
         }
-        for (uint i = 1; i <= (S+1) ; i++)
+        for (uint i = S0; i <= (S+1) ; i++)
         {
             header->freq[i] += header->freq[i-1];
         }

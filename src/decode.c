@@ -73,7 +73,7 @@ int decode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     file_header_t * header = mymalloc(sizeof(file_header_t));
     uint64_t sym_map_size = SYMBOL_MAP_SIZE;
     if(signature.symbol == SYMBOL_MSB) sym_map_size = get_msb_symbol(SYMBOL_MAP_SIZE, msb_bits);
-    header->freq = mymalloc(sizeof(uint32_t) * sym_map_size);
+    header->freq = NULL;
     header->data = NULL;
     header->max = 0;
     header->symbols = 0;

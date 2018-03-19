@@ -24,6 +24,7 @@ typedef struct
     uint32_t max;
     uint32_t * freq;
     uint32_t * cumalative_freq;
+    uint32_t * symbol;
     uint32_t * data;
     uint32_t * symbol_state;
 } file_header_t;

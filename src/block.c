@@ -124,30 +124,34 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
     uint32_t * msb_bytes = NULL;
     uint32_t byte;
-    uint i, j, k;
+    uint i, j, k, cumalative;
     if(signature.header == HEADER_BLOCK)
     {
-        free(header->freq);
+        if(header->freq != NULL) myfree(header->freq);
         sym_map_size = SYMBOL_MAP_SIZE;
         if(signature.symbol == SYMBOL_MSB) sym_map_size = get_msb_symbol(SYMBOL_MAP_SIZE, msb_bits);
-        header->freq = calloc(sym_map_size , sizeof(uint32_t));
         header->symbols = elias_decode(metadata);
         len = header->symbols;
         header->unique_symbols = elias_decode(metadata);
+        header->freq = calloc(header->unique_symbols + 1 , sizeof(uint32_t));
+        header->symbol = mymalloc(header->unique_symbols * sizeof(uint32_t));
         S = 0;
         for(uint i=0; i<header->unique_symbols; i++){
             S = elias_decode(metadata) + S;
-            if(i==0) S0 = S;
             F = elias_decode(metadata);
-            header->freq[S+1] = F;
+            header->freq[i] = F;
+            header->symbol[i] = S;
             for(j = 0; j < F; j++){
-                header->symbol_state[ind++] = S;
+                header->symbol_state[ind++] = i;
             }
             header->max = S;
         }
-        for (uint i = S0; i <= (S+1) ; i++)
+        cumalative = 0;
+        for (uint i = 0; i <= header->unique_symbols ; i++)
         {
-            header->freq[i] += header->freq[i-1];
+            F = header->freq[i];
+            header->freq[i] = cumalative;
+            cumalative = F + cumalative;
         }
     }
     else if(signature.header == HEADER_SINGLE)
@@ -172,7 +176,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         S = header->symbol_state[state % m];
         ls = header->freq[S+1] - header->freq[S];
         bs = header->freq[S];
-        block->data[block->size++] = S;
+        block->data[block->size++] = header->symbol[S];
         state = ls * (state / m) + (state % m) - bs;
         while(state < m && (content_size-read) > 0){
             read++;
@@ -202,6 +206,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         }
         myfree(msb_bytes);
     }
+    if(signature.header == HEADER_BLOCK) myfree(header->symbol);
     free_metadata(metadata);
 }
 

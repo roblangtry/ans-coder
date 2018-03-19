@@ -40,6 +40,7 @@
 #define ANS_RANGE 0
 // bit factor
 #define DEFAULT_BIT_FACTOR 13
+#define DEFAULT_MSB_BIT_FACTOR 8
 
 typedef struct
 {
@@ -47,6 +48,7 @@ typedef struct
     uint32_t header;
     uint32_t ans;
     uint32_t bit_factor;
+    uint32_t msb_bit_factor;
 } coding_signature_t;
 
 coding_signature_t get_signature();

@@ -48,6 +48,8 @@ void output_file_header(struct writer * my_writer, file_header_t * header, codin
     write_uint32_t(MAGIC, my_writer);
     struct prelude_code_data * metadata = prepare_metadata(NULL, my_writer, 0);
     elias_encode(metadata, signature.symbol);
+    if(signature.symbol == SYMBOL_MSB)
+        elias_encode(metadata, signature.msb_bit_factor);
     elias_encode(metadata, signature.header);
     elias_encode(metadata, signature.ans);
     elias_encode(metadata, signature.bit_factor);
@@ -71,6 +73,8 @@ void read_signature(struct reader * my_reader, coding_signature_t * signature, s
         exit(-1);
     }
     (*signature).symbol = elias_decode(metadata);
+    if((*signature).symbol == SYMBOL_MSB)
+        (*signature).msb_bit_factor = elias_decode(metadata);
     (*signature).header = elias_decode(metadata);
     (*signature).ans = elias_decode(metadata);
     (*signature).bit_factor = elias_decode(metadata);

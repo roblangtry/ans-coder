@@ -69,9 +69,10 @@ int decode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     struct reader * my_reader = initialise_reader(input_file);
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
     read_signature(my_reader, &signature, metadata);
+    uint32_t msb_bits = signature.msb_bit_factor;
     file_header_t * header = mymalloc(sizeof(file_header_t));
     uint64_t sym_map_size = SYMBOL_MAP_SIZE;
-    if(signature.symbol == SYMBOL_MSB) sym_map_size = get_msb_symbol(SYMBOL_MAP_SIZE);
+    if(signature.symbol == SYMBOL_MSB) sym_map_size = get_msb_symbol(SYMBOL_MAP_SIZE, msb_bits);
     header->freq = mymalloc(sizeof(uint32_t) * sym_map_size);
     header->data = NULL;
     header->max = 0;

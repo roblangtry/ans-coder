@@ -10,7 +10,7 @@ int main ( int argc, char *argv[] ){
     verbose_flag = 0;
     // indent = 0;
     coding_signature_t signature = get_signature();
-    while((c = getopt(argc, argv, "ba:detrvpxsVm")) != -1){
+    while((c = getopt(argc, argv, "ba:detrvpxsVmM:")) != -1){
         switch(c)
         {
             case 'd':
@@ -52,6 +52,9 @@ int main ( int argc, char *argv[] ){
             case 'm':
                 //method_flag = MSB_METHOD;
                 signature.symbol = SYMBOL_MSB;
+                break;
+            case 'M':
+                signature.msb_bit_factor = atoi(optarg);
                 break;
             case 'a':
                 signature.bit_factor = atoi(optarg);

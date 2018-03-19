@@ -3,10 +3,10 @@
 void process_block(FILE * input_file, struct writer * my_writer, file_header_t * header, coding_signature_t signature)
 {
     uint32_t size;
-    uint32_t symbol;
+    uint32_t symbol, j, v;
     uint32_t no_unique = 0;
     uint64_t state, ls, bs, Is, m, bits = signature.bit_factor, msb_bits = signature.msb_bit_factor;
-    unsigned char vbyte, byte;
+    uint32_t vbyte, byte;
     struct prelude_code_data * metadata = prepare_metadata(NULL, my_writer, 0);
     int_page_t * ans_pages = get_int_page();
     int_page_t * msb_pages;
@@ -32,7 +32,7 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
         for(uint i=0; i<size; i++)
         {
             if(signature.symbol == SYMBOL_DIRECT) symbol = header->data[i];
-            else if(signature.symbol == SYMBOL_MSB) symbol = get_msb_symbol(header->data[i]);
+            else if(signature.symbol == SYMBOL_MSB) symbol = get_msb_symbol(header->data[i], msb_bits);
             else exit(-1);
             if(!header->freq[symbol+1]) no_unique++;
             header->freq[symbol+1]++;
@@ -65,7 +65,7 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     for(int i=size-1; i>=0; i--)
     {
         if(signature.symbol == SYMBOL_DIRECT) symbol = header->data[i];
-        else if(signature.symbol == SYMBOL_MSB) symbol = get_msb_symbol(header->data[i]);
+        else if(signature.symbol == SYMBOL_MSB) symbol = get_msb_symbol(header->data[i], msb_bits);
         else exit(-1);
         ls = header->freq[symbol+1] - header->freq[symbol];
         bs = header->freq[symbol];
@@ -77,20 +77,21 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
         state = m * (state / ls) + bs + (state % ls);
         if(signature.symbol == SYMBOL_MSB)
         {
-            if(header->data[i] > 256 && header->data[i] <= 65536)
-            {
-                vbyte = header->data[i] % 256;
-                byte = vbyte;
-                add_to_int_page(byte, msb_pages);
+            j = 0;
+            v = header->data[i] - 1;
+            while ((v >> msb_bits) > 0){
+                j = j + 1;
+                v = v >> msb_bits;
             }
-            else if(header->data[i] > 65536 && header->data[i] <= 16777216)
+            while(j > 0)
             {
-                vbyte = (header->data[i] >> 8) % 256;
+                if (j == 1)
+                    vbyte = header->data[i] % (1 << msb_bits);
+                else
+                    vbyte = (header->data[i] >> (msb_bits * (j-1))) % (1 << msb_bits);
                 byte = vbyte;
                 add_to_int_page(byte, msb_pages);
-                vbyte = header->data[i] % 256;
-                byte = vbyte;
-                add_to_int_page(byte, msb_pages);
+                j = j - 1;
             }
         }
     }
@@ -122,13 +123,13 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     uint32_t read=0, len = 0;
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
     uint32_t * msb_bytes = NULL;
-    unsigned char byte;
-    uint i;
+    uint32_t byte;
+    uint i, j, k;
     if(signature.header == HEADER_BLOCK)
     {
         free(header->freq);
         sym_map_size = SYMBOL_MAP_SIZE;
-        if(signature.symbol == SYMBOL_MSB) sym_map_size = get_msb_symbol(SYMBOL_MAP_SIZE);
+        if(signature.symbol == SYMBOL_MSB) sym_map_size = get_msb_symbol(SYMBOL_MAP_SIZE, msb_bits);
         header->freq = calloc(sym_map_size , sizeof(uint32_t));
         header->symbols = elias_decode(metadata);
         len = header->symbols;
@@ -139,7 +140,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
             if(i==0) S0 = S;
             F = elias_decode(metadata);
             header->freq[S+1] = F;
-            for(uint j = 0; j < F; j++){
+            for(j = 0; j < F; j++){
                 header->symbol_state[ind++] = S;
             }
             header->max = S;
@@ -188,21 +189,15 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         post_size--;
         while(i < len)
         {
+            j = (block->data[i] - 1) / (1<<msb_bits);
+            block->data[i] -= (1<<msb_bits) * j;
+            block->data[i] = block->data[i]<<(msb_bits*j);
+            for(k = 0;k<j;k++){
+                byte = msb_bytes[post_size--];
+                if(!k) block->data[i] = block->data[i] + byte;
+                else block->data[i] = block->data[i] + (byte << (msb_bits * k));
+            }
 
-            if(block->data[i] > 256 && block->data[i] <= 512)
-            {
-                block->data[i] -= 256;
-                byte = msb_bytes[post_size--];
-                block->data[i] = (block->data[i]<<8) + byte;
-            }
-            else if(block->data[i] > 512)
-            {
-                block->data[i] -= 512;
-                byte = msb_bytes[post_size--];
-                block->data[i] = (block->data[i]<<16) + byte;
-                byte = msb_bytes[post_size--];
-                block->data[i] = (block->data[i]) + (byte<<8);
-            }
             i++;
         }
         myfree(msb_bytes);

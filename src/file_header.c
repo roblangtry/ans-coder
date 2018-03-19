@@ -4,7 +4,7 @@ void preprocess_file(FILE * input_file, coding_signature_t signature, file_heade
 {
     uint32_t no_blocks = 0;
     uint64_t cumal = 0;
-    uint32_t symbol;
+    uint32_t msb_bits = signature.msb_bit_factor, symbol;
     size_t prev = 1;
     header->max = 0;
     header->symbols = 0;
@@ -18,7 +18,7 @@ void preprocess_file(FILE * input_file, coding_signature_t signature, file_heade
             for(uint i=0; i<prev; i++)
             {
                 if(signature.symbol == SYMBOL_DIRECT) symbol = block[i];
-                else if(signature.symbol == SYMBOL_MSB) symbol = get_msb_symbol(block[i]);
+                else if(signature.symbol == SYMBOL_MSB) symbol = get_msb_symbol(block[i], msb_bits);
                 else exit(-1);
                 header->freq[symbol]++;
                 if(symbol>header->max) header->max=symbol;

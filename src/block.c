@@ -45,9 +45,8 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
 }
 void read_block_heading(file_header_t * header, uint32_t * len, coding_signature_t signature, struct prelude_code_data * metadata)
 {
-    uint32_t S, F, ind = 0, j, cumalative, sym_map_size = SYMBOL_MAP_SIZE;
+    uint32_t S, F, ind = 0, j, cumalative;
     if(header->freq != NULL) myfree(header->freq);
-    if(signature.symbol == SYMBOL_MSB) sym_map_size = get_msb_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor);
     header->symbols = elias_decode(metadata);
     *len = header->symbols;
     header->unique_symbols = elias_decode(metadata);
@@ -76,10 +75,8 @@ void read_block_heading(file_header_t * header, uint32_t * len, coding_signature
 void process_block(FILE * input_file, struct writer * my_writer, file_header_t * header, coding_signature_t signature)
 {
     uint32_t size;
-    uint32_t symbol, j, v;
-    uint32_t no_unique = 0;
+    uint32_t symbol;
     uint64_t state, ls, bs, Is, m, bits = signature.bit_factor, msb_bits = signature.msb_bit_factor;
-    uint32_t vbyte, byte;
     struct prelude_code_data * metadata = prepare_metadata(NULL, my_writer, 0);
     int_page_t * ans_pages = get_int_page();
     int_page_t * msb_pages;
@@ -140,14 +137,13 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
 
 void read_block(struct reader * my_reader, file_header_t * header, coding_signature_t signature, data_block_t * block)
 {
-    uint64_t state, ls, bs, m, bits = signature.bit_factor, msb_bits = signature.msb_bit_factor, sym_map_size;
-    uint32_t S, F, S0 = 1, content_size, post_size = 0;
-    uint ind = 0;
+    uint64_t state, ls, bs, m, bits = signature.bit_factor, msb_bits = signature.msb_bit_factor;
+    uint32_t S, content_size, post_size = 0;
     uint32_t read=0, len = 0;
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
     uint32_t * msb_bytes = NULL;
     uint32_t byte;
-    uint i, j, k, cumalative;
+    uint i, j, k;
     if(signature.header == HEADER_BLOCK)
     {
         read_block_heading(header, &len, signature, metadata);

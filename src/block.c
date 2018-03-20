@@ -11,6 +11,7 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
 {
     uint32_t no_unique = 0;
     uint32_t symbol;
+    uint32_t max = 0;
     header->symbols = size;
     //clear the header
     for(uint i=0; i<=(header->max+1); i++)
@@ -27,20 +28,26 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
         header->freq[symbol+1]++;
         if(symbol > header->max) header->max = symbol;
     }
+    max = header->max;
     //calculate cumalative frequency
-    for(uint i=1; (i<=header->max+1); i++)
+    for(uint i=1; (i<=max+1); i++)
     {
         header->freq[i] += header->freq[i-1];
     }
     elias_encode(metadata, no_unique);
     symbol = 0;
-    for(uint i=0; i<=header->max; i++)
+    uint32_t F = 0;
+    uint32_t j = 0;
+    for(uint i=0; i<no_unique; i++)
     {
-        if(header->freq[i]<header->freq[i+1]){
-            elias_encode(metadata, i - symbol);
-            symbol = i;
-            elias_encode(metadata, header->freq[i+1] - header->freq[i]);
+        F = header->freq[j+1] - header->freq[j];
+        while(!F){
+            j++;
+            F = header->freq[j+1] - header->freq[j];
         }
+        elias_encode(metadata, j - symbol);
+        symbol = j++;
+        elias_encode(metadata, F);
     }
 }
 void read_block_heading(file_header_t * header, uint32_t * len, coding_signature_t signature, struct prelude_code_data * metadata)

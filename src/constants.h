@@ -41,6 +41,9 @@
 // bit factor
 #define DEFAULT_BIT_FACTOR 13
 #define DEFAULT_MSB_BIT_FACTOR 8
+// translation
+#define TRANSLATE_TRUE 2
+#define TRANSLATE_FALSE 1
 
 typedef struct
 {
@@ -49,6 +52,7 @@ typedef struct
     uint32_t ans;
     uint32_t bit_factor;
     uint32_t msb_bit_factor;
+    uint32_t translation;
 } coding_signature_t;
 
 coding_signature_t get_signature();

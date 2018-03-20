@@ -7,5 +7,6 @@ coding_signature_t get_signature()
     signature.ans = ANS_RANGE;
     signature.bit_factor = DEFAULT_BIT_FACTOR;
     signature.msb_bit_factor = DEFAULT_MSB_BIT_FACTOR;
+    signature.translation = TRANSLATE_TRUE;
     return signature;
 }

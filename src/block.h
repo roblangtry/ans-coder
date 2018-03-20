@@ -9,6 +9,7 @@
 #include "prelude_code.h"
 #include "msb.h"
 #include "page.h"
+#include "order.h"
 
 #ifndef BLOCK_CODE
 #define BLOCK_CODE

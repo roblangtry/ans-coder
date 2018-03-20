@@ -16,3 +16,22 @@ uint32_t get_msb_symbol(uint32_t symbol, uint32_t binary_length){
     }
     return (symbol >> offset) + add;
 }
+void stream_msb(uint32_t symbol, uint32_t bits, int_page_t * pages)
+{
+    uint32_t byte;
+    uint32_t j = 0;
+    uint32_t v = symbol - 1;
+    while ((v >> bits) > 0){
+        j = j + 1;
+        v = v >> bits;
+    }
+    while(j > 0)
+    {
+        if (j == 1)
+            byte = symbol % (1 << bits);
+        else
+            byte = (symbol >> (bits * (j-1))) % (1 << bits);
+        add_to_int_page(byte, pages);
+        j = j - 1;
+    }
+}

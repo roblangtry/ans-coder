@@ -27,6 +27,7 @@ typedef struct
     uint32_t * symbol;
     uint32_t * data;
     uint32_t * symbol_state;
+    uint32_t * translation;
 } file_header_t;
 
 void preprocess_file(FILE * input_file, coding_signature_t signature, file_header_t * header);

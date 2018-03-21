@@ -10,31 +10,35 @@ uint32_t get_symbol(uint32_t input, coding_signature_t signature)
 void generate_block_header(file_header_t * header, uint32_t size, coding_signature_t signature, struct prelude_code_data * metadata)
 {
     uint32_t no_unique = 0;
-    uint32_t symbol;
+    uint32_t symbol, n =0;
     uint32_t max = 0;
+    header->translation = NULL;
     header->symbols = size;
+    //read the block
+    elias_encode(metadata, size);
+    if(signature.translation == TRANSLATE_TRUE) build_translations_encoding(header, size, metadata);
     //clear the header
     for(uint i=0; i<=(header->max+1); i++)
     {
         header->freq[i] = 0;
     }
     header->max = 0;
-    //read the block
-    elias_encode(metadata, size);
     for(uint i=0; i<size; i++)
     {
-        symbol = get_symbol(header->data[i], signature);
+        if(signature.translation == TRANSLATE_TRUE) symbol = get_symbol(header->translation[header->data[i]], signature);
+        else symbol = get_symbol(header->data[i], signature);
         if(!header->freq[symbol+1]) no_unique++;
         header->freq[symbol+1]++;
         if(symbol > header->max) header->max = symbol;
     }
     max = header->max;
     //calculate cumalative frequency
+
     for(uint i=1; (i<=max+1); i++)
     {
         header->freq[i] += header->freq[i-1];
     }
-    elias_encode(metadata, no_unique);
+    if(signature.translation != TRANSLATE_TRUE) elias_encode(metadata, no_unique);
     symbol = 0;
     uint32_t F = 0;
     uint32_t j = 0;
@@ -45,9 +49,9 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
             j++;
             F = header->freq[j+1] - header->freq[j];
         }
-        elias_encode(metadata, j - symbol);
+        if(signature.translation != TRANSLATE_TRUE) elias_encode(metadata, j - symbol);
         symbol = j++;
-        elias_encode(metadata, F);
+        if(signature.translation != TRANSLATE_TRUE) elias_encode(metadata, F);
     }
 }
 void read_block_heading(file_header_t * header, uint32_t * len, coding_signature_t signature, struct prelude_code_data * metadata)
@@ -57,7 +61,7 @@ void read_block_heading(file_header_t * header, uint32_t * len, coding_signature
     header->symbols = elias_decode(metadata);
     *len = header->symbols;
     header->unique_symbols = elias_decode(metadata);
-    header->freq = calloc(header->unique_symbols + 1 , sizeof(uint32_t));
+    header->freq = mycalloc(header->unique_symbols + 1 , sizeof(uint32_t));
     header->symbol = mymalloc(header->unique_symbols * sizeof(uint32_t));
     S = 0;
     for(uint i=0; i<header->unique_symbols; i++){
@@ -103,12 +107,12 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
         elias_encode(metadata, size);
     }
 
-
     state = header->symbols;
     m = header->symbols;
     for(int i=size-1; i>=0; i--)
     {
-        symbol = get_symbol(header->data[i], signature);
+        if(signature.translation == TRANSLATE_TRUE) symbol = get_symbol(header->translation[header->data[i]], signature);
+        else symbol = get_symbol(header->data[i], signature);
         ls = header->freq[symbol+1] - header->freq[symbol];
         bs = header->freq[symbol];
         Is = (ls << bits) - 1;
@@ -119,7 +123,8 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
         state = m * (state / ls) + bs + (state % ls);
         if(signature.symbol == SYMBOL_MSB)
         {
-            stream_msb(header->data[i], msb_bits, msb_pages);
+            if(signature.translation == TRANSLATE_TRUE) stream_msb(header->translation[header->data[i]], msb_bits, msb_pages);
+            else stream_msb(header->data[i], msb_bits, msb_pages);
         }
     }
     elias_encode(metadata, ans_pages->current_size);
@@ -140,6 +145,7 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
         output_int_page(my_writer, msb_pages, msb_bits);
         free_int_page(msb_pages);
     }
+    if(signature.translation == TRANSLATE_TRUE) myfree(header->translation);
 }
 
 void read_block(struct reader * my_reader, file_header_t * header, coding_signature_t signature, data_block_t * block)

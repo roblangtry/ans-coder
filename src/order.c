@@ -1,5 +1,22 @@
 #include "order.h"
 
+void build_translations_decoding(file_header_t * header)
+{
+    tuple_t * tuples = mymalloc(sizeof(tuple_t) * header->unique_symbols);
+    for(uint32_t i = 0; i < header->unique_symbols; i++)
+    {
+        tuples[i].index = header->symbol[i];
+        tuples[i].freq = header->freq[i];
+    }
+    header->translation = get_reverse_translation_matrix(tuples, header->unique_symbols);
+    for(uint32_t i = 0; i < header->unique_symbols; i++)
+    {
+        header->symbol[i] = i;
+        header->freq[i] = tuples[i].freq;
+    }
+
+
+}
 void build_translations_encoding(file_header_t * header, uint32_t size, struct prelude_code_data * metadata)
 {
     uint32_t no_unique = 0, symbol, f, max = 0;
@@ -14,6 +31,7 @@ void build_translations_encoding(file_header_t * header, uint32_t size, struct p
     }
     elias_encode(metadata, no_unique);
     uint j = 0;
+    symbol = 0;
     for(uint i=0; i<no_unique; i++)
     {
         f = F[j];
@@ -61,9 +79,9 @@ uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t ma
         T[tuples[i].index] = i + 1;
     return T;
 }
-uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t max)
+uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length)
 {
-    uint32_t * T = mycalloc(length, sizeof(uint32_t));
+    uint32_t * T = mymalloc(length * sizeof(uint32_t));
     qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
     for(uint i=0; i<length; i++)
         T[i] = tuples[i].index;

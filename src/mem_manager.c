@@ -12,6 +12,17 @@ void * mymalloc(size_t size)
     if(total_usage > max_usage) max_usage = total_usage;
     return ptr;
 }
+void * mycalloc(size_t no, size_t size)
+{
+    void * ptr = calloc(no, size);
+    if(ptr == NULL){
+        fprintf(stderr, "Malloc failed on allocation of %zu (stack size at failure %ld)\n", size, total_usage);
+        exit(-2);
+    }
+    total_usage += malloc_usable_size(ptr);
+    if(total_usage > max_usage) max_usage = total_usage;
+    return ptr;
+}
 void * myrealloc(void * ptr, size_t size)
 {
     total_usage -= malloc_usable_size(ptr);

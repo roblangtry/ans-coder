@@ -1,6 +1,6 @@
 #include "order.h"
 
-void build_translations_decoding(file_header_t * header)
+void build_translations_decoding(file_header_t * header,coding_signature_t signature)
 {
     tuple_t * tuples = mymalloc(sizeof(tuple_t) * header->unique_symbols);
     for(uint32_t i = 0; i < header->unique_symbols; i++)
@@ -9,12 +9,14 @@ void build_translations_decoding(file_header_t * header)
         tuples[i].freq = header->freq[i];
     }
     header->translation = get_reverse_translation_matrix(tuples, header->unique_symbols);
+    for(uint32_t i = 0; i < header->unique_symbols; i++) header->freq[i] = 0;
     for(uint32_t i = 0; i < header->unique_symbols; i++)
     {
-        header->symbol[i] = i;
-        header->freq[i] = tuples[i].freq;
+        header->symbol[get_symbol(i+1, signature)] = get_symbol(i+1, signature);
+        header->freq[get_symbol(i+1, signature)] += tuples[i].freq;
     }
-
+    header->unique_symbols = get_umsb_symbol(header->unique_symbols, signature.msb_bit_factor);
+    myfree(tuples);
 
 }
 void build_translations_encoding(file_header_t * header, uint32_t size, struct prelude_code_data * metadata)

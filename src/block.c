@@ -6,6 +6,12 @@ uint32_t get_symbol(uint32_t input, coding_signature_t signature)
     else if(signature.symbol == SYMBOL_MSB) return get_msb_symbol(input, signature.msb_bit_factor);
     else exit(-1);
 }
+uint32_t get_usymbol(uint32_t input, coding_signature_t signature)
+{
+    if(signature.symbol == SYMBOL_DIRECT) return input;
+    else if(signature.symbol == SYMBOL_MSB) return get_umsb_symbol(input, signature.msb_bit_factor);
+    else exit(-1);
+}
 
 void generate_block_header(file_header_t * header, uint32_t size, coding_signature_t signature, struct prelude_code_data * metadata)
 {
@@ -70,22 +76,13 @@ void read_block_heading(file_header_t * header, uint32_t * len, coding_signature
         F = elias_decode(metadata);
         header->freq[i] = F;
         header->symbol[i] = S;
-        if(signature.translation != TRANSLATE_TRUE)
-        {
-            for(j = 0; j < F; j++){
-                header->symbol_state[ind++] = i;
-            }
-        }
         header->max = S;
     }
     if(signature.translation == TRANSLATE_TRUE)
     {
-        build_translations_decoding(header);
+        build_translations_decoding(header, signature);
         for(uint i=0; i<header->unique_symbols; i++){
             F = header->freq[i];
-            for(j = 0; j < F; j++){
-                header->symbol_state[ind++] = i;
-            }
         }
     }
     cumalative = 0;
@@ -93,6 +90,10 @@ void read_block_heading(file_header_t * header, uint32_t * len, coding_signature
     {
         F = header->freq[i];
         header->freq[i] = cumalative;
+
+        for(j = cumalative; j < F + cumalative; j++){
+            header->symbol_state[j] = i;
+        }
         cumalative = F + cumalative;
     }
 }
@@ -130,11 +131,15 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
         ls = header->freq[symbol+1] - header->freq[symbol];
         bs = header->freq[symbol];
         Is = (ls << bits) - 1;
+        // if(i<10)printf("[%u] Si %u, S %u, m %lu, ls %lu, bs %lu, state %lu", i, header->data[i], get_symbol(header->translation[header->data[i]], signature), m, ls, bs, state);
         while(state > Is){
             add_to_int_page(state % (1 << bits), ans_pages);
             state = state >> bits;
         }
+        // if(i<10)printf(" -> %lu -> ", state);
         state = m * (state / ls) + bs + (state % ls);
+        // if(i<10)printf("%lu\n", state);
+        // if(i<10)sleep(1);
         if(signature.symbol == SYMBOL_MSB)
         {
             if(signature.translation == TRANSLATE_TRUE) stream_msb(header->translation[header->data[i]], msb_bits, msb_pages);
@@ -147,6 +152,8 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     }
     elias_flush(metadata);
     free_metadata(metadata);
+    // printf("STATE %lu\n", state);
+    // sleep(10);
     write_uint64_t(state, my_writer);
 
     // ------------- //
@@ -196,17 +203,23 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         header->data[n] = (uint32_t)read_bits(bits, breader);
     }
     free_bit_reader(breader);
+    // printf("STATE %lu\n", state);
+    // sleep(10);
     for(i=0; i<len; i++)
     {
         S = header->symbol_state[state % m];
         ls = header->freq[S+1] - header->freq[S];
         bs = header->freq[S];
+        // printf("state # m = %lu, Si %u, S %u, m %lu, ls %lu, bs %lu, state %lu", state % m, S, header->translation[S], m, ls, bs, state);
         block->data[block->size++] = header->symbol[S];
         state = ls * (state / m) + (state % m) - bs;
+        // printf(" -> %lu -> ", state);
         while(state < m && (content_size-read) > 0){
             read++;
             state = (state << bits) + header->data[content_size-read];
         }
+        // printf("%lu\n", state);
+        // sleep(1);
     }
     if(signature.symbol == SYMBOL_MSB){
         msb_bytes = mymalloc(sizeof(uint32_t) * post_size);

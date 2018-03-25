@@ -10,7 +10,7 @@ int main ( int argc, char *argv[] ){
     verbose_flag = 0;
     // indent = 0;
     coding_signature_t signature = get_signature();
-    while((c = getopt(argc, argv, "ba:detrvpxsVmM:")) != -1){
+    while((c = getopt(argc, argv, "ba:detrvpxsVmM:S")) != -1){
         switch(c)
         {
             case 'd':
@@ -55,6 +55,9 @@ int main ( int argc, char *argv[] ){
                 break;
             case 'M':
                 signature.msb_bit_factor = atoi(optarg);
+                break;
+            case 'S':
+                signature.translation = TRANSLATE_TRUE;
                 break;
             case 'a':
                 signature.bit_factor = atoi(optarg);

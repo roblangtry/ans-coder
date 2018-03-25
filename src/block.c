@@ -24,16 +24,29 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
     elias_encode(metadata, size);
     if(signature.translation == TRANSLATE_TRUE) build_translations_encoding(header, size, metadata);
     //clear the header
-    myfree(header->freq);
-    if(signature.symbol == SYMBOL_MSB) header->freq = mycalloc(get_msb_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1, sizeof(uint32_t));
-    else header->freq = mycalloc(header->global_max + BLOCK_SIZE + 1, sizeof(uint32_t));
+    if(signature.hashing == HASHING_STANDARD){
+        myfree(header->freq);
+        if(signature.symbol == SYMBOL_MSB) header->freq = mycalloc(get_msb_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1, sizeof(uint32_t));
+        else header->freq = mycalloc(header->global_max + BLOCK_SIZE + 1, sizeof(uint32_t));
+    }
+    else
+    {
+        if(signature.symbol == SYMBOL_MSB) header->freq_hash = sparse_hash_create(get_msb_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1);
+        else header->freq_hash = sparse_hash_create(header->global_max + BLOCK_SIZE + 1);
+    }
     header->max = 0;
     for(uint i=0; i<size; i++)
     {
         if(signature.translation == TRANSLATE_TRUE) symbol = get_symbol(header->translation[header->data[i]], signature);
         else symbol = get_symbol(header->data[i], signature);
-        if(!header->freq[symbol+1]) no_unique++;
-        header->freq[symbol+1]++;
+        if(signature.hashing == HASHING_STANDARD){
+            if(!header->freq[symbol+1]) no_unique++;
+            header->freq[symbol+1]++;
+        }
+        else
+        {
+            if(sparse_hash_increment(symbol+1, 1, header->freq_hash) == 1) no_unique++;
+        }
         if(symbol > header->max) header->max = symbol;
     }
     max = header->max;
@@ -42,7 +55,8 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
 
     for(uint i=1; (i<=max+1); i++)
     {
-        header->freq[i] += header->freq[i-1];
+        if(signature.hashing == HASHING_STANDARD) header->freq[i] += header->freq[i-1];
+        else sparse_hash_increment(i, sparse_hash_get(i-1, header->freq_hash), header->freq_hash);
     }
     if(signature.translation != TRANSLATE_TRUE) elias_encode(metadata, no_unique);
     symbol = 0;
@@ -50,10 +64,12 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
     uint32_t j = 0;
     for(uint i=0; i<no_unique; i++)
     {
-        F = header->freq[j+1] - header->freq[j];
+        if(signature.hashing == HASHING_STANDARD) F = header->freq[j+1] - header->freq[j];
+        else F = sparse_hash_get(j+1, header->freq_hash) - sparse_hash_get(j, header->freq_hash);
         while(!F){
             j++;
-            F = header->freq[j+1] - header->freq[j];
+            if(signature.hashing == HASHING_STANDARD) F = header->freq[j+1] - header->freq[j];
+            else F = sparse_hash_get(j+1, header->freq_hash) - sparse_hash_get(j, header->freq_hash);
         }
         if(signature.translation != TRANSLATE_TRUE) elias_encode(metadata, j - symbol);
         symbol = j++;
@@ -127,8 +143,15 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     {
         if(signature.translation == TRANSLATE_TRUE) symbol = get_symbol(header->translation[header->data[i]], signature);
         else symbol = get_symbol(header->data[i], signature);
-        ls = header->freq[symbol+1] - header->freq[symbol];
-        bs = header->freq[symbol];
+        if(signature.hashing == HASHING_STANDARD){
+            ls = header->freq[symbol+1] - header->freq[symbol];
+            bs = header->freq[symbol];
+        }
+        else
+        {
+            ls = sparse_hash_get(symbol+1, header->freq_hash) - sparse_hash_get(symbol, header->freq_hash);
+            bs = sparse_hash_get(symbol, header->freq_hash);
+        }
         Is = (ls << bits) - 1;
         while(state > Is){
             add_to_int_page(state % (1 << bits), ans_pages);
@@ -162,6 +185,7 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
         free_int_page(msb_pages);
     }
     if(signature.translation == TRANSLATE_TRUE) myfree(header->translation);
+    if(signature.hashing == HASHING_SPARSE) sparse_hash_free(header->freq_hash);
 }
 
 void read_block(struct reader * my_reader, file_header_t * header, coding_signature_t signature, data_block_t * block)

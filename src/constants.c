@@ -8,5 +8,6 @@ coding_signature_t get_signature()
     signature.bit_factor = DEFAULT_BIT_FACTOR;
     signature.msb_bit_factor = DEFAULT_MSB_BIT_FACTOR;
     signature.translation = TRANSLATE_FALSE;
+    signature.hashing = HASHING_STANDARD;
     return signature;
 }

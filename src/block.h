@@ -10,6 +10,8 @@
 #include "msb.h"
 #include "page.h"
 #include "order.h"
+#include "sparse_hash.h"
+
 
 #ifndef BLOCK_CODE
 #define BLOCK_CODE

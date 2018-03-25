@@ -27,6 +27,7 @@
 #define SINGLE_HEADER_METHOD 7
 #define MSB_METHOD 8
 #define DEBUG_FLAG 1
+#define HASHING_FACTOR 10
 
 //Methods for encoding/decoding
 //Symbol
@@ -44,6 +45,9 @@
 // translation
 #define TRANSLATE_TRUE 2
 #define TRANSLATE_FALSE 1
+// hashing
+#define HASHING_STANDARD 1
+#define HASHING_SPARSE 2
 
 typedef struct
 {
@@ -53,6 +57,7 @@ typedef struct
     uint32_t bit_factor;
     uint32_t msb_bit_factor;
     uint32_t translation;
+    uint32_t hashing;
 } coding_signature_t;
 
 coding_signature_t get_signature();

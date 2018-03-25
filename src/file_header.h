@@ -7,6 +7,7 @@
 #include "reader.h"
 #include "prelude_code.h"
 #include "msb.h"
+#include "sparse_hash.h"
 
 #ifndef FILE_HEADER_CODE
 #define FILE_HEADER_CODE
@@ -23,6 +24,7 @@ typedef struct
     uint64_t unique_symbols;
     uint32_t max;
     uint32_t global_max;
+    sparse_hash_t * freq_hash;
     uint32_t * freq;
     uint32_t * cumalative_freq;
     uint32_t * symbol;

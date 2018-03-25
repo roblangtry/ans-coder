@@ -8,7 +8,6 @@ int main ( int argc, char *argv[] ){
     encode_flag = 0;
     method_flag = RANGE_METHOD;
     verbose_flag = 0;
-    // indent = 0;
     coding_signature_t signature = get_signature();
     while((c = getopt(argc, argv, "ba:detrvpxsVmM:S")) != -1){
         switch(c)
@@ -21,36 +20,29 @@ int main ( int argc, char *argv[] ){
                 break;
             case 'p':
                 method_flag = PARRALEL_METHOD;
-                // indent = 1;
                 break;
             case 't':
                 method_flag = TABLE_METHOD;
                 break;
             case 'b':
                 signature.header = HEADER_BLOCK;
-                // indent = 1;
                 break;
             case 'x':
                 method_flag = ESCAPE_METHOD;
-                // indent = 1;
                 break;
             case 's':
                 method_flag = SPLIT_METHOD;
-                // indent = 1;
                 break;
             case 'V':
                 method_flag = VECTOR_METHOD;
-                // indent = 1;
                 break;
             case 'r':
                 method_flag = 0;
-                // indent = 1;
                 break;
             case 'v':
                 verbose_flag = 1;
                 break;
             case 'm':
-                //method_flag = MSB_METHOD;
                 signature.symbol = SYMBOL_MSB;
                 break;
             case 'M':
@@ -64,13 +56,6 @@ int main ( int argc, char *argv[] ){
                 break;
         }
     }
-    // if(( (decode_flag + encode_flag) != 1  || (2 + verbose_flag + indent + 2) != argc) && !(method_flag == PARRALEL_METHOD || method_flag == TABLE_METHOD)){
-    //     fprintf(stderr, "CORRECT SYNTAX:\n");
-    //     fprintf(stderr, "    %s -e [-r | -t] [-v] <input_file> <output_file>\n", argv[0]);
-    //     fprintf(stderr, " or\n");
-    //     fprintf(stderr, "    %s -d [-v] <input_file> <output_file> \n", argv[0]);
-    //     return -1;
-    // }
     input_filename = argv[argc - 2];
     output_filename = argv[argc - 1];
     if (decode_flag == 1){

@@ -12,7 +12,6 @@ void build_translations_decoding(file_header_t * header,coding_signature_t signa
     header->translation = get_reverse_translation_matrix(tuples, header->unique_symbols);
     for(uint32_t i = 0; i < header->unique_symbols; i++){
 
-        // printf("[%u](%u, %u) - T %u\n", i, tuples[i].index, tuples[i].freq, header->translation[i]); sleep(1);
         header->freq[i] = 0;
     }
     for(uint32_t i = 0; i < header->unique_symbols; i++)

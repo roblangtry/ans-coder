@@ -62,7 +62,7 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
 }
 void read_block_heading(file_header_t * header, uint32_t * len, coding_signature_t signature, struct prelude_code_data * metadata)
 {
-    uint32_t S, F, ind = 0, j, cumalative, p;
+    uint32_t S, F, ind = 0, j, cumalative, p, i;
     if(header->freq != NULL) myfree(header->freq);
     header->symbols = elias_decode(metadata);
     *len = header->symbols;
@@ -70,7 +70,7 @@ void read_block_heading(file_header_t * header, uint32_t * len, coding_signature
     header->freq = mycalloc(header->unique_symbols + 2 , sizeof(uint32_t));
     header->symbol = mymalloc((header->unique_symbols+1) * sizeof(uint32_t));
     S = 0;
-    for(uint i=0; i<header->unique_symbols; i++){
+    for(i=0; i<header->unique_symbols; i++){
         p = elias_decode(metadata);
         S = p + S;
         F = elias_decode(metadata);
@@ -81,16 +81,16 @@ void read_block_heading(file_header_t * header, uint32_t * len, coding_signature
     if(signature.translation == TRANSLATE_TRUE)
     {
         build_translations_decoding(header, signature);
-        for(uint i=0; i<header->unique_symbols; i++){
+        for(i=0; i<header->unique_symbols; i++){
             F = header->freq[i];
         }
     }
     cumalative = 0;
-    for (uint i = 0; i <= header->unique_symbols ; i++)
+    for (i = 0; i <= header->unique_symbols ; i++)
     {
         F = header->freq[i];
         header->freq[i] = cumalative;
-
+        // printf("%u - %u\n", F, F+cumalative);
         for(j = cumalative; j < F + cumalative; j++){
             header->symbol_state[j] = i;
         }

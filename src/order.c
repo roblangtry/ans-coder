@@ -21,7 +21,7 @@ void build_translations_decoding(file_header_t * header,coding_signature_t signa
         header->freq[get_symbol(i+1, signature)] += tuples[i].freq;
     }
     header->freq[get_symbol(header->unique_symbols, signature)+1] = header->symbols;
-    header->unique_symbols = get_usymbol(header->unique_symbols, signature);
+    header->unique_symbols = get_symbol(header->unique_symbols, signature);
     myfree(tuples);
 
 }

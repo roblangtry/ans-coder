@@ -22,6 +22,7 @@ typedef struct
     uint64_t symbols;
     uint64_t unique_symbols;
     uint32_t max;
+    uint32_t global_max;
     uint32_t * freq;
     uint32_t * cumalative_freq;
     uint32_t * symbol;

@@ -3,19 +3,25 @@
 void build_translations_decoding(file_header_t * header,coding_signature_t signature)
 {
     tuple_t * tuples = mymalloc(sizeof(tuple_t) * header->unique_symbols);
+    uint j;
     for(uint32_t i = 0; i < header->unique_symbols; i++)
     {
         tuples[i].index = header->symbol[i];
         tuples[i].freq = header->freq[i];
     }
     header->translation = get_reverse_translation_matrix(tuples, header->unique_symbols);
-    for(uint32_t i = 0; i < header->unique_symbols; i++) header->freq[i] = 0;
+    for(uint32_t i = 0; i < header->unique_symbols; i++){
+
+        // printf("[%u](%u, %u) - T %u\n", i, tuples[i].index, tuples[i].freq, header->translation[i]); sleep(1);
+        header->freq[i] = 0;
+    }
     for(uint32_t i = 0; i < header->unique_symbols; i++)
     {
         header->symbol[get_symbol(i+1, signature)] = get_symbol(i+1, signature);
         header->freq[get_symbol(i+1, signature)] += tuples[i].freq;
     }
-    header->unique_symbols = get_umsb_symbol(header->unique_symbols, signature.msb_bit_factor);
+    header->freq[get_symbol(header->unique_symbols, signature)+1] = header->symbols;
+    header->unique_symbols = get_usymbol(header->unique_symbols, signature);
     myfree(tuples);
 
 }
@@ -83,7 +89,7 @@ uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t ma
 }
 uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length)
 {
-    uint32_t * T = mymalloc(length * sizeof(uint32_t));
+    uint32_t * T = mycalloc((length+1) , sizeof(uint32_t));
     qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
     for(uint i=0; i<length; i++)
         T[i] = tuples[i].index;

@@ -70,12 +70,13 @@ int encode(char * input_filename, char * output_filename, unsigned char method_f
 int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signature)
 {
     file_header_t header;
-    uint64_t sym_map_size = SYMBOL_MAP_SIZE;
+    uint64_t sym_map_size = BLOCK_SIZE+1;
     uint32_t msb_bits = signature.msb_bit_factor;
     if(signature.symbol == SYMBOL_MSB) sym_map_size = get_msb_symbol(SYMBOL_MAP_SIZE, msb_bits);
     header.freq = calloc(sizeof(uint32_t), sym_map_size);
     header.data = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
     header.max = 0;
+    header.global_max = 0;
     header.symbols = 0;
     header.unique_symbols = 0;
     struct writer * my_writer = initialise_writer(output_file);

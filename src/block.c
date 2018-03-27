@@ -147,10 +147,6 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     m = header->symbols;
     for(int i=size-1; i>=0; i--)
     {
-        if(i < 115 && i > 105){
-            // printf("%u} S %u\n", i, header->data[i]);
-            // sleep(1);
-        }
         if(signature.translation == TRANSLATE_TRUE) symbol = get_symbol(header->translation[header->data[i]], signature);
         else symbol = get_symbol(header->data[i], signature);
         if(signature.hashing == HASHING_STANDARD){
@@ -219,7 +215,6 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     uint32_t * msb_bytes = NULL;
     uint32_t byte;
     uint i, j, k;
-    // printf("stage 1\n");
     if(signature.header == HEADER_BLOCK)
     {
         read_block_heading(header, &len, signature, metadata);
@@ -228,7 +223,6 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     {
         len = elias_decode(metadata);
     }
-    // printf("stage 2\n");
     block->size = 0;
     m = header->symbols;
     content_size = elias_decode(metadata);
@@ -236,16 +230,12 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         post_size = elias_decode(metadata);
     }
     read_uint64_t(&state, my_reader);
-
-    // printf("stage 3\n");
     struct bit_reader * breader = initialise_bit_reader(my_reader);
     if(header->data != NULL) myfree(header->data);
     header->data = mymalloc(sizeof(uint32_t) * content_size);
-    // printf("stage 4\n");
     for(uint n = 0; n < content_size; n++){
         header->data[n] = (uint32_t)read_bits(bits, breader);
     }
-    // printf("stage 5\n");
     free_bit_reader(breader);
     for(i=0; i<len; i++)
     {
@@ -259,7 +249,6 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
             state = (state << bits) + header->data[content_size-read];
         }
     }
-    printf("stage 6\n");
     if(signature.symbol == SYMBOL_MSB){
         msb_bytes = mymalloc(sizeof(uint32_t) * post_size);
         struct bit_reader * breader = initialise_bit_reader(my_reader);
@@ -271,7 +260,6 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         while(i < len)
         {
             j = (block->data[i] - 1) / (1<<msb_bits);
-            // printf("j\n");
             block->data[i] -= (1<<msb_bits) * j;
             block->data[i] = block->data[i]<<(msb_bits*j);
             for(k = 0;k<j;k++){
@@ -282,6 +270,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
             if(signature.translation == TRANSLATE_TRUE)block->data[i] = header->translation[block->data[i]-1];
             i++;
         }
+        myfree(msb_bytes);
     }
     else if(signature.symbol == SYMBOL_MSB_2){
         struct bit_reader * breader = initialise_bit_reader(my_reader);
@@ -291,32 +280,20 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         post_size--;
         while(i >= 0)
         {
-    // printf("stage 7a (%u - 1) / (1 << %u)\n", block->data[i], msb_bits);
             j = (block->data[i] - 1) / (1<<msb_bits);
-            // printf("%u] (%u,%u)\n", i, block->data[i], j);
-            // printf("IF(%u != 0 && %u != 0) = (%u, %u)\n", j,block->data[i],j != 0,block->data[i] != 0);
             if(j != 0 && block->data[i] != 0){
                 block->data[i] -= (1<<msb_bits) * j;
                 block->data[i] = block->data[i]<<j;
                 byte = (uint32_t)read_bits(j, breader);
                 block->data[i] = block->data[i] + byte;
             }
-            // if(i < 115 && i > 105) sleep(1);
-
-            // if(i < 115 && i > 105) printf("%u} [%u] %u - %u\n", i, j, byte, block->data[i]);
-
             if(signature.translation == TRANSLATE_TRUE)block->data[i] = header->translation[block->data[i]-1];
-    // printf("stage 7j\n");
             if(i == 0) break;
-    // printf("stage 7k\n");
             i--;
-    // printf("stage 7l\n");
         }
         }
         free_bit_reader(breader);
-        myfree(msb_bytes);
     }
-    // printf("stage 7\n");
     if(signature.header == HEADER_BLOCK) myfree(header->symbol);
     free_metadata(metadata);
     if(signature.translation == TRANSLATE_TRUE) myfree(header->translation);

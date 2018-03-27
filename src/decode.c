@@ -77,20 +77,13 @@ int decode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     header->unique_symbols = 0;
     data_block_t * data = mymalloc(sizeof(data_block_t));
     data->data = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
-    printf("RFH\n");
     read_file_header(my_reader, signature, header, metadata);
-    printf("SHHB\n");
     if(signature.header == HEADER_BLOCK) header->symbol_state = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
-    printf("FOR\n");
     for(int i = 0; i < header->no_blocks; i++)
     {
-    printf("RB\n");
         read_block(my_reader, header, signature, data);
-    printf("OTF\n");
         output_to_file(output_file, data);
-    printf("O\n");
     }
-    printf("FREE\n");
     myfree(my_reader);
     myfree(data->data);
     data->data = NULL;

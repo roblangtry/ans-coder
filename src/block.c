@@ -240,20 +240,26 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         for(uint i=0; i<post_size;i++)
             msb_bytes[i] = (uint32_t)read_bits(msb_bits, breader);
         free_bit_reader(breader);
-        i = 0;
-        post_size--;
-        while(i < len)
+        if(len)
         {
-            j = (block->data[i] - 1) / (1<<msb_bits);
-            block->data[i] -= (1<<msb_bits) * j;
-            block->data[i] = block->data[i]<<(msb_bits*j);
-            for(k = 0;k<j;k++){
-                byte = msb_bytes[post_size--];
-                if(!k) block->data[i] = block->data[i] + byte;
-                else block->data[i] = block->data[i] + (byte << (msb_bits * k));
+            post_size = 0;
+            i = len - 1;
+            while(i >= 0)
+            {
+                j = (block->data[i] - 1) / (1<<msb_bits);
+                block->data[i] -= (1<<msb_bits) * j;
+                block->data[i] = block->data[i]<<(msb_bits*j);
+                if(j > 0)
+                    for(k = j-1;k>=0;k--){
+                        byte = msb_bytes[post_size++];
+                        if(!k) block->data[i] = block->data[i] + byte;
+                        else block->data[i] = block->data[i] + (byte << (msb_bits * k));
+                        if(!k) break;
+                    }
+                if(signature.translation == TRANSLATE_TRUE)block->data[i] = header->translation[block->data[i]-1];
+                if(!i) break;
+                i--;
             }
-            if(signature.translation == TRANSLATE_TRUE)block->data[i] = header->translation[block->data[i]-1];
-            i++;
         }
         myfree(msb_bytes);
     }

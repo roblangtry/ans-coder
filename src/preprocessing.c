@@ -17,7 +17,7 @@ struct header preprocess(FILE * input_file){
     header.coding = 0;
     header.no_symbols = 0;
     header.no_unique_symbols = 0;
-    header.hashmap = calloc(SYMBOL_MAP_SIZE, sizeof(uint64_t));
+    header.hashmap = mycalloc(SYMBOL_MAP_SIZE, sizeof(uint64_t));
     //header.hashmap = initialise_hashmap();
     buffer = mymalloc(sizeof(uint) * BUFFER_SIZE);
     while((elements_read = fread(buffer, sizeof(uint), BUFFER_SIZE, input_file)) != 0){

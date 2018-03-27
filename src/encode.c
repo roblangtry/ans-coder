@@ -74,7 +74,7 @@ int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     uint32_t msb_bits = signature.msb_bit_factor;
     if(signature.symbol == SYMBOL_MSB) sym_map_size = get_msb_symbol(SYMBOL_MAP_SIZE, msb_bits);
     if(signature.symbol == SYMBOL_MSB_2) sym_map_size = get_msb_2_symbol(SYMBOL_MAP_SIZE, msb_bits);
-    if(signature.hashing == HASHING_STANDARD) header.freq = calloc(sizeof(uint32_t), sym_map_size);
+    if(signature.hashing == HASHING_STANDARD) header.freq = mycalloc(sizeof(uint32_t), sym_map_size);
     header.data = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
     header.max = 0;
     header.global_max = 0;

@@ -12,9 +12,12 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
     if(signature.translation == TRANSLATE_TRUE) build_translations_encoding(header, size, metadata);
     //clear the header
     if(signature.hashing == HASHING_STANDARD){
-        myfree(header->freq);
-        if(signature.symbol == SYMBOL_MSB) header->freq = mycalloc(get_msb_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1, sizeof(uint32_t));
-        else if(signature.symbol == SYMBOL_MSB_2) header->freq = mycalloc(get_msb_2_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1, sizeof(uint32_t));
+        if(header->freq != NULL){
+            FREE(header->freq);
+            header->freq = NULL;
+        }
+        if(signature.symbol == SYMBOL_MSB) header->freq = mycalloc(get_msb_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1024, sizeof(uint32_t));
+        else if(signature.symbol == SYMBOL_MSB_2) header->freq = mycalloc(get_msb_2_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1024, sizeof(uint32_t));
         else header->freq = mycalloc(header->global_max + BLOCK_SIZE + 1, sizeof(uint32_t));
     }
     else
@@ -68,7 +71,7 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
 void read_block_heading(file_header_t * header, uint32_t * len, coding_signature_t signature, struct prelude_code_data * metadata)
 {
     uint32_t S, F, j, cumalative, p, i;
-    if(header->freq != NULL) myfree(header->freq);
+    if(header->freq != NULL) FREE(header->freq);
     header->symbols = elias_decode(metadata);
     *len = header->symbols;
     header->unique_symbols = elias_decode(metadata);
@@ -181,7 +184,7 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
         output_bit_page(my_writer, msb_2_pages);
         free_bit_page(msb_2_pages);
     }
-    if(signature.translation == TRANSLATE_TRUE) myfree(header->translation);
+    if(signature.translation == TRANSLATE_TRUE) FREE(header->translation);
     if(signature.hashing == HASHING_SPARSE) sparse_hash_free(header->freq_hash);
 }
 
@@ -206,7 +209,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     content_size = elias_decode(metadata);
     read_uint64_t(&state, my_reader);
     struct bit_reader * breader = initialise_bit_reader(my_reader);
-    if(header->data != NULL) myfree(header->data);
+    if(header->data != NULL) FREE(header->data);
     header->data = mymalloc(sizeof(uint32_t) * content_size);
     for(uint n = 0; n < content_size; n++){
         header->data[n] = (uint32_t)read_bits(bits, breader);
@@ -269,9 +272,9 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         }
         free_bit_reader(breader);
     }
-    if(signature.header == HEADER_BLOCK) myfree(header->symbol);
+    if(signature.header == HEADER_BLOCK) FREE(header->symbol);
     free_metadata(metadata);
-    if(signature.translation == TRANSLATE_TRUE) myfree(header->translation);
+    if(signature.translation == TRANSLATE_TRUE) FREE(header->translation);
 }
 
 void output_to_file(FILE * output_file, data_block_t * data)

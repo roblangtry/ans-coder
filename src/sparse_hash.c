@@ -31,7 +31,7 @@ void sparse_hash_free(sparse_hash_t * hash){
     size_t size = hash->max / (1 << HASHING_FACTOR);
     if(hash->max % (1 << HASHING_FACTOR)) size++;
     for(uint i = 0; i < size; i++)
-        if(hash->values[i] != 0)myfree(hash->values[i]);
-    myfree(hash->values);
-    myfree(hash);
+        if(hash->values[i] != 0)FREE(hash->values[i]);
+    FREE(hash->values);
+    FREE(hash);
 }

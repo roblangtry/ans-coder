@@ -33,7 +33,7 @@ void preprocess_file(FILE * input_file, coding_signature_t signature, file_heade
             header->cumalative_freq[i] = cumal;
             cumal = cumal + header->freq[i];
         }
-        myfree(block);
+        FREE(block);
         block = NULL;
     } else if (signature.header == HEADER_BLOCK){
         fseek(input_file, 0, SEEK_END);

@@ -28,8 +28,8 @@ void output_int_page(struct writer * my_writer, int_page_t * page, uint32_t bits
 }
 void free_int_page(int_page_t * page)
 {
-    myfree(page->data);
-    myfree(page);
+    FREE(page->data);
+    FREE(page);
 }
 
 
@@ -59,8 +59,8 @@ void output_char_page(struct writer * my_writer, char_page_t * page)
 
 void free_char_page(char_page_t * page)
 {
-    myfree(page->data);
-    myfree(page);
+    FREE(page->data);
+    FREE(page);
 }
 
 
@@ -93,6 +93,6 @@ void output_bit_page(struct writer * my_writer, bit_page_t * page)
 }
 void free_bit_page(bit_page_t * page)
 {
-    myfree(page->data);
-    myfree(page);
+    FREE(page->data);
+    FREE(page);
 }

@@ -88,9 +88,9 @@ int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
         process_block(input_file, my_writer, &header, signature);
     }
     flush_writer(my_writer);
-    myfree(my_writer);
-    myfree(header.freq);
-    myfree(header.data);
+    FREE(my_writer);
+    FREE(header.freq);
+    FREE(header.data);
     printmem();
     return 1;
 }

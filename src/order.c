@@ -20,7 +20,7 @@ void build_translations_decoding(file_header_t * header,coding_signature_t signa
     }
     header->freq[get_symbol(header->unique_symbols, signature)+1] = header->symbols;
     header->unique_symbols = get_symbol(header->unique_symbols, signature);
-    myfree(tuples);
+    FREE(tuples);
 
 }
 void build_translations_encoding(file_header_t * header, uint32_t size, struct prelude_code_data * metadata)
@@ -50,9 +50,9 @@ void build_translations_encoding(file_header_t * header, uint32_t size, struct p
         elias_encode(metadata, f);
     }
     tuples = get_tuples(F, no_unique);
-    myfree(F);
+    FREE(F);
     header->translation = get_translation_matrix(tuples, no_unique, max + 1);
-    myfree(tuples);
+    FREE(tuples);
 }
 
 int T_cmpfunc (const void * a, const void * b) {

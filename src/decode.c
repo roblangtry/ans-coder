@@ -84,18 +84,18 @@ int decode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
         read_block(my_reader, header, signature, data);
         output_to_file(output_file, data);
     }
-    myfree(my_reader);
-    myfree(data->data);
+    FREE(my_reader);
+    FREE(data->data);
     data->data = NULL;
-    myfree(data);
+    FREE(data);
     data = NULL;
-    myfree(header->freq);
+    FREE(header->freq);
     header->freq = NULL;
-    myfree(header->data);
+    FREE(header->data);
     header->data = NULL;
-    myfree(header->symbol_state);
+    FREE(header->symbol_state);
     header->symbol_state = NULL;
-    myfree(header);
+    FREE(header);
     header = NULL;
     printmem();
     return 1;

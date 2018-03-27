@@ -161,12 +161,6 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
         }
     }
     elias_encode(metadata, ans_pages->current_size);
-    if(signature.symbol == SYMBOL_MSB){
-        elias_encode(metadata, msb_pages->current_size);
-    }
-    if(signature.symbol == SYMBOL_MSB_2){
-        elias_encode(metadata, msb_2_pages->current_size);
-    }
     elias_flush(metadata);
     free_metadata(metadata);
     write_uint64_t(state, my_writer);
@@ -194,7 +188,7 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
 void read_block(struct reader * my_reader, file_header_t * header, coding_signature_t signature, data_block_t * block)
 {
     uint64_t state, ls, bs, m, bits = signature.bit_factor, msb_bits = signature.msb_bit_factor;
-    uint32_t S, content_size, post_size = 0;
+    uint32_t S, content_size;
     uint32_t read=0, len = 0;
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
     uint32_t byte;
@@ -210,9 +204,6 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     block->size = 0;
     m = header->symbols;
     content_size = elias_decode(metadata);
-    if(signature.symbol == SYMBOL_MSB || signature.symbol == SYMBOL_MSB_2){
-        post_size = elias_decode(metadata);
-    }
     read_uint64_t(&state, my_reader);
     struct bit_reader * breader = initialise_bit_reader(my_reader);
     if(header->data != NULL) myfree(header->data);
@@ -237,7 +228,6 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         struct bit_reader * breader = initialise_bit_reader(my_reader);
         if(len)
         {
-            post_size = 0;
             i = len - 1;
             while(i >= 0)
             {
@@ -263,7 +253,6 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         if(len)
         {
         i = len - 1;
-        post_size--;
         while(i >= 0)
         {
             j = (block->data[i] - 1) / (1<<msb_bits);

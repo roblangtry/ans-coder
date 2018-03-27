@@ -197,7 +197,6 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     uint32_t S, content_size, post_size = 0;
     uint32_t read=0, len = 0;
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
-    uint32_t * msb_bytes = NULL;
     uint32_t byte;
     uint i, j, k;
     if(signature.header == HEADER_BLOCK)
@@ -235,11 +234,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         }
     }
     if(signature.symbol == SYMBOL_MSB){
-        msb_bytes = mymalloc(sizeof(uint32_t) * post_size);
         struct bit_reader * breader = initialise_bit_reader(my_reader);
-        for(uint i=0; i<post_size;i++)
-            msb_bytes[i] = (uint32_t)read_bits(msb_bits, breader);
-        free_bit_reader(breader);
         if(len)
         {
             post_size = 0;
@@ -251,7 +246,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
                 block->data[i] = block->data[i]<<(msb_bits*j);
                 if(j > 0)
                     for(k = j-1;k>=0;k--){
-                        byte = msb_bytes[post_size++];
+                        byte = (uint32_t)read_bits(msb_bits, breader);
                         if(!k) block->data[i] = block->data[i] + byte;
                         else block->data[i] = block->data[i] + (byte << (msb_bits * k));
                         if(!k) break;
@@ -261,7 +256,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
                 i--;
             }
         }
-        myfree(msb_bytes);
+        free_bit_reader(breader);
     }
     else if(signature.symbol == SYMBOL_MSB_2){
         struct bit_reader * breader = initialise_bit_reader(my_reader);

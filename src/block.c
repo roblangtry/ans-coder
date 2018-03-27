@@ -1,24 +1,9 @@
 #include "block.h"
-uint block_No = 0;
-uint32_t get_symbol(uint32_t input, coding_signature_t signature)
-{
-    if(signature.symbol == SYMBOL_DIRECT) return input;
-    else if(signature.symbol == SYMBOL_MSB) return get_msb_symbol(input, signature.msb_bit_factor);
-    else if(signature.symbol == SYMBOL_MSB_2) return get_msb_2_symbol(input, signature.msb_bit_factor);
-    else exit(-1);
-}
-uint32_t get_usymbol(uint32_t input, coding_signature_t signature)
-{
-    if(signature.symbol == SYMBOL_DIRECT) return input;
-    else if(signature.symbol == SYMBOL_MSB) return get_umsb_symbol(input, signature.msb_bit_factor);
-    else if(signature.symbol == SYMBOL_MSB_2) return get_umsb_2_symbol(input, signature.msb_bit_factor);
-    else exit(-1);
-}
 
 void generate_block_header(file_header_t * header, uint32_t size, coding_signature_t signature, struct prelude_code_data * metadata)
 {
     uint32_t no_unique = 0;
-    uint32_t symbol, n =0;
+    uint32_t symbol;
     uint32_t max = 0;
     header->translation = NULL;
     header->symbols = size;
@@ -82,7 +67,7 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
 }
 void read_block_heading(file_header_t * header, uint32_t * len, coding_signature_t signature, struct prelude_code_data * metadata)
 {
-    uint32_t S, F, ind = 0, j, cumalative, p, i;
+    uint32_t S, F, j, cumalative, p, i;
     if(header->freq != NULL) myfree(header->freq);
     header->symbols = elias_decode(metadata);
     *len = header->symbols;

@@ -3,7 +3,6 @@
 void build_translations_decoding(file_header_t * header,coding_signature_t signature)
 {
     tuple_t * tuples = mymalloc(sizeof(tuple_t) * header->unique_symbols);
-    uint j;
     for(uint32_t i = 0; i < header->unique_symbols; i++)
     {
         tuples[i].index = header->symbol[i];

@@ -1,5 +1,18 @@
 #include "msb.h"
-
+uint32_t get_symbol(uint32_t input, coding_signature_t signature)
+{
+    if(signature.symbol == SYMBOL_DIRECT) return input;
+    else if(signature.symbol == SYMBOL_MSB) return get_msb_symbol(input, signature.msb_bit_factor);
+    else if(signature.symbol == SYMBOL_MSB_2) return get_msb_2_symbol(input, signature.msb_bit_factor);
+    else exit(-1);
+}
+uint32_t get_usymbol(uint32_t input, coding_signature_t signature)
+{
+    if(signature.symbol == SYMBOL_DIRECT) return input;
+    else if(signature.symbol == SYMBOL_MSB) return get_umsb_symbol(input, signature.msb_bit_factor);
+    else if(signature.symbol == SYMBOL_MSB_2) return get_umsb_2_symbol(input, signature.msb_bit_factor);
+    else exit(-1);
+}
 uint32_t get_msb_symbol(uint32_t symbol, uint32_t binary_length){
     uint32_t add = 0;
     uint32_t offset = 0;
@@ -92,9 +105,7 @@ uint32_t get_umsb_2_symbol(uint32_t symbol, uint32_t binary_length){
 }
 void stream_msb_2(uint32_t symbol, uint32_t bits, bit_page_t * pages)
 {
-    uint32_t byte;
     uint32_t j = 0;
-    uint32_t v = (symbol - 1) >> bits;
     uint32_t sym = symbol;
     if(sym > (1 << bits))
     {
@@ -105,8 +116,6 @@ void stream_msb_2(uint32_t symbol, uint32_t bits, bit_page_t * pages)
         }
     }
     if(j > 0){
-        // printf("symbol %u, [%u] %u\n", symbol, j, symbol % (1<<j));
-        // sleep(1);
         add_to_bit_page(symbol % (1<<j), j, pages);
     }
 }

@@ -45,7 +45,7 @@ uint32_t get_umsb_symbol(uint32_t symbol, uint32_t binary_length){
     }
     return (symbol >> offset) + add;
 }
-void stream_msb(uint32_t symbol, uint32_t bits, int_page_t * pages)
+void stream_msb(uint32_t symbol, uint32_t bits, bint_page_t * pages)
 {
     uint32_t byte;
     uint32_t j = 0;
@@ -61,7 +61,7 @@ void stream_msb(uint32_t symbol, uint32_t bits, int_page_t * pages)
         else{
             byte = (symbol >> (bits * (j-1))) % (1 << bits);
         }
-        add_to_int_page(byte, pages);
+        add_to_bint_page(byte, bits, pages);
         j = j - 1;
     }
 }

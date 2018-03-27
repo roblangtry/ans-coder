@@ -96,3 +96,58 @@ void free_bit_page(bit_page_t * page)
     FREE(page->data);
     FREE(page);
 }
+
+
+bint_page_t * get_bint_page()
+{
+    bint_page_t * page = mymalloc(sizeof(bint_page_t));
+    page->data = mymalloc(sizeof(uint32_t) * PAGE_SIZE);
+    page->size = PAGE_SIZE;
+    page->current_size = 0;
+    page->state = 0;
+    page->length = 0;
+    return page;
+}
+void add_to_bint_page(uint32_t value, size_t length, bint_page_t * page)
+{
+    uint64_t V;
+    // printf("+ %u[%u]\n", value, length);
+    // printf("%u", page->state);
+    page->state = (page->state << length) + value;
+    // printf(" -> %u", page->state);
+    page->length += length;
+    // printf("[%u]\n", page->length);
+    // sleep(1);
+    if(page->length>=31)
+    {
+        if(page->length==31){
+            V = page->state;
+            page->state = 0;
+            page->length = 0;
+        }
+        else{
+            V = page->state >> (page->length - 31);
+            page->state = page->state % (1 << (page->length - 31));
+            page->length -= 31;
+        }
+        if(page->current_size >= page->size){
+            page->data = (uint32_t *)myrealloc(page->data, (page->size + PAGE_SIZE)*sizeof(uint32_t));
+            page->size = page->size + PAGE_SIZE;
+        }
+        page->data[page->current_size++] = (uint32_t)V;
+    }
+}
+void output_bint_page(struct writer * my_writer, bint_page_t * page, uint32_t bits)
+{
+    struct bit_writer * bwriter = initialise_bit_writer(my_writer);
+    for(uint i = 0; i < page->current_size; i++)
+        write_bits(page->data[i], 31, bwriter);
+    write_bits(page->state, page->length, bwriter);
+    flush_bit_writer(bwriter);
+    free_bit_writer(bwriter);
+}
+void free_bint_page(bint_page_t * page)
+{
+    FREE(page->data);
+    FREE(page);
+}

@@ -112,9 +112,9 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     uint64_t state, ls, bs, Is, m, bits = signature.bit_factor, msb_bits = signature.msb_bit_factor;
     struct prelude_code_data * metadata = prepare_metadata(NULL, my_writer, 0);
     int_page_t * ans_pages = get_int_page();
-    int_page_t * msb_pages;
+    bint_page_t * msb_pages;
     bit_page_t * msb_2_pages;
-    if(signature.symbol == SYMBOL_MSB) msb_pages = get_int_page();
+    if(signature.symbol == SYMBOL_MSB) msb_pages = get_bint_page();
     if(signature.symbol == SYMBOL_MSB_2) msb_2_pages = get_bit_page();
     size = fread(header->data, sizeof(uint32_t), BLOCK_SIZE, input_file);
 
@@ -177,8 +177,8 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     // ------------- //
     free_int_page(ans_pages);
     if(signature.symbol == SYMBOL_MSB){
-        output_int_page(my_writer, msb_pages, msb_bits);
-        free_int_page(msb_pages);
+        output_bint_page(my_writer, msb_pages, msb_bits);
+        free_bint_page(msb_pages);
     }
     if(signature.symbol == SYMBOL_MSB_2){
         output_bit_page(my_writer, msb_2_pages);

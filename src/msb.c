@@ -37,7 +37,6 @@ void stream_msb(uint32_t symbol, uint32_t bits, int_page_t * pages)
     uint32_t byte;
     uint32_t j = 0;
     uint32_t v = symbol - 1;
-    // printf("CHECK %u\n", symbol);
     while ((v >> bits) > 0){
         j = j + 1;
         v = v >> bits;
@@ -47,11 +46,67 @@ void stream_msb(uint32_t symbol, uint32_t bits, int_page_t * pages)
         if (j == 1)
             byte = symbol % (1 << bits);
         else{
-            // printf("W\n");
-            // sleep(1);
             byte = (symbol >> (bits * (j-1))) % (1 << bits);
         }
         add_to_int_page(byte, pages);
         j = j - 1;
+    }
+}
+
+
+
+
+
+
+uint32_t get_msb_2_symbol(uint32_t symbol, uint32_t binary_length){
+    uint32_t add = 0;
+    uint32_t offset = 0;
+    uint64_t check = (1 << binary_length);
+    if (symbol <= check)
+    {
+        return symbol;
+    }
+    while (symbol >= check)
+    {
+        offset = offset + 1;
+        add = add + check;
+        symbol = symbol >> 1;
+    }
+    return symbol + add;
+}
+uint32_t get_umsb_2_symbol(uint32_t symbol, uint32_t binary_length){
+    uint32_t add = 0;
+    uint32_t offset = 0;
+    uint64_t check = (1 << binary_length);
+    if (symbol < check)
+    {
+        return symbol;
+    }
+    while (symbol >= check)
+    {
+        offset = offset + 1;
+        add = add + check;
+        symbol = symbol >> 1;
+    }
+    return symbol + add;
+}
+void stream_msb_2(uint32_t symbol, uint32_t bits, bit_page_t * pages)
+{
+    uint32_t byte;
+    uint32_t j = 0;
+    uint32_t v = (symbol - 1) >> bits;
+    uint32_t sym = symbol;
+    if(sym > (1 << bits))
+    {
+        while(sym>=(1 << bits))
+        {
+            sym = sym >> 1;
+            j++;
+        }
+    }
+    if(j > 0){
+        // printf("symbol %u, [%u] %u\n", symbol, j, symbol % (1<<j));
+        // sleep(1);
+        add_to_bit_page(symbol % (1<<j), j, pages);
     }
 }

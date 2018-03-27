@@ -19,6 +19,7 @@ void preprocess_file(FILE * input_file, coding_signature_t signature, file_heade
             {
                 if(signature.symbol == SYMBOL_DIRECT) symbol = block[i];
                 else if(signature.symbol == SYMBOL_MSB) symbol = get_msb_symbol(block[i], msb_bits);
+                else if(signature.symbol == SYMBOL_MSB_2) symbol = get_msb_2_symbol(block[i], msb_bits);
                 else exit(-1);
                 header->freq[symbol]++;
                 if(symbol>header->max) header->max=symbol;
@@ -48,7 +49,7 @@ void output_file_header(struct writer * my_writer, file_header_t * header, codin
     write_uint32_t(MAGIC, my_writer);
     struct prelude_code_data * metadata = prepare_metadata(NULL, my_writer, 0);
     elias_encode(metadata, signature.symbol);
-    if(signature.symbol == SYMBOL_MSB)
+    if(signature.symbol == SYMBOL_MSB || signature.symbol == SYMBOL_MSB_2)
         elias_encode(metadata, signature.msb_bit_factor);
     elias_encode(metadata, signature.header);
     elias_encode(metadata, signature.ans);
@@ -74,7 +75,7 @@ void read_signature(struct reader * my_reader, coding_signature_t * signature, s
         exit(-1);
     }
     (*signature).symbol = elias_decode(metadata);
-    if((*signature).symbol == SYMBOL_MSB)
+    if((*signature).symbol == SYMBOL_MSB || (*signature).symbol == SYMBOL_MSB_2)
         (*signature).msb_bit_factor = elias_decode(metadata);
     (*signature).header = elias_decode(metadata);
     (*signature).ans = elias_decode(metadata);

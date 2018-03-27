@@ -4,12 +4,14 @@ uint32_t get_symbol(uint32_t input, coding_signature_t signature)
 {
     if(signature.symbol == SYMBOL_DIRECT) return input;
     else if(signature.symbol == SYMBOL_MSB) return get_msb_symbol(input, signature.msb_bit_factor);
+    else if(signature.symbol == SYMBOL_MSB_2) return get_msb_2_symbol(input, signature.msb_bit_factor);
     else exit(-1);
 }
 uint32_t get_usymbol(uint32_t input, coding_signature_t signature)
 {
     if(signature.symbol == SYMBOL_DIRECT) return input;
     else if(signature.symbol == SYMBOL_MSB) return get_umsb_symbol(input, signature.msb_bit_factor);
+    else if(signature.symbol == SYMBOL_MSB_2) return get_umsb_2_symbol(input, signature.msb_bit_factor);
     else exit(-1);
 }
 
@@ -27,11 +29,13 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
     if(signature.hashing == HASHING_STANDARD){
         myfree(header->freq);
         if(signature.symbol == SYMBOL_MSB) header->freq = mycalloc(get_msb_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1, sizeof(uint32_t));
+        else if(signature.symbol == SYMBOL_MSB_2) header->freq = mycalloc(get_msb_2_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1, sizeof(uint32_t));
         else header->freq = mycalloc(header->global_max + BLOCK_SIZE + 1, sizeof(uint32_t));
     }
     else
     {
         if(signature.symbol == SYMBOL_MSB) header->freq_hash = sparse_hash_create(get_msb_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1);
+        else if(signature.symbol == SYMBOL_MSB_2) header->freq_hash = sparse_hash_create(get_msb_2_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1);
         else header->freq_hash = sparse_hash_create(header->global_max + BLOCK_SIZE + 1);
     }
     header->max = 0;
@@ -121,7 +125,9 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     struct prelude_code_data * metadata = prepare_metadata(NULL, my_writer, 0);
     int_page_t * ans_pages = get_int_page();
     int_page_t * msb_pages;
+    bit_page_t * msb_2_pages;
     if(signature.symbol == SYMBOL_MSB) msb_pages = get_int_page();
+    if(signature.symbol == SYMBOL_MSB_2) msb_2_pages = get_bit_page();
     size = fread(header->data, sizeof(uint32_t), BLOCK_SIZE, input_file);
 
     // ------------- //
@@ -141,6 +147,10 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     m = header->symbols;
     for(int i=size-1; i>=0; i--)
     {
+        if(i < 115 && i > 105){
+            // printf("%u} S %u\n", i, header->data[i]);
+            // sleep(1);
+        }
         if(signature.translation == TRANSLATE_TRUE) symbol = get_symbol(header->translation[header->data[i]], signature);
         else symbol = get_symbol(header->data[i], signature);
         if(signature.hashing == HASHING_STANDARD){
@@ -163,10 +173,18 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
             if(signature.translation == TRANSLATE_TRUE) stream_msb(header->translation[header->data[i]], msb_bits, msb_pages);
             else stream_msb(header->data[i], msb_bits, msb_pages);
         }
+        if(signature.symbol == SYMBOL_MSB_2)
+        {
+            if(signature.translation == TRANSLATE_TRUE) stream_msb_2(header->translation[header->data[i]], msb_bits, msb_2_pages);
+            else stream_msb_2(header->data[i], msb_bits, msb_2_pages);
+        }
     }
     elias_encode(metadata, ans_pages->current_size);
     if(signature.symbol == SYMBOL_MSB){
         elias_encode(metadata, msb_pages->current_size);
+    }
+    if(signature.symbol == SYMBOL_MSB_2){
+        elias_encode(metadata, msb_2_pages->current_size);
     }
     elias_flush(metadata);
     free_metadata(metadata);
@@ -184,6 +202,10 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
         output_int_page(my_writer, msb_pages, msb_bits);
         free_int_page(msb_pages);
     }
+    if(signature.symbol == SYMBOL_MSB_2){
+        output_bit_page(my_writer, msb_2_pages);
+        free_bit_page(msb_2_pages);
+    }
     if(signature.translation == TRANSLATE_TRUE) myfree(header->translation);
     if(signature.hashing == HASHING_SPARSE) sparse_hash_free(header->freq_hash);
 }
@@ -197,6 +219,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     uint32_t * msb_bytes = NULL;
     uint32_t byte;
     uint i, j, k;
+    // printf("stage 1\n");
     if(signature.header == HEADER_BLOCK)
     {
         read_block_heading(header, &len, signature, metadata);
@@ -205,20 +228,24 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     {
         len = elias_decode(metadata);
     }
+    // printf("stage 2\n");
     block->size = 0;
     m = header->symbols;
     content_size = elias_decode(metadata);
-    if(signature.symbol == SYMBOL_MSB){
+    if(signature.symbol == SYMBOL_MSB || signature.symbol == SYMBOL_MSB_2){
         post_size = elias_decode(metadata);
     }
     read_uint64_t(&state, my_reader);
 
+    // printf("stage 3\n");
     struct bit_reader * breader = initialise_bit_reader(my_reader);
     if(header->data != NULL) myfree(header->data);
     header->data = mymalloc(sizeof(uint32_t) * content_size);
+    // printf("stage 4\n");
     for(uint n = 0; n < content_size; n++){
         header->data[n] = (uint32_t)read_bits(bits, breader);
     }
+    // printf("stage 5\n");
     free_bit_reader(breader);
     for(i=0; i<len; i++)
     {
@@ -232,6 +259,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
             state = (state << bits) + header->data[content_size-read];
         }
     }
+    printf("stage 6\n");
     if(signature.symbol == SYMBOL_MSB){
         msb_bytes = mymalloc(sizeof(uint32_t) * post_size);
         struct bit_reader * breader = initialise_bit_reader(my_reader);
@@ -243,6 +271,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         while(i < len)
         {
             j = (block->data[i] - 1) / (1<<msb_bits);
+            // printf("j\n");
             block->data[i] -= (1<<msb_bits) * j;
             block->data[i] = block->data[i]<<(msb_bits*j);
             for(k = 0;k<j;k++){
@@ -253,8 +282,41 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
             if(signature.translation == TRANSLATE_TRUE)block->data[i] = header->translation[block->data[i]-1];
             i++;
         }
+    }
+    else if(signature.symbol == SYMBOL_MSB_2){
+        struct bit_reader * breader = initialise_bit_reader(my_reader);
+        if(len)
+        {
+        i = len - 1;
+        post_size--;
+        while(i >= 0)
+        {
+    // printf("stage 7a (%u - 1) / (1 << %u)\n", block->data[i], msb_bits);
+            j = (block->data[i] - 1) / (1<<msb_bits);
+            // printf("%u] (%u,%u)\n", i, block->data[i], j);
+            // printf("IF(%u != 0 && %u != 0) = (%u, %u)\n", j,block->data[i],j != 0,block->data[i] != 0);
+            if(j != 0 && block->data[i] != 0){
+                block->data[i] -= (1<<msb_bits) * j;
+                block->data[i] = block->data[i]<<j;
+                byte = (uint32_t)read_bits(j, breader);
+                block->data[i] = block->data[i] + byte;
+            }
+            // if(i < 115 && i > 105) sleep(1);
+
+            // if(i < 115 && i > 105) printf("%u} [%u] %u - %u\n", i, j, byte, block->data[i]);
+
+            if(signature.translation == TRANSLATE_TRUE)block->data[i] = header->translation[block->data[i]-1];
+    // printf("stage 7j\n");
+            if(i == 0) break;
+    // printf("stage 7k\n");
+            i--;
+    // printf("stage 7l\n");
+        }
+        }
+        free_bit_reader(breader);
         myfree(msb_bytes);
     }
+    // printf("stage 7\n");
     if(signature.header == HEADER_BLOCK) myfree(header->symbol);
     free_metadata(metadata);
     if(signature.translation == TRANSLATE_TRUE) myfree(header->translation);

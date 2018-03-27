@@ -34,6 +34,7 @@
 #define SYMBOL_DIRECT 0
 #define SYMBOL_SPLIT 1
 #define SYMBOL_MSB 2
+#define SYMBOL_MSB_2 3
 //Header
 #define HEADER_SINGLE 0
 #define HEADER_BLOCK 1

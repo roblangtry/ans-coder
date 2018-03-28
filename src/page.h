@@ -48,6 +48,7 @@ typedef struct
     size_t current_size;
     uint64_t state;
     size_t length;
+    uint64_t no_writes;
 } bint_page_t;
 bint_page_t * get_bint_page();
 void add_to_bint_page(uint32_t value, size_t length, bint_page_t * page);

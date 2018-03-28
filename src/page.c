@@ -106,6 +106,7 @@ bint_page_t * get_bint_page()
     page->current_size = 0;
     page->state = 0;
     page->length = 0;
+    page->no_writes = 0;
     return page;
 }
 void add_to_bint_page(uint32_t value, size_t length, bint_page_t * page)
@@ -136,6 +137,7 @@ void add_to_bint_page(uint32_t value, size_t length, bint_page_t * page)
         }
         page->data[page->current_size++] = (uint32_t)V;
     }
+    page->no_writes++;
 }
 void output_bint_page(struct writer * my_writer, bint_page_t * page, uint32_t bits)
 {

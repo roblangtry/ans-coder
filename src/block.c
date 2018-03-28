@@ -111,7 +111,7 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     uint32_t symbol;
     uint64_t state, ls, bs, Is, m, bits = signature.bit_factor, msb_bits = signature.msb_bit_factor;
     struct prelude_code_data * metadata = prepare_metadata(NULL, my_writer, 0);
-    int_page_t * ans_pages = get_int_page();
+    bint_page_t * ans_pages = get_bint_page();
     bint_page_t * msb_pages;
     bit_page_t * msb_2_pages;
     if(signature.symbol == SYMBOL_MSB) msb_pages = get_bint_page();
@@ -148,7 +148,7 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
         }
         Is = (ls << bits) - 1;
         while(state > Is){
-            add_to_int_page(state % (1 << bits), ans_pages);
+            add_to_bint_page(state % (1 << bits), bits, ans_pages);
             state = state >> bits;
         }
         state = m * (state / ls) + bs + (state % ls);
@@ -163,7 +163,7 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
             else stream_msb_2(header->data[i], msb_bits, msb_2_pages);
         }
     }
-    elias_encode(metadata, ans_pages->current_size);
+    elias_encode(metadata, ans_pages->no_writes);
     elias_flush(metadata);
     free_metadata(metadata);
     write_uint64_t(state, my_writer);
@@ -171,11 +171,11 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     // ------------- //
     // Content
     // ------------- //
-    output_int_page(my_writer, ans_pages, bits);
+    output_bint_page(my_writer, ans_pages, bits);
     // ------------- //
     // Post
     // ------------- //
-    free_int_page(ans_pages);
+    free_bint_page(ans_pages);
     if(signature.symbol == SYMBOL_MSB){
         output_bint_page(my_writer, msb_pages, msb_bits);
         free_bint_page(msb_pages);

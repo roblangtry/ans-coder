@@ -14,4 +14,6 @@ void * mymalloc(size_t size);
 void * myrealloc(void * ptr, size_t size);
 void myfree(void * ptr);
 void printmem();
+void ans_size(size_t size);
+void msb_size(size_t size);
 #endif

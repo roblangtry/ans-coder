@@ -172,11 +172,13 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     // Content
     // ------------- //
     output_bint_page(my_writer, ans_pages, bits);
+    ans_size(ans_pages->current_size * 4);
     // ------------- //
     // Post
     // ------------- //
     free_bint_page(ans_pages);
     if(signature.symbol == SYMBOL_MSB){
+        msb_size(msb_pages->current_size * 4);
         output_bint_page(my_writer, msb_pages, msb_bits);
         free_bint_page(msb_pages);
     }

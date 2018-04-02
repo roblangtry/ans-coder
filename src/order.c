@@ -8,7 +8,7 @@ void build_translations_decoding(file_header_t * header,coding_signature_t signa
         tuples[i].index = header->symbol[i];
         tuples[i].freq = header->freq[i];
     }
-    header->translation = get_reverse_translation_matrix(tuples, header->unique_symbols);
+    header->translation = get_reverse_translation_matrix(tuples, header->unique_symbols, header);
     for(uint32_t i = 0; i < header->unique_symbols; i++){
 
         header->freq[i] = 0;
@@ -51,7 +51,7 @@ void build_translations_encoding(file_header_t * header, uint32_t size, struct p
     }
     tuples = get_tuples(F, no_unique);
     FREE(F);
-    header->translation = get_translation_matrix(tuples, no_unique, max + 1);
+    header->translation = get_translation_matrix(tuples, no_unique, max + 1, header);
     FREE(tuples);
 }
 
@@ -77,20 +77,20 @@ tuple_t * get_tuples(uint32_t * freq, uint32_t no_unique)
     }
     return tuples;
 }
-uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t max)
+uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t max, file_header_t * header)
 {
     uint32_t * T = mycalloc(max, sizeof(uint32_t));
-    ksort(tuples, length, 10);
-    // qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
+    if(header->translation_mechanism == TRANSLATE_PARTIAL) ksort(tuples, length, header->translate_k);
+    else qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
     for(uint i=0; i<length; i++)
         T[tuples[i].index] = i + 1;
     return T;
 }
-uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length)
+uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length, file_header_t * header)
 {
     uint32_t * T = mycalloc((length+1) , sizeof(uint32_t));
-    ksort(tuples, length, 10);
-    // qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
+    if(header->translation_mechanism == TRANSLATE_PARTIAL) ksort(tuples, length, header->translate_k);
+    else qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
     for(uint i=0; i<length; i++)
         T[i] = tuples[i].index;
     return T;

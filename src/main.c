@@ -9,7 +9,7 @@ int main ( int argc, char *argv[] ){
     method_flag = RANGE_METHOD;
     verbose_flag = 0;
     coding_signature_t signature = get_signature();
-    while((c = getopt(argc, argv, "ba:detrvpxsVmM:Sn")) != -1){
+    while((c = getopt(argc, argv, "ba:detrvpxsVmM:Snk:")) != -1){
         switch(c)
         {
             case 'd':
@@ -53,6 +53,10 @@ int main ( int argc, char *argv[] ){
                 break;
             case 'S':
                 signature.translation = TRANSLATE_TRUE;
+                break;
+            case 'k':
+                signature.translation = TRANSLATE_PARTIAL;
+                signature.translate_k = atoi(optarg);
                 break;
             case 'a':
                 signature.bit_factor = atoi(optarg);

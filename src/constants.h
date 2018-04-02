@@ -44,6 +44,7 @@
 #define DEFAULT_BIT_FACTOR 13
 #define DEFAULT_MSB_BIT_FACTOR 8
 // translation
+#define TRANSLATE_PARTIAL 3
 #define TRANSLATE_TRUE 2
 #define TRANSLATE_FALSE 1
 // hashing
@@ -58,6 +59,7 @@ typedef struct
     uint32_t bit_factor;
     uint32_t msb_bit_factor;
     uint32_t translation;
+    uint32_t translate_k;
     uint32_t hashing;
 } coding_signature_t;
 

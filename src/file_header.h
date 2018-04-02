@@ -24,6 +24,8 @@ typedef struct
     uint64_t unique_symbols;
     uint32_t max;
     uint32_t global_max;
+    uint32_t translation_mechanism;
+    uint32_t translate_k;
     sparse_hash_t * freq_hash;
     uint32_t * freq;
     uint32_t * cumalative_freq;

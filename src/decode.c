@@ -75,6 +75,8 @@ int decode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     header->max = 0;
     header->symbols = 0;
     header->unique_symbols = 0;
+    header->translation_mechanism = signature.translation;
+    header->translate_k = signature.translate_k;
     data_block_t * data = mymalloc(sizeof(data_block_t));
     data->data = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
     read_file_header(my_reader, signature, header, metadata);

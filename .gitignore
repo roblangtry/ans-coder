@@ -1,3 +1,4 @@
 ans-coder
 *.o
 *.data
+_*

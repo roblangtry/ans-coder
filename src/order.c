@@ -99,11 +99,11 @@ void ksort(tuple_t * tuples, uint32_t length, uint32_t k)
 {
     size_t i;
     if(k>=length) return;
+    qsort(tuples, k, sizeof(tuple_t), T_cmpfunc);
     size_t * top = (size_t *)mymalloc(sizeof(size_t)*k);
-    size_t end = length - 1;
     for(i = 0; i < k; i++)
-        top[i] = end--;
-    for(i =0; i < (length - k); i++)
+        top[i] = i;
+    for(i =k; i < length; i++)
     {
         kcheck(i, top, k, tuples);
     }
@@ -120,12 +120,14 @@ void ksort(tuple_t * tuples, uint32_t length, uint32_t k)
 void kcheck(size_t i, size_t * top, uint32_t k, tuple_t * tuples)
 {
     size_t temp;
-    for(uint j = 0; j < k; j++)
+    for(int j = k-1; j >= 0; j--)
     {
         if(tuples[i].freq > tuples[top[j]].freq){
             temp = i;
             i = top[j];
             top[j] = temp;
         }
+        else
+            break;
     }
 }

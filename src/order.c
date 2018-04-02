@@ -80,7 +80,8 @@ tuple_t * get_tuples(uint32_t * freq, uint32_t no_unique)
 uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t max)
 {
     uint32_t * T = mycalloc(max, sizeof(uint32_t));
-    qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
+    ksort(tuples, length, 10);
+    // qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
     for(uint i=0; i<length; i++)
         T[tuples[i].index] = i + 1;
     return T;
@@ -88,8 +89,43 @@ uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t ma
 uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length)
 {
     uint32_t * T = mycalloc((length+1) , sizeof(uint32_t));
-    qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
+    ksort(tuples, length, 10);
+    // qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
     for(uint i=0; i<length; i++)
         T[i] = tuples[i].index;
     return T;
+}
+void ksort(tuple_t * tuples, uint32_t length, uint32_t k)
+{
+    size_t i;
+    if(k>=length) return;
+    size_t * top = (size_t *)mymalloc(sizeof(size_t)*k);
+    size_t end = length - 1;
+    for(i = 0; i < k; i++)
+        top[i] = end--;
+    for(i =0; i < (length - k); i++)
+    {
+        kcheck(i, top, k, tuples);
+    }
+    tuple_t tup;
+    for(i = 0;i<k; i++)
+    {
+        tup = tuples[i];
+        tuples[i] = tuples[top[i]];
+        tuples[top[i]] = tup;
+    }
+    FREE(top);
+}
+
+void kcheck(size_t i, size_t * top, uint32_t k, tuple_t * tuples)
+{
+    size_t temp;
+    for(uint j = 0; j < k; j++)
+    {
+        if(tuples[i].freq > tuples[top[j]].freq){
+            temp = i;
+            i = top[j];
+            top[j] = temp;
+        }
+    }
 }

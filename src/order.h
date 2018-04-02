@@ -17,4 +17,7 @@ void build_translations_encoding(file_header_t * header, uint32_t size, struct p
 tuple_t * get_tuples(uint32_t * freq, uint32_t no_unique);
 uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t max);
 uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length);
+void ksort(tuple_t * tuples, uint32_t length, uint32_t k);
+
+void kcheck(size_t i, size_t * top, uint32_t k, tuple_t * tuples);
 #endif

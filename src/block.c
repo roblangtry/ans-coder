@@ -229,7 +229,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
             state = (state << bits) + header->data[content_size-read];
         }
     }
-    if(signature.symbol == SYMBOL_MSB){
+    if(signature.symbol == SYMBOL_MSB || signature.symbol == SYMBOL_MSB_2){
         struct bit_reader * breader = initialise_bit_reader(my_reader);
         if(len)
         {
@@ -237,40 +237,33 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
             while(i >= 0)
             {
                 j = (block->data[i] - 1) / (1<<msb_bits);
-                block->data[i] -= (1<<msb_bits) * j;
-                block->data[i] = block->data[i]<<(msb_bits*j);
-                if(j > 0)
-                    for(k = j-1;k>=0;k--){
-                        byte = (uint32_t)read_bits(msb_bits, breader);
-                        if(!k) block->data[i] = block->data[i] + byte;
-                        else block->data[i] = block->data[i] + (byte << (msb_bits * k));
-                        if(!k) break;
+
+                if(signature.symbol == SYMBOL_MSB)
+                {
+                    block->data[i] -= (1<<msb_bits) * j;
+                    block->data[i] = block->data[i]<<(msb_bits*j);
+                    if(j > 0){
+                        for(k = j-1;k>=0;k--){
+                            byte = (uint32_t)read_bits(msb_bits, breader);
+                            if(!k) block->data[i] = block->data[i] + byte;
+                            else block->data[i] = block->data[i] + (byte << (msb_bits * k));
+                            if(!k) break;
+                        }
                     }
+                }
+                else
+                {
+                    if(j != 0 && block->data[i] != 0){
+                        block->data[i] -= (1<<msb_bits) * j;
+                        block->data[i] = block->data[i]<<j;
+                        byte = (uint32_t)read_bits(j, breader);
+                        block->data[i] = block->data[i] + byte;
+                    }
+                }
                 if(signature.translation == TRANSLATE_TRUE)block->data[i] = header->translation[block->data[i]-1];
                 if(!i) break;
                 i--;
             }
-        }
-        free_bit_reader(breader);
-    }
-    else if(signature.symbol == SYMBOL_MSB_2){
-        struct bit_reader * breader = initialise_bit_reader(my_reader);
-        if(len)
-        {
-        i = len - 1;
-        while(i >= 0)
-        {
-            j = (block->data[i] - 1) / (1<<msb_bits);
-            if(j != 0 && block->data[i] != 0){
-                block->data[i] -= (1<<msb_bits) * j;
-                block->data[i] = block->data[i]<<j;
-                byte = (uint32_t)read_bits(j, breader);
-                block->data[i] = block->data[i] + byte;
-            }
-            if(signature.translation == TRANSLATE_TRUE)block->data[i] = header->translation[block->data[i]-1];
-            if(i == 0) break;
-            i--;
-        }
         }
         free_bit_reader(breader);
     }

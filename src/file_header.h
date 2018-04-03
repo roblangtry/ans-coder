@@ -24,6 +24,7 @@ typedef struct
     uint64_t unique_symbols;
     uint32_t max;
     uint32_t Tmax;
+    uint32_t nu;
     uint32_t global_max;
     uint32_t translation_mechanism;
     uint32_t translate_k;

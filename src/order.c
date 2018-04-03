@@ -53,6 +53,7 @@ void build_translations_encoding(file_header_t * header, uint32_t size, struct p
         tuples[i].freq = kv.value;
         tuples[i].index = kv.key;
     }
+    header->nu = no_unique;
     FREE(F);
     header->translation = get_translation_matrix(tuples, no_unique, max + 1, header);
     FREE(tuples);

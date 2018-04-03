@@ -40,6 +40,7 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
         }
         if(symbol > header->max) header->max = symbol;
     }
+    if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL) no_unique = header->nu;
     max = header->max;
     if(header->global_max < max) header->global_max = max;
     //calculate cumalative frequency

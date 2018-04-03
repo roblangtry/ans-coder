@@ -27,6 +27,7 @@ void build_translations_encoding(file_header_t * header, uint32_t size, struct p
 {
     uint32_t no_unique = 0, symbol, f, max = 0;
     uint32_t * F = NULL;
+    kv_t kv;
     uint j = 0;
     SETUP(BLOCK_SIZE, header->Tmax);
     tuple_t * tuples;
@@ -40,17 +41,14 @@ void build_translations_encoding(file_header_t * header, uint32_t size, struct p
     if(max > header->Tmax)
         header->Tmax = max;
     elias_encode(metadata, no_unique);
-    symbol = 0;
     for(uint i=0; i<no_unique; i++)
     {
-        f = UGET(j).value;
-        while(f <= 0){
-            j++;
-            f = UGET(j).value;
+        kv = UGET(j++);
+        while(kv.value <= 0){
+            kv = UGET(j++);
         }
-        elias_encode(metadata, UGET(j).key);
-        symbol = j++;
-        elias_encode(metadata, f);
+        elias_encode(metadata, kv.key);
+        elias_encode(metadata, kv.value);
     }
     tuples = get_tuples(F, no_unique);
     FREE(F);

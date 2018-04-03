@@ -11,10 +11,7 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
     elias_encode(metadata, size);
     //clear the header
     if(signature.hashing == HASHING_STANDARD){
-        if(header->freq != NULL){
-            FREE(header->freq);
-            header->freq = NULL;
-        }
+        FREE(header->freq);
         if(signature.symbol == SYMBOL_MSB) header->freq = mycalloc(get_msb_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1024, sizeof(uint32_t));
         else if(signature.symbol == SYMBOL_MSB_2) header->freq = mycalloc(get_msb_2_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1024, sizeof(uint32_t));
         else header->freq = mycalloc(header->global_max + BLOCK_SIZE + 1, sizeof(uint32_t));

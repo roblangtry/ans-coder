@@ -1,5 +1,5 @@
 #!/bin/bash
-make build
+make build_profile
 function encode_test {
     echo "-----------------------------"
     echo " $1"
@@ -13,13 +13,13 @@ function encode_test {
     TVAL=$(echo $TIME | sed 's/real 0m\([0-9.]*\)s.*/\1/')
     echo "Decoding  - $TVAL"
     val="Failure!"
-    cmp g9-dec fcc.data && val="Success!"
+    cmp _g9-dec fcc.data && val="Success!"
     echo "Comparing - $val"
-    LL=$(ls -l g9-enc)
+    LL=$(ls -l _g9-enc)
     val=$(echo $LL | sed 's/.*root //g' | sed 's/ .*//')
     echo "Size      - $val"
-    rm g9-dec
-    rm g9-enc
+    rm _g9-dec
+    rm _g9-enc
 }
 function encode2_test {
     echo "-----------------------------"
@@ -27,29 +27,53 @@ function encode2_test {
     echo "-----------------------------"
     echo $2 $3
     echo $2 $4
-    TIME=$( { time $2 $3 < fcc.data > g9-enc; } 2>&1 )
+    TIME=$( { time $2 $3 < fcc.data > _g9-enc; } 2>&1 )
     TVAL=$(echo $TIME | sed 's/real 0m\([0-9.]*\)s.*/\1/')
     echo "Encoding  - $TVAL"
-    TIME=$( { time $2 $4 < g9-enc > g9-dec; } 2>&1 )
+    TIME=$( { time $2 $4 < _g9-enc > _g9-dec; } 2>&1 )
     TVAL=$(echo $TIME | sed 's/real 0m\([0-9.]*\)s.*/\1/')
     echo "Decoding  - $TVAL"
     val="Failure!"
-    cmp g9-dec fcc.data && val="Success!"
+    cmp _g9-dec fcc.data && val="Success!"
     echo "Comparing - $val"
-    LL=$(ls -l g9-enc)
+    LL=$(ls -l _g9-enc)
     val=$(echo $LL | sed 's/.*root //g' | sed 's/ .*//')
     echo "Size      - $val"
-    rm g9-dec
-    rm g9-enc
+    rm _g9-dec
+    rm _g9-enc
 }
 
-encode_test "MSB Block" ./ans-coder "-e -m -b fcc.data g9-enc" "-d g9-enc g9-dec"
-encode_test "MSB Full" ./ans-coder "-e -m fcc.data g9-enc" "-d g9-enc g9-dec"
-encode_test Full ./ans-coder "-e fcc.data g9-enc" "-d g9-enc g9-dec"
-encode_test Block ./ans-coder "-e -b fcc.data g9-enc" "-d g9-enc g9-dec"
-encode_test Split ./ans-coder "-e -s fcc.data g9-enc" "-d -s g9-enc g9-dec"
-encode_test Escape ./ans-coder "-e -x fcc.data g9-enc" "-d -x g9-enc g9-dec"
-#encode_test Vector ./ans-coder "-e -V fcc.data g9-enc" "-d -V g9-enc g9-dec"
-#encode_test Full ./ans-coder "-e fcc.data g9-enc" "-d g9-enc g9-dec"
+# encode_test "MSB 1 Block" ./ans-coder "-e -m -b -a 16 -M 1 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+# encode_test "MSB 2 Block" ./ans-coder "-e -m -b -a 16 -M 2 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+# encode_test "MSB 4 Block" ./ans-coder "-e -m -b -a 16 -M 4 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+# encode_test "MSB 8 Block" ./ans-coder "-e -m -b -a 16 -M 8 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+# encode_test "MSB 16 Block" ./ans-coder "-e -m -b -a 16 -M 16 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+# encode_test "MSB 31 Block" ./ans-coder "-e -m -b -a 16 -M 31 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+
+# encode_test "Block 16" ./ans-coder "-e -b -a 16 -S fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+encode_test "Partially Sorted MSB 6 Block" ./ans-coder "-e -m -b -a 16 -M 6 -k 1 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+encode_test "Partially Sorted MSB 6 Block" ./ans-coder "-e -m -b -a 16 -M 6 -k 2 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+encode_test "Partially Sorted MSB 6 Block" ./ans-coder "-e -m -b -a 16 -M 6 -k 5 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+encode_test "Partially Sorted MSB 6 Block" ./ans-coder "-e -m -b -a 16 -M 6 -k 10 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+encode_test "Partially Sorted MSB 6 Block" ./ans-coder "-e -m -b -a 16 -M 6 -k 50 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+encode_test "MSB 6 Block" ./ans-coder "-e -m -b -a 16 -M 6 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+encode_test "MSB2 6 Block" ./ans-coder "-e -n -b -a 16 -M 6 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+encode_test "Sorted MSB 6 Block" ./ans-coder "-e -m -b -a 16 -M 6 -S fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+# # encode_test "Sorted MSB2 6 Block" ./ans-coder "-e -n -b -a 16 -M 6 -S fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+encode_test "MSB 8 Block" ./ans-coder "-e -m -b -a 16 -M 8 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+encode_test "MSB2 8 Block" ./ans-coder "-e -n -b -a 16 -M 8 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+encode_test "Sorted MSB 8 Block" ./ans-coder "-e -m -b -a 16 -M 8 -S fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+# # encode_test "Sorted MSB2 8 Block" ./ans-coder "-e -n -b -a 16 -M 8 -S fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+encode_test "MSB 16 Block" ./ans-coder "-e -m -b -a 16 -M 16 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+encode_test "MSB2 16 Block" ./ans-coder "-e -n -b -a 16 -M 16 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+encode_test "Sorted MSB 16 Block" ./ans-coder "-e -m -b -a 16 -M 16 -S fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+# # encode_test "Sorted MSB2 16 Block" ./ans-coder "-e -n -b -a 16 -M 16 -S fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+# encode_test "Block 16" ./ans-coder "-e -b -a 16 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+# encode_test "MSB Full" ./ans-coder "-e -m fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+# encode_test "Full" ./ans-coder "-e fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+# encode_test Split ./ans-coder "-e -s fcc.data _g9-enc" "-d -s _g9-enc _g9-dec"
+encode_test Escape ./ans-coder "-e -x fcc.data _g9-enc" "-d -x _g9-enc _g9-dec"
+#encode_test Vector ./ans-coder "-e -V fcc.data _g9-enc" "-d -V _g9-enc _g9-dec"
+#encode_test Full ./ans-coder "-e fcc.data _g9-enc" "-d _g9-enc _g9-dec"
 #encode2_test Parralel ./ans-coder "-e -p" "-d -p"
 encode2_test Shuff ../shuff-master/shuff-master/shuff "-e" "-d"

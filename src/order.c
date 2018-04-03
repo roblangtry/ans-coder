@@ -23,7 +23,7 @@ void build_translations_decoding(file_header_t * header,coding_signature_t signa
     FREE(tuples);
 
 }
-void build_translations_encoding(file_header_t * header, uint32_t size, struct prelude_code_data * metadata)
+void build_translations_encoding(file_header_t * header, uint32_t size, struct prelude_code_data * metadata,coding_signature_t signature)
 {
     uint32_t no_unique = 0, symbol, f, max = 0;
     uint32_t * F = NULL;
@@ -55,7 +55,7 @@ void build_translations_encoding(file_header_t * header, uint32_t size, struct p
     }
     header->nu = no_unique;
     FREE(F);
-    header->translation = get_translation_matrix(tuples, no_unique, max + 1, header);
+    header->translation = get_translation_matrix(tuples, no_unique, max + 1, header, signature);
     FREE(tuples);
 }
 
@@ -82,13 +82,19 @@ tuple_t * get_tuples(uint32_t * freq, uint32_t no_unique)
     }
     return tuples;
 }
-uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t max, file_header_t * header)
+uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t max, file_header_t * header,coding_signature_t signature)
 {
     uint32_t * T = mycalloc(max, sizeof(uint32_t));
+    uint32_t raw, symbol;
     if(header->translation_mechanism == TRANSLATE_PARTIAL) ksort(tuples, length, header->translate_k);
     else qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
-    for(uint i=0; i<length; i++)
-        T[tuples[i].index] = i + 1;
+    for(uint i=0; i<length; i++){
+        raw = i + 1;
+        T[tuples[i].index] = raw;
+        symbol = get_symbol(raw, signature);
+        header->freq[symbol+1]+=tuples[i].freq;
+        if(symbol > header->max) header->max = symbol;
+    }
     return T;
 }
 uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length, file_header_t * header)

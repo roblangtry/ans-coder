@@ -25,7 +25,8 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
         else if(signature.symbol == SYMBOL_MSB_2) header->freq_hash = sparse_hash_create(get_msb_2_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1);
         else header->freq_hash = sparse_hash_create(header->global_max + BLOCK_SIZE + 1);
     }
-    if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL) build_translations_encoding(header, size, metadata);
+    if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL) build_translations_encoding(header, size, metadata, signature);
+    else
     for(uint i=0; i<size; i++)
     {
         if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL) symbol = get_symbol(header->translation[header->data[i]], signature);

@@ -77,6 +77,7 @@ int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     if(signature.hashing == HASHING_STANDARD) header.freq = mycalloc(sizeof(uint32_t), sym_map_size);
     header.data = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
     header.max = 0;
+    header.Tmax = 0;
     header.global_max = 0;
     header.symbols = 0;
     header.unique_symbols = 0;

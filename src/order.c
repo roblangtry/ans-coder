@@ -26,26 +26,29 @@ void build_translations_decoding(file_header_t * header,coding_signature_t signa
 void build_translations_encoding(file_header_t * header, uint32_t size, struct prelude_code_data * metadata)
 {
     uint32_t no_unique = 0, symbol, f, max = 0;
-    uint32_t * F = mycalloc(SYMBOL_MAP_SIZE , sizeof(uint32_t));
+    uint32_t * F = NULL;
+    uint j = 0;
+    SETUP(BLOCK_SIZE, header->Tmax);
     tuple_t * tuples;
     for(uint i=0; i<size; i++)
     {
         symbol = header->data[i];
-        if(!F[symbol]) no_unique++;
-        F[symbol]++;
+        f = INCREMENT(symbol);
+        if(f == 1) no_unique++;
         if(symbol > max) max = symbol;
     }
+    if(max > header->Tmax)
+        header->Tmax = max;
     elias_encode(metadata, no_unique);
-    uint j = 0;
     symbol = 0;
     for(uint i=0; i<no_unique; i++)
     {
-        f = F[j];
+        f = UGET(j).value;
         while(f <= 0){
             j++;
-            f = F[j];
+            f = UGET(j).value;
         }
-        elias_encode(metadata, j - symbol);
+        elias_encode(metadata, UGET(j).key);
         symbol = j++;
         elias_encode(metadata, f);
     }
@@ -66,13 +69,14 @@ tuple_t * get_tuples(uint32_t * freq, uint32_t no_unique)
     uint32_t F;
     tuple_t * tuples = mymalloc(sizeof(tuple_t) * no_unique);
     while(i < no_unique){
-        F = freq[j];
+        F = UGET(j).value;
         while(!F){
             j++;
-            F = freq[j];
+            F = UGET(j).value;
         }
         tuples[i].freq = F;
-        tuples[i].index = j++;
+        tuples[i].index = UGET(j++).key;
+        // if(tuples[i].index == 131072) printf("T[%u] (%u,%u)\n", i , tuples[i].index, tuples[i].freq);
         i++;
     }
     return tuples;

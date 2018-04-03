@@ -4,6 +4,7 @@
 #include "constants.h"
 #include "mem_manager.h"
 #include "file_header.h"
+#include "map.h"
 
 #ifndef ORDER_CODE
 #define ORDER_CODE

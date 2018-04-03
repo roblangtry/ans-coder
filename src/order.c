@@ -41,6 +41,7 @@ void build_translations_encoding(file_header_t * header, uint32_t size, struct p
     if(max > header->Tmax)
         header->Tmax = max;
     elias_encode(metadata, no_unique);
+    tuples = mymalloc(sizeof(tuple_t) * no_unique);
     for(uint i=0; i<no_unique; i++)
     {
         kv = UGET(j++);
@@ -49,8 +50,9 @@ void build_translations_encoding(file_header_t * header, uint32_t size, struct p
         }
         elias_encode(metadata, kv.key);
         elias_encode(metadata, kv.value);
+        tuples[i].freq = kv.value;
+        tuples[i].index = kv.key;
     }
-    tuples = get_tuples(F, no_unique);
     FREE(F);
     header->translation = get_translation_matrix(tuples, no_unique, max + 1, header);
     FREE(tuples);

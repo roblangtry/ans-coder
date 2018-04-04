@@ -7,12 +7,9 @@ void build_translations_decoding(file_header_t * header,coding_signature_t signa
     {
         tuples[i].index = header->symbol[i];
         tuples[i].freq = header->freq[i];
-    }
-    header->translation = get_reverse_translation_matrix(tuples, header->unique_symbols, header);
-    for(uint32_t i = 0; i < header->unique_symbols; i++){
-
         header->freq[i] = 0;
     }
+    header->translation = get_reverse_translation_matrix(tuples, header->unique_symbols, header);
     for(uint32_t i = 0; i < header->unique_symbols; i++)
     {
         header->symbol[get_symbol(i+1, signature)] = get_symbol(i+1, signature);

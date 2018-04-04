@@ -64,13 +64,12 @@ uint64_t vbyte_decode(struct prelude_code_data * metadata){
 // Unary
 // ---------------
 void unary_encode(struct prelude_code_data * metadata, uint64_t value){
-    uint64_t v = 0;
+    uint64_t v;
+    if (value == 1)
+        v = 0;
+    else
+        v = ((1 << (value - 1))-1)<<1;
     uint64_t l = value;
-    while(value > 1){
-        v = v + 1;
-        v = v << 1;
-        value--;
-    }
     write_bits(v, l, metadata->bit_writer_ptr);
 }
 void unary_flush(struct prelude_code_data * metadata){

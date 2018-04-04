@@ -108,24 +108,24 @@ uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length, fil
 }
 void ksort(tuple_t * tuples, uint32_t length, uint32_t k)
 {
-    size_t i;
-    if(k>=length) return;
-    qsort(tuples, k, sizeof(tuple_t), T_cmpfunc);
-    size_t * top = (size_t *)mymalloc(sizeof(size_t)*k);
-    for(i = 0; i < k; i++)
-        top[i] = i;
-    for(i =k; i < length; i++)
-    {
-        kcheck(i, top, k, tuples);
-    }
+    size_t i,j,current;
+    uint32_t val;
     tuple_t tup;
-    for(i = 0;i<k; i++)
-    {
+    if(k>=length) return;
+    for(i = 0; i < k; i++){
+        val = tuples[i].freq;
+        current = i;
+        for(j = i + 1; j < length; j++){
+            if(tuples[j].freq > val){
+                val = tuples[j].freq;
+                current = j;
+            }
+        }
         tup = tuples[i];
-        tuples[i] = tuples[top[i]];
-        tuples[top[i]] = tup;
+        tuples[i] = tuples[current];
+        tuples[current] = tup;
+
     }
-    FREE(top);
 }
 
 void kcheck(size_t i, size_t * top, uint32_t k, tuple_t * tuples)

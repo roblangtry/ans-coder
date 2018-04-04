@@ -39,13 +39,15 @@ void build_translations_encoding(file_header_t * header, uint32_t size, struct p
         header->Tmax = max;
     elias_encode(metadata, no_unique);
     tuples = mymalloc(sizeof(tuple_t) * no_unique);
+    symbol = 0;
     for(uint i=0; i<no_unique; i++)
     {
         kv = UGET(j++);
         while(kv.value <= 0){
             kv = UGET(j++);
         }
-        elias_encode(metadata, kv.key);
+        elias_encode(metadata, kv.key - symbol);
+        symbol = kv.key;
         elias_encode(metadata, kv.value);
         tuples[i].freq = kv.value;
         tuples[i].index = kv.key;

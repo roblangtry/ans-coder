@@ -79,7 +79,6 @@ void read_block_heading(file_header_t * header, uint32_t * len, coding_signature
     for(i=0; i<header->unique_symbols; i++){
         p = elias_decode(metadata);
         S = p + S;
-        if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL) S = p;
         F = elias_decode(metadata);
         // printf("%u - %u\n", S, F);
         // sleep(1);

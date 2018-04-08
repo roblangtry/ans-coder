@@ -5,6 +5,7 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
     uint32_t no_unique = 0;
     uint32_t symbol;
     uint32_t max = 0;
+    uint32_t *this, *that, *top;
     header->translation = NULL;
     header->symbols = size;
     //read the block
@@ -23,31 +24,33 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
         else header->freq_hash = sparse_hash_create(header->global_max + BLOCK_SIZE + 1);
     }
     if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL) build_translations_encoding(header, size, metadata, signature);
-    else
-    for(uint i=0; i<size; i++)
-    {
-        if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL) symbol = get_symbol(header->translation[header->data[i]], signature);
-        else symbol = get_symbol(header->data[i], signature);
-        if(signature.hashing == HASHING_STANDARD){
-            if(!header->freq[symbol+1]) no_unique++;
-            header->freq[symbol+1]++;
-        }
-        else
+    else{
+        this = header->data;
+        top = header->data + size;
+        while(this < top)
         {
-            if(sparse_hash_increment(symbol+1, 1, header->freq_hash) == 1) no_unique++;
+            if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL) symbol = get_symbol(header->translation[(*this++)], signature);
+            else symbol = get_symbol((*this++), signature);
+            if(signature.hashing == HASHING_STANDARD){
+                if(!header->freq[symbol+1]) no_unique++;
+                header->freq[symbol+1]++;
+            }
+            else
+            {
+                if(sparse_hash_increment(symbol+1, 1, header->freq_hash) == 1) no_unique++;
+            }
+            if(symbol > header->max) header->max = symbol;
         }
-        if(symbol > header->max) header->max = symbol;
     }
     if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL) no_unique = header->nu;
     max = header->max;
     if(header->global_max < max) header->global_max = max;
     //calculate cumalative frequency
-
-    for(uint i=1; (i<=max+1); i++)
-    {
-        if(signature.hashing == HASHING_STANDARD) header->freq[i] += header->freq[i-1];
-        else sparse_hash_increment(i, sparse_hash_get(i-1, header->freq_hash), header->freq_hash);
-    }
+    this = header->freq + 1;
+    that = header->freq;
+    top = header->freq+max+2;
+    while(this<top)
+        (*this++) += (*that++);
     if(signature.translation != TRANSLATE_TRUE && signature.translation != TRANSLATE_PARTIAL) elias_encode(metadata, no_unique);
     symbol = 0;
     uint32_t F = 0;

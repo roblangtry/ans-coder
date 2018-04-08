@@ -126,7 +126,12 @@ void ksort(tuple_t * tuples, uint32_t length, uint32_t k)
 
     }
 }
-
+void SWAP(uint32_t * p1, uint32_t * p2)
+{
+    uint32_t t = *p1;
+    *p1 = *p2;
+    *p2 = t;
+}
 void kcheck(size_t i, size_t * top, uint32_t k, tuple_t * tuples)
 {
     size_t temp;

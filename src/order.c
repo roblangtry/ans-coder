@@ -3,11 +3,17 @@
 void build_translations_decoding(file_header_t * header,coding_signature_t signature)
 {
     tuple_t * tuples = mymalloc(sizeof(tuple_t) * header->unique_symbols);
-    for(uint32_t i = 0; i < header->unique_symbols; i++)
+    uint32_t *sym, *freq;
+    tuple_t *this, *top;
+    this = tuples;
+    top = tuples + header->unique_symbols;
+    sym = header->symbol;
+    freq = header->freq;
+    while(this < top)
     {
-        tuples[i].index = header->symbol[i];
-        tuples[i].freq = header->freq[i];
-        header->freq[i] = 0;
+        (*this).index = (*sym++);
+        (*this++).freq = (*freq);
+        (*freq++) = 0;
     }
     header->translation = get_reverse_translation_matrix(tuples, header->unique_symbols, header);
     for(uint32_t i = 0; i < header->unique_symbols; i++)
@@ -22,15 +28,17 @@ void build_translations_decoding(file_header_t * header,coding_signature_t signa
 }
 void build_translations_encoding(file_header_t * header, uint32_t size, struct prelude_code_data * metadata,coding_signature_t signature)
 {
-    uint32_t no_unique = 0, symbol, f, max = 0;
+    uint32_t no_unique = 0, symbol, f, max = 0, *sym, *top;
     uint32_t * F = NULL;
     kv_t kv;
     uint j = 0;
     SETUP(BLOCK_SIZE, header->Tmax);
-    tuple_t * tuples;
-    for(uint i=0; i<size; i++)
+    tuple_t * tuples, *this, *tip;
+    sym = header->data;
+    top = header->data + size;
+    while(sym < top)
     {
-        symbol = header->data[i];
+        symbol = (*sym++);
         f = INCREMENT(symbol);
         if(f == 1) no_unique++;
         if(symbol > max) max = symbol;
@@ -40,7 +48,9 @@ void build_translations_encoding(file_header_t * header, uint32_t size, struct p
     elias_encode(metadata, no_unique);
     tuples = mymalloc(sizeof(tuple_t) * no_unique);
     symbol = 0;
-    for(uint i=0; i<no_unique; i++)
+    this = tuples;
+    tip = tuples + no_unique;
+    while(this < tip)
     {
         kv = UGET(j++);
         while(kv.value <= 0){
@@ -49,8 +59,8 @@ void build_translations_encoding(file_header_t * header, uint32_t size, struct p
         elias_encode(metadata, kv.key - symbol);
         symbol = kv.key;
         elias_encode(metadata, kv.value);
-        tuples[i].freq = kv.value;
-        tuples[i].index = kv.key;
+        (*this).freq = kv.value;
+        (*this++).index = kv.key;
     }
     header->nu = no_unique;
     FREE(F);

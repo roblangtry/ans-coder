@@ -2,3 +2,6 @@ ans-coder
 *.o
 *.data
 _*
+data/*
+images/*
+scripts/*

@@ -125,7 +125,6 @@ uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t ma
     if(perm_translating(header->translation_mechanism))
     {
         elias_encode(metadata, nu);
-        printf("E p %u\n", nu);
         header->nu = nu;
         f = header->freq;
         for(uint i=0;i<nu;i++)
@@ -138,7 +137,6 @@ uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t ma
         }
         if(header->translation_mechanism == TRANSLATE_PERMUTATION_TRUE)
         {
-            printf("E l %u\n", length);
             elias_encode(metadata, length);
             for(uint i=0; i<length;i++)
                 elias_encode(metadata, tuples[i].index);
@@ -161,7 +159,6 @@ uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length, fil
     {
         length = elias_decode(metadata);
         T = mycalloc((length+1) , sizeof(uint32_t));
-        printf("D l %u\n", length);
         for(uint i=0; i<length; i++){
             T[i] = elias_decode(metadata);
         }

@@ -87,18 +87,11 @@ int decode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
         output_to_file(output_file, data);
     }
     FREE(my_reader);
-    FREE(data->data);
-    data->data = NULL;
     FREE(data);
-    data = NULL;
     FREE(header->freq);
-    header->freq = NULL;
     FREE(header->data);
-    header->data = NULL;
     FREE(header->symbol_state);
-    header->symbol_state = NULL;
     FREE(header);
-    header = NULL;
     printmem();
     return 1;
 }

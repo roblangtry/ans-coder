@@ -51,22 +51,25 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
     top = header->freq+max+2;
     while(this<top)
         (*this++) += (*that++);
-    if(!translating(signature.translation)) elias_encode(metadata, no_unique);
-    symbol = 0;
-    uint32_t F = 0;
-    uint32_t j = 0;
-    for(uint i=0; i<no_unique; i++)
+    if(!translating(signature.translation))
     {
-        if(signature.hashing == HASHING_STANDARD) F = header->freq[j+1] - header->freq[j];
-        else F = sparse_hash_get(j+1, header->freq_hash) - sparse_hash_get(j, header->freq_hash);
-        while(!F){
-            j++;
+        elias_encode(metadata, no_unique);
+        symbol = 0;
+        uint32_t F = 0;
+        uint32_t j = 0;
+        for(uint i=0; i<no_unique; i++)
+        {
             if(signature.hashing == HASHING_STANDARD) F = header->freq[j+1] - header->freq[j];
             else F = sparse_hash_get(j+1, header->freq_hash) - sparse_hash_get(j, header->freq_hash);
+            while(!F){
+                j++;
+                if(signature.hashing == HASHING_STANDARD) F = header->freq[j+1] - header->freq[j];
+                else F = sparse_hash_get(j+1, header->freq_hash) - sparse_hash_get(j, header->freq_hash);
+            }
+            elias_encode(metadata, j - symbol);
+            symbol = j++;
+            elias_encode(metadata, F);
         }
-        if(!translating(signature.translation)) elias_encode(metadata, j - symbol);
-        symbol = j++;
-        if(!translating(signature.translation)) elias_encode(metadata, F);
     }
 }
 void read_block_heading(file_header_t * header, uint32_t * len, coding_signature_t signature, struct prelude_code_data * metadata)

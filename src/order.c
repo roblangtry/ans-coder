@@ -86,7 +86,6 @@ tuple_t * get_tuples(uint32_t * freq, uint32_t no_unique)
         }
         tuples[i].freq = F;
         tuples[i].index = UGET(j++).key;
-        // if(tuples[i].index == 131072) printf("T[%u] (%u,%u)\n", i , tuples[i].index, tuples[i].freq);
         i++;
     }
     return tuples;
@@ -112,26 +111,32 @@ uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t ma
     if(perm_translating(header->translation_mechanism))
     {
         elias_encode(metadata, nu);
-        for(uint i=0;i<=header->max+1;i++)
+        nu++;
+        for(uint i=0;i<=header->max+1 && nu >= 0;i++)
         {
             if(header->freq[i])
             {
                 elias_encode(metadata, i);
                 elias_encode(metadata, header->freq[i]);
             }
+            nu--;
         }
         if(header->translation_mechanism == TRANSLATE_PERMUTATION_TRUE)
         {
+            // printf("E l %u\n", length);
+            elias_encode(metadata, length);
             for(uint i=0; i<length;i++)
                 elias_encode(metadata, tuples[i].index);
         }
     }
+    header->nu = nu;
     return T;
 }
 uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length, file_header_t * header, struct prelude_code_data * metadata)
 {
-    uint32_t * T = mycalloc((length+1) , sizeof(uint32_t));
+    uint32_t * T;
     if(full_translating(header->translation_mechanism)){
+        T = mycalloc((length+1) , sizeof(uint32_t));
         if(header->translation_mechanism == TRANSLATE_PARTIAL) ksort(tuples, length, header->translate_k);
         else qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
         for(uint i=0; i<length; i++)
@@ -139,6 +144,9 @@ uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length, fil
     }
     else
     {
+        length = elias_decode(metadata);
+        T = mycalloc((length+1) , sizeof(uint32_t));
+        // printf("D l %u\n", length);
         for(uint i=0; i<length; i++)
             T[i] = elias_decode(metadata);
     }

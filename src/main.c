@@ -73,13 +73,7 @@ int main ( int argc, char *argv[] ){
     input_filename = argv[argc - 2];
     output_filename = argv[argc - 1];
     if (decode_flag == 1){
-        if(method_flag == PARRALEL_METHOD){
-            return pans_decode();
-        }
-        else if(method_flag == TABLE_METHOD){
-            return tans_decode();
-        }
-        else if(method_flag == RANGE_METHOD){
+        if(method_flag == RANGE_METHOD){
             FILE * input_file = fopen(input_filename, "r");
             FILE * output_file = fopen(output_filename, "w");
             return decode_file(input_file, output_file, signature);
@@ -89,13 +83,7 @@ int main ( int argc, char *argv[] ){
         }
     }
     if (encode_flag == 1){
-        if(method_flag == PARRALEL_METHOD){
-            return pans_encode();
-        }
-        else if(method_flag == TABLE_METHOD){
-            return tans_encode();
-        }
-        else if(method_flag == RANGE_METHOD){
+        if(method_flag == RANGE_METHOD){
             FILE * input_file = fopen(input_filename, "r");
             FILE * output_file = fopen(output_filename, "w");
             return encode_file(input_file, output_file, signature);

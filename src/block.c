@@ -81,17 +81,15 @@ void read_block_heading(file_header_t * header, uint32_t * len, coding_signature
     S = 0;
     for(i=0; i<header->unique_symbols; i++){
         p = elias_decode(metadata);
-        S = p + S;
         F = elias_decode(metadata);
-        // printf("%u - %u\n", S, F);
-        // sleep(1);
+        S = p + S;
         header->freq[i] = F;
         header->symbol[i] = S;
         header->max = S;
     }
     if(translating(signature.translation))
     {
-        build_translations_decoding(header, signature);
+        build_translations_decoding(header, signature, metadata);
         for(i=0; i<header->unique_symbols; i++){
             F = header->freq[i];
         }

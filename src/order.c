@@ -1,6 +1,6 @@
 #include "order.h"
 
-void build_translations_decoding(file_header_t * header,coding_signature_t signature)
+void build_translations_decoding(file_header_t * header,coding_signature_t signature, struct prelude_code_data * metadata)
 {
     tuple_t * tuples = mymalloc(sizeof(tuple_t) * header->unique_symbols);
     uint32_t *sym, *freq;
@@ -15,7 +15,7 @@ void build_translations_decoding(file_header_t * header,coding_signature_t signa
         (*this++).freq = (*freq);
         (*freq++) = 0;
     }
-    header->translation = get_reverse_translation_matrix(tuples, header->unique_symbols, header);
+    header->translation = get_reverse_translation_matrix(tuples, header->unique_symbols, header, metadata);
     for(uint32_t i = 0; i < header->unique_symbols; i++)
     {
         header->symbol[get_symbol(i+1, signature)] = get_symbol(i+1, signature);
@@ -45,7 +45,7 @@ void build_translations_encoding(file_header_t * header, uint32_t size, struct p
     }
     if(max > header->Tmax)
         header->Tmax = max;
-    elias_encode(metadata, no_unique);
+    if(full_translating(header->translation_mechanism)) elias_encode(metadata, no_unique);
     tuples = mymalloc(sizeof(tuple_t) * no_unique);
     symbol = 0;
     this = tuples;
@@ -56,15 +56,15 @@ void build_translations_encoding(file_header_t * header, uint32_t size, struct p
         while(kv.value <= 0){
             kv = UGET(j++);
         }
-        elias_encode(metadata, kv.key - symbol);
+        if(full_translating(header->translation_mechanism)) elias_encode(metadata, kv.key - symbol);
         symbol = kv.key;
-        elias_encode(metadata, kv.value);
+        if(full_translating(header->translation_mechanism)) elias_encode(metadata, kv.value);
         (*this).freq = kv.value;
         (*this++).index = kv.key;
     }
     header->nu = no_unique;
     FREE(F);
-    header->translation = get_translation_matrix(tuples, no_unique, max + 1, header, signature);
+    header->translation = get_translation_matrix(tuples, no_unique, max + 1, header, signature, metadata);
     FREE(tuples);
 }
 
@@ -91,10 +91,10 @@ tuple_t * get_tuples(uint32_t * freq, uint32_t no_unique)
     }
     return tuples;
 }
-uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t max, file_header_t * header,coding_signature_t signature)
+uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t max, file_header_t * header,coding_signature_t signature, struct prelude_code_data * metadata)
 {
     uint32_t * T = mycalloc(max, sizeof(uint32_t));
-    uint32_t raw, symbol;
+    uint32_t raw, symbol, last = 0, nu = 0;
     if(header->translation_mechanism == TRANSLATE_PARTIAL) ksort(tuples, length, header->translate_k);
     else qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
     for(uint i=0; i<length; i++){
@@ -103,16 +103,45 @@ uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t ma
         symbol = get_symbol(raw, signature);
         header->freq[symbol+1]+=tuples[i].freq;
         if(symbol > header->max) header->max = symbol;
+        if(symbol+1 != last)
+        {
+            nu++;
+            last = symbol + 1;
+        }
+    }
+    if(perm_translating(header->translation_mechanism))
+    {
+        elias_encode(metadata, nu);
+        for(uint i=0;i<=header->max+1;i++)
+        {
+            if(header->freq[i])
+            {
+                elias_encode(metadata, i);
+                elias_encode(metadata, header->freq[i]);
+            }
+        }
+        if(header->translation_mechanism == TRANSLATE_PERMUTATION_TRUE)
+        {
+            for(uint i=0; i<length;i++)
+                elias_encode(metadata, tuples[i].index);
+        }
     }
     return T;
 }
-uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length, file_header_t * header)
+uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length, file_header_t * header, struct prelude_code_data * metadata)
 {
     uint32_t * T = mycalloc((length+1) , sizeof(uint32_t));
-    if(header->translation_mechanism == TRANSLATE_PARTIAL) ksort(tuples, length, header->translate_k);
-    else qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
-    for(uint i=0; i<length; i++)
-        T[i] = tuples[i].index;
+    if(full_translating(header->translation_mechanism)){
+        if(header->translation_mechanism == TRANSLATE_PARTIAL) ksort(tuples, length, header->translate_k);
+        else qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
+        for(uint i=0; i<length; i++)
+            T[i] = tuples[i].index;
+    }
+    else
+    {
+        for(uint i=0; i<length; i++)
+            T[i] = elias_decode(metadata);
+    }
     return T;
 }
 void ksort(tuple_t * tuples, uint32_t length, uint32_t k)

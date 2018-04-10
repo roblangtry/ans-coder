@@ -20,4 +20,13 @@ uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t ma
 uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length, file_header_t * header);
 void ksort(tuple_t * tuples, uint32_t length, uint32_t k);
 void kcheck(size_t i, size_t * top, uint32_t k, tuple_t * tuples);
+inline int translating(uint32_t flag){
+    return flag == TRANSLATE_TRUE || flag == TRANSLATE_PARTIAL || flag == TRANSLATE_PERMUTATION_TRUE || flag == TRANSLATE_PERMUTATION_PARTIAL;
+}
+inline int full_translating(uint32_t flag){
+    return flag == TRANSLATE_TRUE || flag == TRANSLATE_PARTIAL;
+}
+inline int perm_translating(uint32_t flag){
+    return flag == TRANSLATE_PERMUTATION_TRUE || flag == TRANSLATE_PERMUTATION_PARTIAL;
+}
 #endif

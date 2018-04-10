@@ -23,13 +23,13 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
         else if(signature.symbol == SYMBOL_MSB_2) header->freq_hash = sparse_hash_create(get_msb_2_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1);
         else header->freq_hash = sparse_hash_create(header->global_max + BLOCK_SIZE + 1);
     }
-    if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL) build_translations_encoding(header, size, metadata, signature);
+    if(translating(signature.translation)) build_translations_encoding(header, size, metadata, signature);
     else{
         this = header->data;
         top = header->data + size;
         while(this < top)
         {
-            if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL) symbol = get_symbol(header->translation[(*this++)], signature);
+            if(translating(signature.translation)) symbol = get_symbol(header->translation[(*this++)], signature);
             else symbol = get_symbol((*this++), signature);
             if(signature.hashing == HASHING_STANDARD){
                 if(!header->freq[symbol+1]) no_unique++;
@@ -42,7 +42,7 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
             if(symbol > header->max) header->max = symbol;
         }
     }
-    if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL) no_unique = header->nu;
+    if(translating(signature.translation)) no_unique = header->nu;
     max = header->max;
     if(header->global_max < max) header->global_max = max;
     //calculate cumalative frequency
@@ -51,7 +51,7 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
     top = header->freq+max+2;
     while(this<top)
         (*this++) += (*that++);
-    if(signature.translation != TRANSLATE_TRUE && signature.translation != TRANSLATE_PARTIAL) elias_encode(metadata, no_unique);
+    if(!translating(signature.translation)) elias_encode(metadata, no_unique);
     symbol = 0;
     uint32_t F = 0;
     uint32_t j = 0;
@@ -64,9 +64,9 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
             if(signature.hashing == HASHING_STANDARD) F = header->freq[j+1] - header->freq[j];
             else F = sparse_hash_get(j+1, header->freq_hash) - sparse_hash_get(j, header->freq_hash);
         }
-        if(signature.translation != TRANSLATE_TRUE && signature.translation != TRANSLATE_PARTIAL) elias_encode(metadata, j - symbol);
+        if(!translating(signature.translation)) elias_encode(metadata, j - symbol);
         symbol = j++;
-        if(signature.translation != TRANSLATE_TRUE && signature.translation != TRANSLATE_PARTIAL) elias_encode(metadata, F);
+        if(!translating(signature.translation)) elias_encode(metadata, F);
     }
 }
 void read_block_heading(file_header_t * header, uint32_t * len, coding_signature_t signature, struct prelude_code_data * metadata)
@@ -89,7 +89,7 @@ void read_block_heading(file_header_t * header, uint32_t * len, coding_signature
         header->symbol[i] = S;
         header->max = S;
     }
-    if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL)
+    if(translating(signature.translation))
     {
         build_translations_decoding(header, signature);
         for(i=0; i<header->unique_symbols; i++){
@@ -138,7 +138,7 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     m = header->symbols;
     for(int i=size-1; i>=0; i--)
     {
-        if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL) symbol = get_symbol(header->translation[header->data[i]], signature);
+        if(translating(signature.translation)) symbol = get_symbol(header->translation[header->data[i]], signature);
         else symbol = get_symbol(header->data[i], signature);
         if(signature.hashing == HASHING_STANDARD){
             ls = header->freq[symbol+1] - header->freq[symbol];
@@ -157,12 +157,12 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
         state = m * (state / ls) + bs + (state % ls);
         if(signature.symbol == SYMBOL_MSB)
         {
-            if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL) stream_msb(header->translation[header->data[i]], msb_bits, msb_pages);
+            if(translating(signature.translation)) stream_msb(header->translation[header->data[i]], msb_bits, msb_pages);
             else stream_msb(header->data[i], msb_bits, msb_pages);
         }
         if(signature.symbol == SYMBOL_MSB_2)
         {
-            if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL) stream_msb_2(header->translation[header->data[i]], msb_bits, msb_2_pages);
+            if(translating(signature.translation)) stream_msb_2(header->translation[header->data[i]], msb_bits, msb_2_pages);
             else stream_msb_2(header->data[i], msb_bits, msb_2_pages);
         }
     }
@@ -189,7 +189,7 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
         output_bit_page(my_writer, msb_2_pages);
         free_bit_page(msb_2_pages);
     }
-    if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL) FREE(header->translation);
+    if(translating(signature.translation)) FREE(header->translation);
     if(signature.hashing == HASHING_SPARSE) sparse_hash_free(header->freq_hash);
 }
 
@@ -263,7 +263,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
                         block->data[i] = block->data[i] + byte;
                     }
                 }
-                if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL)block->data[i] = header->translation[block->data[i]-1];
+                if(translating(signature.translation))block->data[i] = header->translation[block->data[i]-1];
                 if(!i) break;
                 i--;
             }
@@ -272,7 +272,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     }
     if(signature.header == HEADER_BLOCK) FREE(header->symbol);
     free_metadata(metadata);
-    if(signature.translation == TRANSLATE_TRUE || signature.translation == TRANSLATE_PARTIAL) FREE(header->translation);
+    if(translating(signature.translation)) FREE(header->translation);
 }
 
 void output_to_file(FILE * output_file, data_block_t * data)

@@ -2,6 +2,7 @@
 
 void generate_block_header(file_header_t * header, uint32_t size, coding_signature_t signature, struct prelude_code_data * metadata)
 {
+    // sleep(1);
     uint32_t no_unique = 0;
     uint32_t symbol;
     uint32_t max = 0;
@@ -10,19 +11,12 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
     header->symbols = size;
     //read the block
     elias_encode(metadata, size);
+    // printf("E s %u\n", size);
     //clear the header
-    if(signature.hashing == HASHING_STANDARD){
-        FREE(header->freq);
-        if(signature.symbol == SYMBOL_MSB) header->freq = mycalloc(get_msb_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1024, sizeof(uint32_t));
-        else if(signature.symbol == SYMBOL_MSB_2) header->freq = mycalloc(get_msb_2_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1024, sizeof(uint32_t));
-        else header->freq = mycalloc(header->global_max + BLOCK_SIZE + 1, sizeof(uint32_t));
-    }
-    else
-    {
-        if(signature.symbol == SYMBOL_MSB) header->freq_hash = sparse_hash_create(get_msb_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1);
-        else if(signature.symbol == SYMBOL_MSB_2) header->freq_hash = sparse_hash_create(get_msb_2_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1);
-        else header->freq_hash = sparse_hash_create(header->global_max + BLOCK_SIZE + 1);
-    }
+    FREE(header->freq);
+    if(signature.symbol == SYMBOL_MSB) header->freq = mycalloc(get_msb_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1024, sizeof(uint32_t));
+    else if(signature.symbol == SYMBOL_MSB_2) header->freq = mycalloc(get_msb_2_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1024, sizeof(uint32_t));
+    else header->freq = mycalloc(header->global_max + BLOCK_SIZE + 1, sizeof(uint32_t));
     if(translating(signature.translation)) build_translations_encoding(header, size, metadata, signature);
     else{
         this = header->data;
@@ -31,14 +25,8 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
         {
             if(translating(signature.translation)) symbol = get_symbol(header->translation[(*this++)], signature);
             else symbol = get_symbol((*this++), signature);
-            if(signature.hashing == HASHING_STANDARD){
-                if(!header->freq[symbol+1]) no_unique++;
-                header->freq[symbol+1]++;
-            }
-            else
-            {
-                if(sparse_hash_increment(symbol+1, 1, header->freq_hash) == 1) no_unique++;
-            }
+            if(!header->freq[symbol+1]) no_unique++;
+            header->freq[symbol+1]++;
             if(symbol > header->max) header->max = symbol;
         }
     }
@@ -59,12 +47,10 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
         uint32_t j = 0;
         for(uint i=0; i<no_unique; i++)
         {
-            if(signature.hashing == HASHING_STANDARD) F = header->freq[j+1] - header->freq[j];
-            else F = sparse_hash_get(j+1, header->freq_hash) - sparse_hash_get(j, header->freq_hash);
+            F = header->freq[j+1] - header->freq[j];
             while(!F){
                 j++;
-                if(signature.hashing == HASHING_STANDARD) F = header->freq[j+1] - header->freq[j];
-                else F = sparse_hash_get(j+1, header->freq_hash) - sparse_hash_get(j, header->freq_hash);
+                F = header->freq[j+1] - header->freq[j];
             }
             elias_encode(metadata, j - symbol);
             symbol = j++;
@@ -74,11 +60,14 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
 }
 void read_block_heading(file_header_t * header, uint32_t * len, coding_signature_t signature, struct prelude_code_data * metadata)
 {
+    // sleep(1);
     uint32_t S, F, j, cumalative, p, i;
     if(header->freq != NULL) FREE(header->freq);
     header->symbols = elias_decode(metadata);
+    // printf("D s %u\n", header->symbols);
     *len = header->symbols;
     header->unique_symbols = elias_decode(metadata);
+    // printf("D p %u\n", header->unique_symbols);
     header->freq = mycalloc(header->unique_symbols + 2 , sizeof(uint32_t));
     header->symbol = mymalloc((header->unique_symbols+1) * sizeof(uint32_t));
     S = 0;
@@ -93,18 +82,18 @@ void read_block_heading(file_header_t * header, uint32_t * len, coding_signature
     if(translating(signature.translation))
     {
         build_translations_decoding(header, signature, metadata);
-        for(i=0; i<header->unique_symbols; i++){
-            F = header->freq[i];
-        }
     }
     cumalative = 0;
     for (i = 0; i <= header->unique_symbols ; i++)
     {
         F = header->freq[i];
+        // printf("%u] %u\n", i, F);
         header->freq[i] = cumalative;
         for(j = cumalative; j < F + cumalative; j++){
             header->symbol_state[j] = i;
         }
+        // printf("%u] %u (%u - %u)\n", i, F, cumalative, cumalative + F);
+        // sleep(1);
         cumalative = F + cumalative;
     }
 }
@@ -225,13 +214,18 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     {
         S = header->symbol_state[state % m];
         ls = header->freq[S+1] - header->freq[S];
+        // sleep(1);
         bs = header->freq[S];
         block->data[block->size++] = header->symbol[S];
+        // printf("%u] S %u ls %u bs %u state %lu", i, S, ls, bs, state);
         state = ls * (state / m) + (state % m) - bs;
+        // printf(" -> %lu", state);
         while(state < m && (content_size-read) > 0){
             read++;
             state = (state << bits) + header->data[content_size-read];
+        // printf(" -> %lu", state);
         }
+        // printf("\n");
     }
     if(signature.symbol == SYMBOL_MSB || signature.symbol == SYMBOL_MSB_2){
         struct bit_reader * breader = initialise_bit_reader(my_reader);

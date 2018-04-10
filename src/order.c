@@ -16,13 +16,25 @@ void build_translations_decoding(file_header_t * header,coding_signature_t signa
         (*freq++) = 0;
     }
     header->translation = get_reverse_translation_matrix(tuples, header->unique_symbols, header, metadata);
-    for(uint32_t i = 0; i < header->unique_symbols; i++)
+    if(full_translating(header->translation_mechanism))
     {
-        header->symbol[get_symbol(i+1, signature)] = get_symbol(i+1, signature);
-        header->freq[get_symbol(i+1, signature)] += tuples[i].freq;
+        for(uint32_t i = 0; i < header->unique_symbols; i++)
+        {
+            header->symbol[get_symbol(i+1, signature)] = get_symbol(i+1, signature);
+            header->freq[get_symbol(i+1, signature)] += tuples[i].freq;
+        }
+        header->freq[get_symbol(header->unique_symbols, signature)+1] = header->symbols;
+        header->unique_symbols = get_symbol(header->unique_symbols, signature);
     }
-    header->freq[get_symbol(header->unique_symbols, signature)+1] = header->symbols;
-    header->unique_symbols = get_symbol(header->unique_symbols, signature);
+    else
+    {
+        for(uint32_t i = 0; i < header->unique_symbols; i++)
+        {
+            header->symbol[i] = i+1;
+            header->freq[i] = tuples[i].freq;
+        }
+        header->freq[header->unique_symbols] = header->symbols;
+    }
     FREE(tuples);
 
 }
@@ -56,9 +68,11 @@ void build_translations_encoding(file_header_t * header, uint32_t size, struct p
         while(kv.value <= 0){
             kv = UGET(j++);
         }
-        if(full_translating(header->translation_mechanism)) elias_encode(metadata, kv.key - symbol);
+        if(full_translating(header->translation_mechanism)){
+            elias_encode(metadata, kv.key - symbol);
+            elias_encode(metadata, kv.value);
+        }
         symbol = kv.key;
-        if(full_translating(header->translation_mechanism)) elias_encode(metadata, kv.value);
         (*this).freq = kv.value;
         (*this++).index = kv.key;
     }
@@ -93,7 +107,7 @@ tuple_t * get_tuples(uint32_t * freq, uint32_t no_unique)
 uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t max, file_header_t * header,coding_signature_t signature, struct prelude_code_data * metadata)
 {
     uint32_t * T = mycalloc(max, sizeof(uint32_t));
-    uint32_t raw, symbol, last = 0, nu = 0;
+    uint32_t raw, symbol, last = 0, nu = 0, *f;
     if(header->translation_mechanism == TRANSLATE_PARTIAL) ksort(tuples, length, header->translate_k);
     else qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
     for(uint i=0; i<length; i++){
@@ -111,25 +125,25 @@ uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t ma
     if(perm_translating(header->translation_mechanism))
     {
         elias_encode(metadata, nu);
-        nu++;
-        for(uint i=0;i<=header->max+1 && nu >= 0;i++)
+        printf("E p %u\n", nu);
+        header->nu = nu;
+        f = header->freq;
+        for(uint i=0;i<nu;i++)
         {
-            if(header->freq[i])
-            {
-                elias_encode(metadata, i);
-                elias_encode(metadata, header->freq[i]);
-            }
-            nu--;
+            while(!(*f))
+                f++;
+            elias_encode(metadata, i);
+            elias_encode(metadata, *f);
+            f++;
         }
         if(header->translation_mechanism == TRANSLATE_PERMUTATION_TRUE)
         {
-            // printf("E l %u\n", length);
+            printf("E l %u\n", length);
             elias_encode(metadata, length);
             for(uint i=0; i<length;i++)
                 elias_encode(metadata, tuples[i].index);
         }
     }
-    header->nu = nu;
     return T;
 }
 uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length, file_header_t * header, struct prelude_code_data * metadata)
@@ -139,16 +153,18 @@ uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length, fil
         T = mycalloc((length+1) , sizeof(uint32_t));
         if(header->translation_mechanism == TRANSLATE_PARTIAL) ksort(tuples, length, header->translate_k);
         else qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
-        for(uint i=0; i<length; i++)
+        for(uint i=0; i<length; i++){
             T[i] = tuples[i].index;
+        }
     }
     else
     {
         length = elias_decode(metadata);
         T = mycalloc((length+1) , sizeof(uint32_t));
-        // printf("D l %u\n", length);
-        for(uint i=0; i<length; i++)
+        printf("D l %u\n", length);
+        for(uint i=0; i<length; i++){
             T[i] = elias_decode(metadata);
+        }
     }
     return T;
 }

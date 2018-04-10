@@ -37,8 +37,8 @@ void preprocess_file(FILE * input_file, coding_signature_t signature, file_heade
         block = NULL;
     } else if (signature.header == HEADER_BLOCK){
         fseek(input_file, 0, SEEK_END);
-        no_blocks = ftell(input_file)/BLOCK_SIZE;
-        if(ftell(input_file)%BLOCK_SIZE) no_blocks++;
+        no_blocks = ftell(input_file)/(BLOCK_SIZE<<2);
+        if(ftell(input_file)%(BLOCK_SIZE<<2)) no_blocks++;
     }
     header->no_blocks = no_blocks;
     fseek(input_file, 0, SEEK_SET);

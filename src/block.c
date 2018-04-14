@@ -39,7 +39,7 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
         elias_encode(metadata, no_unique);
         symbol = 0;
         uint32_t *x = header->freq,*y = header->freq+1;
-        for(uint i=0; i<no_unique; i++)
+        while(no_unique--)
         {
             while(!*(++x));
             elias_encode(metadata, (x-y) - symbol);
@@ -223,39 +223,19 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     block->size = len;
     if(signature.symbol == SYMBOL_MSB || signature.symbol == SYMBOL_MSB_2){
         struct bit_reader * breader = initialise_bit_reader(my_reader);
-        if(len)
+        W--;
+        T = block->data;
+        while(W >= T)
         {
-            W--;
-            T = block->data;
-            while(W >= T)
-            {
-                j = (*W - 1)>>msb_bits;
-
-                if(signature.symbol == SYMBOL_MSB)
-                {
-                    *W -= j<<msb_bits;
-                    *W = *W<<(msb_bits*j);
-                    if(j > 0){
-                        for(k = j-1;k>=0;k--){
-                            byte = (uint32_t)read_bits(msb_bits, breader);
-                            if(!k) *W = *W + byte;
-                            else *W = *W + (byte << (msb_bits * k));
-                            if(!k) break;
-                        }
-                    }
-                }
-                else
-                {
-                    if(j != 0 && *W != 0){
-                        *W -= j<<msb_bits;
-                        *W = *W<<j;
-                        byte = (uint32_t)read_bits(j, breader);
-                        *W = *W + byte;
-                    }
-                }
-                if(translating(signature.translation))*W = header->translation[*W-1];
-                W--;
+            j = (*W - 1)>>msb_bits;
+            if(j){
+                *W -= j<<msb_bits;
+                if(signature.symbol == SYMBOL_MSB) j = j * msb_bits;
+                *W = *W<<j;
+                *W += (uint32_t)read_bits(j, breader);
             }
+            if(translating(signature.translation))*W = header->translation[*W-1];
+            W--;
         }
         free_bit_reader(breader);
     }

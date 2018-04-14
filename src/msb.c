@@ -9,15 +9,10 @@ void stream_msb(uint32_t symbol, uint32_t bits, bint_page_t * pages)
         j = j + 1;
         v = v >> bits;
     }
-    while(j > 0)
+    if(j)
     {
-        if (j == 1)
-            byte = symbol % (1 << bits);
-        else{
-            byte = (symbol >> (bits * (j-1))) % (1 << bits);
-        }
-        add_to_bint_page(byte, bits, pages);
-        j = j - 1;
+        byte = symbol % (1 << (bits*j));
+        add_to_bint_page(byte, (bits*j), pages);
     }
 }
 

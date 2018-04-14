@@ -50,7 +50,7 @@ function encode2_test {
 # encode_test "MSB 16 Block" ./ans-coder "-e -m -b -a 16 -M 16 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
 # encode_test "MSB 31 Block" ./ans-coder "-e -m -b -a 16 -M 31 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
 
-encode_test "Block 16" ./ans-coder "-e -b -a 16 -S fcc.data _g9-enc" "-d _g9-enc _g9-dec"
+encode_test "Block 16" ./ans-coder "-e -b -a 16 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
 encode_test "MSB 16 Block" ./ans-coder "-e -m -b -a 16 -M 16 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
 encode_test "MSB2 16 Block" ./ans-coder "-e -n -b -a 16 -M 16 fcc.data _g9-enc" "-d _g9-enc _g9-dec"
 encode_test "Sorted MSB 16 Block" ./ans-coder "-e -m -b -a 16 -M 16 -S fcc.data _g9-enc" "-d _g9-enc _g9-dec"

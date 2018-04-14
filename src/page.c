@@ -141,9 +141,10 @@ void add_to_bint_page(uint32_t value, size_t length, bint_page_t * page)
 }
 void output_bint_page(struct writer * my_writer, bint_page_t * page, uint32_t bits)
 {
+    uint32_t *head=page->data, *max=page->data+page->current_size;
     struct bit_writer * bwriter = initialise_bit_writer(my_writer);
-    for(uint i = 0; i < page->current_size; i++)
-        write_bits(page->data[i], 31, bwriter);
+    while(head < max)
+        write_bits(*head++, 31, bwriter);
     write_bits(page->state, page->length, bwriter);
     flush_bit_writer(bwriter);
     free_bit_writer(bwriter);

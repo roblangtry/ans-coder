@@ -38,3 +38,7 @@ void CLEAR()
     SIZE = 0;
     SENTINEL = 0;
 }
+uint32_t * get_map()
+{
+    return MAP;
+}

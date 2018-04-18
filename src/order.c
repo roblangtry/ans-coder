@@ -3,7 +3,7 @@
 void build_translations_decoding(file_header_t * header,coding_signature_t signature, struct prelude_code_data * metadata)
 {
     tuple_t * tuples = mymalloc(sizeof(tuple_t) * header->unique_symbols);
-    uint32_t *sym, *freq;
+    uint32_t *sym, *freq, j=0;
     tuple_t *this, *top;
     this = tuples;
     top = tuples + header->unique_symbols;
@@ -30,10 +30,11 @@ void build_translations_decoding(file_header_t * header,coding_signature_t signa
     {
         for(uint32_t i = 0; i < header->unique_symbols; i++)
         {
-            header->symbol[i] = i+1;
+            header->symbol[i] = tuples[i].index+1;
             header->freq[i] = tuples[i].freq;
         }
         header->freq[header->unique_symbols] = header->symbols;
+
     }
     FREE(tuples);
 
@@ -107,13 +108,24 @@ tuple_t * get_tuples(uint32_t * freq, uint32_t no_unique)
 uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t max, file_header_t * header,coding_signature_t signature, struct prelude_code_data * metadata)
 {
     uint32_t * T = mycalloc(max, sizeof(uint32_t));
-    uint32_t raw, symbol, last = 0, nu = 0, *f;
+    uint32_t raw, symbol, last = 0, nu = 0, *f, *f0;
     if(header->translation_mechanism == TRANSLATE_PARTIAL) ksort(tuples, length, header->translate_k);
     else qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
     for(uint i=0; i<length; i++){
         raw = i + 1;
-        T[tuples[i].index] = raw;
-        symbol = get_symbol(raw, signature);
+        if(header->translation_mechanism == TRANSLATE_PERMUTATION_PARTIAL)
+        {
+            if(i < header->translate_k){
+                // if(tuples[i].index == 3380) printf("T [%u] = %u\n", tuples[i].index, raw);
+                T[tuples[i].index] = raw;
+            }
+            else{
+                // if(tuples[i].index == 3380) printf("T2[%u] = %u\n", tuples[i].index, tuples[i].index+header->translate_k);
+                T[tuples[i].index] = tuples[i].index+header->translate_k;
+            }
+        }
+        else T[tuples[i].index] = raw;
+        symbol = get_symbol(T[tuples[i].index], signature);
         header->freq[symbol+1]+=tuples[i].freq;
         if(symbol > header->max) header->max = symbol;
         if(symbol+1 != last)
@@ -127,11 +139,14 @@ uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t ma
         elias_encode(metadata, nu);
         header->nu = nu;
         f = header->freq;
+        f0 = header->freq;
+        symbol = 0;
         for(uint i=0;i<nu;i++)
         {
             while(!(*f))
                 f++;
-            elias_encode(metadata, i);
+            elias_encode(metadata, (f-f0-2)-symbol);
+            symbol = (f-f0-2);
             elias_encode(metadata, *f);
             f++;
         }
@@ -140,6 +155,13 @@ uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t ma
             elias_encode(metadata, length);
             for(uint i=0; i<length;i++)
                 elias_encode(metadata, tuples[i].index);
+        }
+        else
+        {
+            elias_encode(metadata, header->translate_k);
+            for(uint i=0; i<header->translate_k;i++){
+                elias_encode(metadata, tuples[i].index);
+            }
         }
     }
     return T;

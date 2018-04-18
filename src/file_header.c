@@ -56,6 +56,7 @@ void output_file_header(struct writer * my_writer, file_header_t * header, codin
     elias_encode(metadata, signature.bit_factor);
     elias_encode(metadata, signature.translation);
     if(signature.translation == TRANSLATE_PARTIAL) elias_encode(metadata, signature.translate_k);
+    if(signature.translation == TRANSLATE_PERMUTATION_PARTIAL) elias_encode(metadata, signature.translate_k);
     elias_encode(metadata, header->no_blocks);
     if(signature.header == HEADER_SINGLE){
         elias_encode(metadata, header->max);
@@ -83,6 +84,7 @@ void read_signature(struct reader * my_reader, coding_signature_t * signature, s
     (*signature).bit_factor = elias_decode(metadata);
     (*signature).translation = elias_decode(metadata);
     if((*signature).translation == TRANSLATE_PARTIAL) (*signature).translate_k = elias_decode(metadata);
+    if((*signature).translation == TRANSLATE_PERMUTATION_PARTIAL) (*signature).translate_k = elias_decode(metadata);
 }
 void read_file_header(struct reader * my_reader, coding_signature_t signature, file_header_t * header, struct prelude_code_data * metadata)
 {

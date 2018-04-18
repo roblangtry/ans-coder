@@ -2,7 +2,6 @@
 
 void generate_block_header(file_header_t * header, uint32_t size, coding_signature_t signature, struct prelude_code_data * metadata)
 {
-    // sleep(1);
     uint32_t no_unique = 0;
     uint32_t symbol;
     uint32_t max = 0;
@@ -11,7 +10,6 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
     header->symbols = size;
     //read the block
     elias_encode(metadata, size);
-    // printf("E s %u\n", size);
     //clear the header
     FREE(header->freq);
     if(signature.symbol == SYMBOL_MSB) header->freq = mycalloc(get_msb_symbol(SYMBOL_MAP_SIZE, signature.msb_bit_factor)+1024, sizeof(uint32_t));
@@ -55,16 +53,13 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
 }
 void read_block_heading(file_header_t * header, uint32_t * len, coding_signature_t signature, struct prelude_code_data * metadata)
 {
-    // sleep(1);
-    uint32_t S, F, j, cumalative, p, i, *f,*fT,*s,*sT;
+    uint32_t S, F, j, cumalative, p, i, *f,*fT,*s,*sT, *ssT, Y=0;
     if(header->freq != NULL) FREE(header->freq);
     header->symbols = elias_decode(metadata);
-    // printf("D s %u\n", header->symbols);
     *len = header->symbols;
     header->unique_symbols = elias_decode(metadata);
-    // printf("D p %u\n", header->unique_symbols);
     header->freq = mycalloc(header->unique_symbols + 2 , sizeof(uint32_t));
-    header->symbol = mymalloc((header->unique_symbols+1) * sizeof(uint32_t));
+    header->symbol = mymalloc((header->unique_symbols+2) * sizeof(uint32_t));
     S = 0;
     f = header->freq;
     fT = f+header->unique_symbols;
@@ -86,18 +81,16 @@ void read_block_heading(file_header_t * header, uint32_t * len, coding_signature
     fT= f+header->unique_symbols;
     s = header->symbol_state;
     sT = s;
+    ssT = header->symbol_state+BLOCK_SIZE;
     i=0;
     while(f<=fT)
     {
         F = *f;
-        // printf("%u] %u\n", i, F);
         *f++ = cumalative;
         sT = sT + F;
-        while(s<sT){
+        while(s<sT && s<ssT){
             *s++ = i;
         }
-        // printf("%u] %u (%u - %u)\n", i, F, cumalative, cumalative + F);
-        // sleep(1);
         i++;
         cumalative = F + cumalative;
     }
@@ -217,8 +210,9 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
         bs = header->freq[S];
         *W++ = header->symbol[S];
         state = ls * (state / m) + (state % m) - bs;
-        while(state < m)
+        while(state < m){
             state = (state << bits) + *head--;
+        }
     }
     block->size = len;
     if(signature.symbol == SYMBOL_MSB || signature.symbol == SYMBOL_MSB_2){
@@ -234,7 +228,16 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
                 *W = *W<<j;
                 *W += (uint32_t)read_bits(j, breader);
             }
-            if(translating(signature.translation))*W = header->translation[*W-1];
+            if(signature.translation == TRANSLATE_PERMUTATION_PARTIAL)
+            {
+                if(*W <= header->translate_k){
+                    *W = header->translation[*W-1];
+                }
+                else{
+                    *W = (*W) - header->translate_k;
+                }
+            }
+            else if(translating(signature.translation))*W = header->translation[*W-1];
             W--;
         }
         free_bit_reader(breader);

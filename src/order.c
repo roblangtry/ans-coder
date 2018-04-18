@@ -158,8 +158,10 @@ uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t ma
         }
         else
         {
-            elias_encode(metadata, header->translate_k);
-            for(uint i=0; i<header->translate_k;i++){
+            nu = header->translate_k;
+            if(length<nu) nu = length;
+            elias_encode(metadata, nu);
+            for(uint i=0; i<nu;i++){
                 elias_encode(metadata, tuples[i].index);
             }
         }

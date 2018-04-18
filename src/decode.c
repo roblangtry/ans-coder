@@ -81,7 +81,7 @@ int decode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     data->data = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
     read_file_header(my_reader, signature, header, metadata);
     if(signature.header == HEADER_BLOCK) header->symbol_state = mymalloc(sizeof(uint32_t) * BLOCK_SIZE);
-    for(int i = 0; i < header->no_blocks; i++)
+    while(header->no_blocks--)
     {
         read_block(my_reader, header, signature, data);
         output_to_file(output_file, data);

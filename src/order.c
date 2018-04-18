@@ -193,20 +193,26 @@ void ksort(tuple_t * tuples, uint32_t length, uint32_t k)
 {
     size_t i,j,current;
     uint32_t val;
+    tuple_t *inner_probe, *outer_probe, *inner_limit, *outer_limit, *current_probe;
     tuple_t tup;
     if(k>=length) return;
-    for(i = 0; i < k; i++){
-        val = tuples[i].freq;
-        current = i;
-        for(j = i + 1; j < length; j++){
-            if(tuples[j].freq > val){
-                val = tuples[j].freq;
-                current = j;
+    outer_probe = tuples;
+    outer_limit = tuples+k;
+    inner_limit = tuples+length;
+    while(outer_probe<outer_limit){
+        val = (*outer_probe).freq;
+        current_probe = outer_probe;
+        inner_probe = outer_probe+1;
+        while(inner_probe<inner_limit){
+            if((*inner_probe).freq > val){
+                val = (*inner_probe).freq;
+                current_probe = inner_probe;
             }
+            inner_probe++;
         }
-        tup = tuples[i];
-        tuples[i] = tuples[current];
-        tuples[current] = tup;
+        tup = (*outer_probe);
+        (*outer_probe) = (*current_probe);
+        (*current_probe) = tup;
 
     }
 }
@@ -215,18 +221,4 @@ void SWAP(uint32_t * p1, uint32_t * p2)
     uint32_t t = *p1;
     *p1 = *p2;
     *p2 = t;
-}
-void kcheck(size_t i, size_t * top, uint32_t k, tuple_t * tuples)
-{
-    size_t temp;
-    for(int j = k-1; j >= 0; j--)
-    {
-        if(tuples[i].freq > tuples[top[j]].freq){
-            temp = i;
-            i = top[j];
-            top[j] = temp;
-        }
-        else
-            break;
-    }
 }

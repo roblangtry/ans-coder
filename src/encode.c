@@ -86,7 +86,7 @@ int encode_file(FILE * input_file, FILE * output_file, coding_signature_t signat
     struct writer * my_writer = initialise_writer(output_file);
     preprocess_file(input_file, signature, &header);
     output_file_header(my_writer, &header, signature);
-    for(int i = 0; i < header.no_blocks; i++)
+    while(header.no_blocks--)
     {
         process_block(input_file, my_writer, &header, signature);
     }

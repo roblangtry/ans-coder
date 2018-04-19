@@ -53,7 +53,7 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
 }
 void read_block_heading(file_header_t * header, uint32_t * len, coding_signature_t signature, struct prelude_code_data * metadata)
 {
-    uint32_t S, F, j, cumalative, p, i, *f,*fT,*s,*sT, *ssT, Y=0;
+    uint32_t S, F, cumalative, p, i, *f,*fT,*s,*sT, *ssT;
     if(header->freq != NULL) FREE(header->freq);
     header->symbols = elias_decode(metadata);
     *len = header->symbols;
@@ -155,13 +155,13 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     // Content
     // ------------- //
     output_bint_page(my_writer, ans_pages, bits);
-    ans_size(ans_pages->current_size * 4);
+    ans_size(ans_pages->current_size * 31 / 8);
     // ------------- //
     // Post
     // ------------- //
     free_bint_page(ans_pages);
     if(signature.symbol == SYMBOL_MSB){
-        msb_size(msb_pages->current_size * 4);
+        msb_size(msb_pages->current_size * 31 / 8);
         output_bint_page(my_writer, msb_pages, msb_bits);
         free_bint_page(msb_pages);
     }
@@ -179,8 +179,7 @@ void read_block(struct reader * my_reader, file_header_t * header, coding_signat
     uint32_t S, content_size, *head, *top, *W, *T;
     uint32_t len = 0;
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
-    uint32_t byte;
-    uint i, j, k;
+    uint j;
     if(signature.header == HEADER_BLOCK)
     {
         read_block_heading(header, &len, signature, metadata);

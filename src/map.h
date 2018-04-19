@@ -19,4 +19,5 @@ uint32_t GET(uint32_t key);
 kv_t UGET(uint32_t ukey);
 void SETUP(size_t map_size, size_t sentinal);
 void CLEAR();
+uint32_t * get_map();
 #endif

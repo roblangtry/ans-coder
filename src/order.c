@@ -96,9 +96,6 @@ int T_cmpfunc (const void * a, const void * b) {
 
 tuple_t * get_tuples(uint32_t * freq, uint32_t no_unique)
 {
-    uint32_t i = 0;
-    uint32_t j = 0;
-    uint32_t F;
     tuple_t * tuples = mymalloc(sizeof(tuple_t) * no_unique);
     tuple_t *this = tuples, *top = tuples+no_unique;
     uint32_t *probe = get_map(), *base;
@@ -209,7 +206,6 @@ uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length, fil
 }
 void ksort(tuple_t * tuples, uint32_t length, uint32_t k)
 {
-    size_t i,j,current;
     uint32_t val;
     tuple_t *inner_probe, *outer_probe, *inner_limit, *outer_limit, *current_probe;
     tuple_t tup;

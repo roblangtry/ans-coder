@@ -19,14 +19,33 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
     else{
         this = header->data;
         top = header->data + size;
-        while(this < top)
-        {
-            if(translating(signature.translation)) symbol = get_symbol(header->translation[(*this++)], signature);
-            else symbol = get_symbol((*this++), signature);
-            if(!header->freq[symbol+1]) no_unique++;
-            header->freq[symbol+1]++;
-            if(symbol > header->max) header->max = symbol;
-        }
+        if(signature.symbol == SYMBOL_MSB)
+            while(this < top)
+            {
+                if(translating(signature.translation)) symbol = get_msb_symbol(header->translation[(*this++)], signature.msb_bit_factor);
+                else symbol = get_msb_symbol((*this++), signature.msb_bit_factor);
+                if(!header->freq[symbol+1]) no_unique++;
+                header->freq[symbol+1]++;
+                if(symbol > header->max) header->max = symbol;
+            }
+        else if(signature.symbol == SYMBOL_MSB_2)
+            while(this < top)
+            {
+                if(translating(signature.translation)) symbol = get_msb_2_symbol(header->translation[(*this++)], signature.msb_bit_factor);
+                else symbol = get_msb_2_symbol((*this++), signature.msb_bit_factor);
+                if(!header->freq[symbol+1]) no_unique++;
+                header->freq[symbol+1]++;
+                if(symbol > header->max) header->max = symbol;
+            }
+        else
+            while(this < top)
+            {
+                if(translating(signature.translation)) symbol = (*this++);
+                else symbol = (*this++);
+                if(!header->freq[symbol+1]) no_unique++;
+                header->freq[symbol+1]++;
+                if(symbol > header->max) header->max = symbol;
+            }
     }
     if(translating(signature.translation)) no_unique = header->nu;
     max = header->max;
@@ -96,6 +115,108 @@ void read_block_heading(file_header_t * header, uint32_t * len, coding_signature
     }
 }
 
+uint64_t direct_ans_component(file_header_t * header, bint_page_t * ans_pages,
+    bint_page_t * msb_pages, bit_page_t * msb_2_pages, uint32_t bits, uint32_t msb_bits, uint32_t size, coding_signature_t signature)
+{
+    uint32_t *data = header->data;
+    uint32_t *translate = header->translation;
+    uint32_t *freq = header->freq;
+    uint64_t state = header->symbols;
+    uint64_t m = header->symbols;
+    uint32_t * this = data+size-1;
+    uint32_t * bot = data;
+    uint64_t ls, bs, Is;
+    uint32_t symbol;
+    while(this>=bot)
+    {
+        if(translating(signature.translation)) symbol = translate[*this];
+        else symbol = *this;
+        ls = freq[symbol+1] - freq[symbol];
+        bs = freq[symbol];
+        Is = (ls << bits) - 1;
+        while(state > Is){
+            add_to_bint_page(state % (1 << bits), bits, ans_pages);
+            state = state >> bits;
+        }
+        state = m * (state / ls) + bs + (state % ls);
+        this--;
+    }
+    return state;
+}
+
+uint64_t msb_ans_component(file_header_t * header, bint_page_t * ans_pages,
+    bint_page_t * msb_pages, bit_page_t * msb_2_pages, uint32_t bits, uint32_t msb_bits, uint32_t size, coding_signature_t signature)
+{
+    uint32_t *data = header->data;
+    uint32_t *translate = header->translation;
+    uint32_t *freq = header->freq;
+    uint64_t state = header->symbols;
+    uint64_t m = header->symbols;
+    uint32_t * this = data+size-1;
+    uint32_t * bot = data;
+    uint64_t ls, bs, Is;
+    uint32_t symbol;
+    while(this>=bot)
+    {
+        if(translating(signature.translation)) symbol = get_msb_symbol(translate[*this], msb_bits);
+        else symbol = get_msb_symbol(*this, msb_bits);
+        ls = freq[symbol+1] - freq[symbol];
+        bs = freq[symbol];
+        Is = (ls << bits) - 1;
+        while(state > Is){
+            add_to_bint_page(state % (1 << bits), bits, ans_pages);
+            state = state >> bits;
+        }
+        state = m * (state / ls) + bs + (state % ls);
+        if(translating(signature.translation)) stream_msb(translate[*this], msb_bits, msb_pages);
+        else stream_msb(*this, msb_bits, msb_pages);
+        this--;
+    }
+    return state;
+}
+
+uint64_t msb2_ans_component(file_header_t * header, bint_page_t * ans_pages,
+    bint_page_t * msb_pages, bit_page_t * msb_2_pages, uint32_t bits, uint32_t msb_bits, uint32_t size, coding_signature_t signature)
+{
+    uint32_t *data = header->data;
+    uint32_t *translate = header->translation;
+    uint32_t *freq = header->freq;
+    uint64_t state = header->symbols;
+    uint64_t m = header->symbols;
+    uint32_t * this = data+size-1;
+    uint32_t * bot = data;
+    uint64_t ls, bs, Is;
+    uint32_t symbol;
+    while(this>=bot)
+    {
+        if(translating(signature.translation)) symbol = get_msb_2_symbol(translate[*this], msb_bits);
+        else symbol = get_msb_2_symbol(*this, msb_bits);
+        ls = freq[symbol+1] - freq[symbol];
+        bs = freq[symbol];
+        Is = (ls << bits) - 1;
+        while(state > Is){
+            add_to_bint_page(state % (1 << bits), bits, ans_pages);
+            state = state >> bits;
+        }
+        state = m * (state / ls) + bs + (state % ls);
+        if(translating(signature.translation)) stream_msb_2(translate[*this], msb_bits, msb_2_pages);
+        else stream_msb_2(*this, msb_bits, msb_2_pages);
+        this--;
+    }
+    return state;
+}
+
+uint64_t ans_component(file_header_t * header, bint_page_t * ans_pages,
+    bint_page_t * msb_pages, bit_page_t * msb_2_pages, uint32_t bits, uint32_t msb_bits, uint32_t size, coding_signature_t signature)
+{
+    if(signature.symbol == SYMBOL_MSB)
+        return msb_ans_component(header, ans_pages, msb_pages, msb_2_pages, bits, msb_bits, size, signature);
+    else if(signature.symbol == SYMBOL_MSB_2)
+        return msb2_ans_component(header, ans_pages, msb_pages, msb_2_pages, bits, msb_bits, size, signature);
+    else
+        return direct_ans_component(header, ans_pages, msb_pages, msb_2_pages, bits, msb_bits, size, signature);
+}
+
 void process_block(FILE * input_file, struct writer * my_writer, file_header_t * header, coding_signature_t signature)
 {
     uint32_t size = 0;
@@ -103,8 +224,8 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     uint64_t state = 0, ls = 0, bs = 0, Is = 0, m = 0, bits = signature.bit_factor, msb_bits = signature.msb_bit_factor;
     struct prelude_code_data * metadata = prepare_metadata(NULL, my_writer, 0);
     bint_page_t * ans_pages = get_bint_page();
-    bint_page_t * msb_pages;
-    bit_page_t * msb_2_pages;
+    bint_page_t * msb_pages = NULL;
+    bit_page_t * msb_2_pages = NULL;
     if(signature.symbol == SYMBOL_MSB) msb_pages = get_bint_page();
     if(signature.symbol == SYMBOL_MSB_2) msb_2_pages = get_bit_page();
     size = fread(header->data, sizeof(uint32_t), BLOCK_SIZE, input_file);
@@ -118,34 +239,7 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
     else if(signature.header == HEADER_SINGLE)
         elias_encode(metadata, size);
 
-    state = header->symbols;
-    m = header->symbols;
-    this = header->data+size-1;
-    bot = header->data;
-    while(this>=bot)
-    {
-        if(translating(signature.translation)) symbol = get_symbol(header->translation[*this], signature);
-        else symbol = get_symbol(*this, signature);
-        ls = header->freq[symbol+1] - header->freq[symbol];
-        bs = header->freq[symbol];
-        Is = (ls << bits) - 1;
-        while(state > Is){
-            add_to_bint_page(state % (1 << bits), bits, ans_pages);
-            state = state >> bits;
-        }
-        state = m * (state / ls) + bs + (state % ls);
-        if(signature.symbol == SYMBOL_MSB)
-        {
-            if(translating(signature.translation)) stream_msb(header->translation[*this], msb_bits, msb_pages);
-            else stream_msb(*this, msb_bits, msb_pages);
-        }
-        if(signature.symbol == SYMBOL_MSB_2)
-        {
-            if(translating(signature.translation)) stream_msb_2(header->translation[*this], msb_bits, msb_2_pages);
-            else stream_msb_2(*this, msb_bits, msb_2_pages);
-        }
-        this--;
-    }
+    state = ans_component(header, ans_pages, msb_pages, msb_2_pages, bits, msb_bits, size, signature);
     elias_encode(metadata, ans_pages->no_writes);
     elias_flush(metadata);
     free_metadata(metadata);

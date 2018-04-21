@@ -30,11 +30,9 @@ uint64_t write_uint64_t(uint64_t number, struct writer * my_writer)
 uint64_t write_bytes(unsigned char * byte_array, size_t no_bytes, struct writer * my_writer)
 {
     uint64_t size = 0;
-    size_t index = 0;
     unsigned char *top = byte_array+no_bytes;
     while(byte_array < top){
         size += write_byte((*byte_array++), my_writer);
-        index++;
     }
     return size;
 }

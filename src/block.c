@@ -3,9 +3,9 @@
 void generate_block_header(file_header_t * header, uint32_t size, coding_signature_t signature, struct prelude_code_data * metadata)
 {
     uint32_t no_unique = 0;
-    uint32_t symbol;
+    uint32_t symbol=0;
     uint32_t max = 0;
-    uint32_t *this, *that, *top;
+    uint32_t *this=NULL, *that=NULL, *top=NULL;
     header->translation = NULL;
     header->symbols = size;
     //read the block
@@ -53,7 +53,7 @@ void generate_block_header(file_header_t * header, uint32_t size, coding_signatu
 }
 void read_block_heading(file_header_t * header, uint32_t * len, coding_signature_t signature, struct prelude_code_data * metadata)
 {
-    uint32_t S, F, cumalative, p, i, *f,*fT,*s,*sT, *ssT;
+    uint32_t S = 0, F = 0, cumalative = 0, p = 0, i = 0, *f = NULL,*fT = NULL,*s = NULL,*sT = NULL, *ssT = NULL;
     if(header->freq != NULL) FREE(header->freq);
     header->symbols = elias_decode(metadata);
     *len = header->symbols;
@@ -98,9 +98,9 @@ void read_block_heading(file_header_t * header, uint32_t * len, coding_signature
 
 void process_block(FILE * input_file, struct writer * my_writer, file_header_t * header, coding_signature_t signature)
 {
-    uint32_t size;
-    uint32_t symbol, *this, *bot;
-    uint64_t state, ls, bs, Is, m, bits = signature.bit_factor, msb_bits = signature.msb_bit_factor;
+    uint32_t size = 0;
+    uint32_t symbol = 0, *this = NULL, *bot = NULL;
+    uint64_t state = 0, ls = 0, bs = 0, Is = 0, m = 0, bits = signature.bit_factor, msb_bits = signature.msb_bit_factor;
     struct prelude_code_data * metadata = prepare_metadata(NULL, my_writer, 0);
     bint_page_t * ans_pages = get_bint_page();
     bint_page_t * msb_pages;
@@ -175,11 +175,11 @@ void process_block(FILE * input_file, struct writer * my_writer, file_header_t *
 
 void read_block(struct reader * my_reader, file_header_t * header, coding_signature_t signature, data_block_t * block)
 {
-    uint64_t state, ls, bs, m, bits = signature.bit_factor, msb_bits = signature.msb_bit_factor;
-    uint32_t S, content_size, *head, *top, *W, *T;
+    uint64_t state = 0, ls = 0, bs = 0, m = 0, bits = signature.bit_factor, msb_bits = signature.msb_bit_factor;
+    uint32_t S = 0, content_size = 0, *head = NULL, *top = NULL, *W = NULL, *T = NULL;
     uint32_t len = 0;
     struct prelude_code_data * metadata = prepare_metadata(my_reader, NULL, 0);
-    uint j;
+    uint j = 0;
     if(signature.header == HEADER_BLOCK)
     {
         read_block_heading(header, &len, signature, metadata);

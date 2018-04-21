@@ -31,15 +31,16 @@ uint64_t write_bytes(unsigned char * byte_array, size_t no_bytes, struct writer 
 {
     uint64_t size = 0;
     size_t index = 0;
-    while(index < no_bytes){
-        size += write_byte(byte_array[index], my_writer);
+    unsigned char *top = byte_array+no_bytes;
+    while(byte_array < top){
+        size += write_byte((*byte_array++), my_writer);
         index++;
     }
     return size;
 }
 uint64_t flush_writer(struct writer * my_writer)
 {
-    uint64_t write_amount;
+    uint64_t write_amount = 0;
     if(my_writer->index == 0) return 0;
     else {
         write_amount = fwrite(my_writer->buffer, sizeof(unsigned char), my_writer->index, my_writer->output_file);
@@ -62,7 +63,7 @@ void free_bit_writer(struct bit_writer * my_bit_writer)
 }
 uint64_t write_bits(uint64_t value, uint64_t length, struct bit_writer * my_bit_writer)
 {
-    unsigned char byte;
+    unsigned char byte = 0;
     uint64_t write_amount = 0;
     my_bit_writer->buffer = my_bit_writer->buffer << length;
     my_bit_writer->buffer += value;
@@ -80,7 +81,7 @@ uint64_t write_bits(uint64_t value, uint64_t length, struct bit_writer * my_bit_
 uint64_t flush_bit_writer(struct bit_writer * my_bit_writer)
 {
     uint64_t write_amount = 0;
-    unsigned char byte;
+    unsigned char byte = 0;
     while(my_bit_writer->length >= 8){
         my_bit_writer->length -= 8;
         byte = my_bit_writer->buffer >> my_bit_writer->length;

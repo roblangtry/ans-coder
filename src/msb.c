@@ -2,7 +2,7 @@
 
 void stream_msb(uint32_t symbol, uint32_t bits, bint_page_t * pages)
 {
-    uint32_t byte;
+    uint32_t byte = 0;
     uint32_t j = 0;
     uint32_t v = symbol - 1;
     while ((v >> bits) > 0){

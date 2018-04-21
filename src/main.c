@@ -1,7 +1,7 @@
 #include "main.h"
 int main ( int argc, char *argv[] ){
     unsigned char decode_flag, encode_flag, method_flag, verbose_flag;
-    int c;//, indent;
+    int c=0;//, indent;
     char * input_filename;
     char * output_filename;
     decode_flag = 0;

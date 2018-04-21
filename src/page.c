@@ -52,7 +52,7 @@ bint_page_t * get_bint_page()
 }
 void add_to_bint_page(uint32_t value, size_t length, bint_page_t * page)
 {
-    uint64_t V;
+    uint64_t V = 0;
     // printf("+ %u[%u]\n", value, length);
     // printf("%u", page->state);
     page->state = (page->state << length) + value;

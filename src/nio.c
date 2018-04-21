@@ -29,7 +29,7 @@ void nio_flush_bits(t_bwriter * writer)
     writer->head = 0;
 }
 size_t get_file_size(FILE * stream){
-    size_t off, sz;
+    size_t off = 0, sz = 0;
     off = ftell(stream);
     fseek(stream, 0, SEEK_END);
     sz = ftell(stream);

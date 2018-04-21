@@ -3,8 +3,8 @@
 void build_translations_decoding(file_header_t * header,coding_signature_t signature, struct prelude_code_data * metadata)
 {
     tuple_t * tuples = mymalloc(sizeof(tuple_t) * header->unique_symbols);
-    uint32_t *sym, *freq, j=0, i=0;
-    tuple_t *this, *top;
+    uint32_t *sym = NULL, *freq = NULL, j=0, i=0;
+    tuple_t *this = NULL, *top = NULL;
     this = tuples;
     top = tuples + header->unique_symbols;
     sym = header->symbol;
@@ -48,12 +48,14 @@ void build_translations_decoding(file_header_t * header,coding_signature_t signa
 }
 void build_translations_encoding(file_header_t * header, uint32_t size, struct prelude_code_data * metadata,coding_signature_t signature)
 {
-    uint32_t no_unique = 0, symbol, f, max = 0, *sym, *top;
+    uint32_t no_unique = 0, symbol = 0, f = 0, max = 0, *sym = NULL, *top = NULL;
     uint32_t * F = NULL;
     kv_t kv;
+    kv.key = 0;
+    kv.value = 0;
     uint j = 0;
     SETUP(BLOCK_SIZE, header->Tmax);
-    tuple_t * tuples, *this, *tip;
+    tuple_t *tuples = NULL, *this = NULL, *tip = NULL;
     sym = header->data;
     top = header->data + size;
     while(sym < top)
@@ -98,7 +100,7 @@ tuple_t * get_tuples(uint32_t * freq, uint32_t no_unique)
 {
     tuple_t * tuples = mymalloc(sizeof(tuple_t) * no_unique);
     tuple_t *this = tuples, *top = tuples+no_unique;
-    uint32_t *probe = get_map(), *base;
+    uint32_t *probe = get_map(), *base = NULL;
     base = probe;
     while(this<top){
         while(!(*probe)){
@@ -112,8 +114,8 @@ tuple_t * get_tuples(uint32_t * freq, uint32_t no_unique)
 uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t max, file_header_t * header,coding_signature_t signature, struct prelude_code_data * metadata)
 {
     uint32_t * T = mycalloc(max, sizeof(uint32_t));
-    uint32_t raw, symbol, last = 0, nu = 0, *f, *f0, i=0;
-    tuple_t *probe, *top;
+    uint32_t raw = 0, symbol = 0, last = 0, nu = 0, *f, *f0, i=0;
+    tuple_t *probe = NULL, *top = NULL;
     if(header->translation_mechanism == TRANSLATE_PARTIAL) ksort(tuples, length, header->translate_k);
     else qsort(tuples, length, sizeof(tuple_t), T_cmpfunc);
     probe = tuples;
@@ -143,6 +145,12 @@ uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t ma
     }
     if(perm_translating(header->translation_mechanism))
     {
+        nu=0;
+        f = header->freq;
+        while(f<(header->freq+header->max+2)){
+            if(*f++)
+                nu++;
+        }
         elias_encode(metadata, nu);
         header->nu = nu;
         f = header->freq;
@@ -181,7 +189,7 @@ uint32_t * get_translation_matrix(tuple_t * tuples, uint32_t length, uint32_t ma
 }
 uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length, file_header_t * header, struct prelude_code_data * metadata)
 {
-    uint32_t *T, *TT, *To;
+    uint32_t *T = NULL, *TT = NULL, *To = NULL;
     if(full_translating(header->translation_mechanism)){
         T = mycalloc((length+1) , sizeof(uint32_t));
         To=T;
@@ -206,9 +214,11 @@ uint32_t * get_reverse_translation_matrix(tuple_t * tuples, uint32_t length, fil
 }
 void ksort(tuple_t * tuples, uint32_t length, uint32_t k)
 {
-    uint32_t val;
-    tuple_t *inner_probe, *outer_probe, *inner_limit, *outer_limit, *current_probe;
+    uint32_t val = 0;
+    tuple_t *inner_probe = NULL, *outer_probe = NULL, *inner_limit = NULL, *outer_limit = NULL, *current_probe = NULL;
     tuple_t tup;
+    tup.freq = 0;
+    tup.index = 0;
     if(k>=length) return;
     outer_probe = tuples;
     outer_limit = tuples+k;

@@ -35,7 +35,7 @@ struct prelude_code_data * prepare_metadata(struct reader * reader_ptr, struct w
 // ---------------
 void vbyte_encode(struct prelude_code_data * metadata, uint64_t value){
     uint64_t cur_value = value;
-    unsigned char byte;
+    unsigned char byte = 0;
     while(cur_value >= 128){
         byte = cur_value % 128;
         write_byte(byte, metadata->writer_ptr);
@@ -50,7 +50,7 @@ void vbyte_flush(struct prelude_code_data * metadata){
 uint64_t vbyte_decode(struct prelude_code_data * metadata){
     uint64_t value = 0;
     uint round = 0;
-    unsigned char byte;
+    unsigned char byte = 0;
     read_byte(&byte, metadata->reader_ptr);
     while(byte < 128){
         value  = value + (byte << (7 * round));
@@ -64,7 +64,7 @@ uint64_t vbyte_decode(struct prelude_code_data * metadata){
 // Unary
 // ---------------
 void unary_encode(struct prelude_code_data * metadata, uint64_t value){
-    uint64_t v;
+    uint64_t v = 0;
     if (value == 1)
         v = 0;
     else

@@ -53,9 +53,9 @@ void free_bit_reader(struct bit_reader * my_bit_reader)
     FREE(my_bit_reader);
 }
 uint64_t read_bits(uint64_t length, struct bit_reader * my_bit_reader){
-    unsigned char byte;
-    uint64_t value;
-    uint64_t diff;
+    unsigned char byte = 0;
+    uint64_t value = 0;
+    uint64_t diff = 0;
     while(length > my_bit_reader->length){
         if (read_byte(&byte, my_bit_reader->my_reader) == 0) byte = 0;
         my_bit_reader->buffer = (my_bit_reader->buffer << 8) + byte;

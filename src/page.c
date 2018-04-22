@@ -76,7 +76,7 @@ void add_to_bint_page(uint32_t value, size_t length, bint_page_t * page)
             page->data = (uint32_t *)myrealloc(page->data, (page->size + PAGE_SIZE)*sizeof(uint32_t));
             page->size = page->size + PAGE_SIZE;
         }
-        page->data[page->current_size++] = (uint32_t)V;
+        page->data[page->current_size++] = bit_reverse((uint32_t)V);
     }
     page->no_writes++;
 }
@@ -84,9 +84,7 @@ void output_bint_page(struct writer * my_writer, bint_page_t * page, uint32_t bi
 {
     uint32_t *head=page->data, *max=page->data+page->current_size;
     struct bit_writer * bwriter = initialise_bit_writer(my_writer);
-    while(head < max){
-        reverse_write_bytes((unsigned char *)head++, 4, my_writer);
-    }
+    write_bytes((unsigned char *)head, 4 * page->current_size, my_writer);
     write_bits(page->state, page->length, bwriter);
     flush_bit_writer(bwriter);
     free_bit_writer(bwriter);

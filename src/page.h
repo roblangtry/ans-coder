@@ -33,4 +33,14 @@ bint_page_t * get_bint_page();
 void add_to_bint_page(uint32_t value, size_t length, bint_page_t * page);
 void output_bint_page(struct writer * my_writer, bint_page_t * page, uint32_t B);
 void free_bint_page(bint_page_t * page);
+
+inline uint32_t bit_reverse(uint32_t v){
+    //source http://graphics.stanford.edu/~seander/bithacks.html#ReverseByteWith64BitsDiv
+
+    // swap bytes
+    v = ((v >> 8) & 0x00FF00FF) | ((v & 0x00FF00FF) << 8);
+    // swap 2-byte long pairs
+    v = ( v >> 16             ) | ( v               << 16);
+    return v;
+}
 #endif

@@ -131,8 +131,8 @@ uint64_t direct_ans_component(file_header_t * header, bint_page_t * ans_pages,
     {
         if(translating(signature.translation)) symbol = translate[*this];
         else symbol = *this;
-        ls = freq[symbol+1] - freq[symbol];
         bs = freq[symbol];
+        ls = freq[symbol+1] - bs;
         Is = (ls << bits) - 1;
         while(state > Is){
             add_to_bint_page(state % (1 << bits), bits, ans_pages);
@@ -160,8 +160,8 @@ uint64_t msb_ans_component(file_header_t * header, bint_page_t * ans_pages,
     {
         if(translating(signature.translation)) symbol = get_msb_symbol(translate[*this], msb_bits);
         else symbol = get_msb_symbol(*this, msb_bits);
-        ls = freq[symbol+1] - freq[symbol];
         bs = freq[symbol];
+        ls = freq[symbol+1] - bs;
         Is = (ls << bits) - 1;
         while(state > Is){
             add_to_bint_page(state % (1 << bits), bits, ans_pages);
@@ -191,8 +191,8 @@ uint64_t msb2_ans_component(file_header_t * header, bint_page_t * ans_pages,
     {
         if(translating(signature.translation)) symbol = get_msb_2_symbol(translate[*this], msb_bits);
         else symbol = get_msb_2_symbol(*this, msb_bits);
-        ls = freq[symbol+1] - freq[symbol];
         bs = freq[symbol];
+        ls = freq[symbol+1] - bs;
         Is = (ls << bits) - 1;
         while(state > Is){
             add_to_bint_page(state % (1 << bits), bits, ans_pages);

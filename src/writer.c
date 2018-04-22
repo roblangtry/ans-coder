@@ -11,8 +11,7 @@ struct writer * initialise_writer(FILE * output_file)
 }
 uint64_t write_byte(unsigned char byte, struct writer * my_writer)
 {
-    my_writer->buffer[my_writer->index] = byte;
-    my_writer->index += 1;
+    my_writer->buffer[my_writer->index++] = byte;
     if(my_writer->index >= WRITE_BUFFER){
         my_writer->index = 0;
         return fwrite(my_writer->buffer, sizeof(unsigned char), WRITE_BUFFER, my_writer->output_file);

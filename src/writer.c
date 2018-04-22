@@ -28,12 +28,16 @@ uint64_t write_uint64_t(uint64_t number, struct writer * my_writer)
 }
 uint64_t write_bytes(unsigned char * byte_array, size_t no_bytes, struct writer * my_writer)
 {
-    uint64_t size = 0;
-    unsigned char *top = byte_array+no_bytes;
-    while(byte_array < top){
-        size += write_byte((*byte_array++), my_writer);
+    while(my_writer->index+no_bytes >= WRITE_BUFFER){
+        memcpy(my_writer->buffer+my_writer->index, byte_array, WRITE_BUFFER-my_writer->index);
+        byte_array = byte_array+WRITE_BUFFER-my_writer->index;
+        no_bytes -= WRITE_BUFFER-my_writer->index;
+        my_writer->index = 0;
+        fwrite(my_writer->buffer, sizeof(unsigned char), WRITE_BUFFER, my_writer->output_file);
     }
-    return size;
+    memcpy(my_writer->buffer+my_writer->index, byte_array, no_bytes);
+    my_writer->index += no_bytes;
+    return 0;
 }
 void reverse_write_bytes(unsigned char * byte_array, size_t no_bytes, struct writer * my_writer)
 {

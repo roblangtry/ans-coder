@@ -60,17 +60,17 @@ void add_to_bint_page(uint32_t value, size_t length, bint_page_t * page)
     page->length += length;
     // printf("[%u]\n", page->length);
     // sleep(1);
-    if(page->length>=31)
+    if(page->length>=32)
     {
-        if(page->length==31){
+        if(page->length==32){
             V = page->state;
             page->state = 0;
             page->length = 0;
         }
         else{
-            V = page->state >> (page->length - 31);
-            page->state = page->state % (1 << (page->length - 31));
-            page->length -= 31;
+            V = page->state >> (page->length - 32);
+            page->state = page->state % (1 << (page->length - 32));
+            page->length -= 32;
         }
         if(page->current_size >= page->size){
             page->data = (uint32_t *)myrealloc(page->data, (page->size + PAGE_SIZE)*sizeof(uint32_t));
@@ -84,8 +84,9 @@ void output_bint_page(struct writer * my_writer, bint_page_t * page, uint32_t bi
 {
     uint32_t *head=page->data, *max=page->data+page->current_size;
     struct bit_writer * bwriter = initialise_bit_writer(my_writer);
-    while(head < max)
-        write_bits(*head++, 31, bwriter);
+    while(head < max){
+        reverse_write_bytes((unsigned char *)head++, 4, my_writer);
+    }
     write_bits(page->state, page->length, bwriter);
     flush_bit_writer(bwriter);
     free_bit_writer(bwriter);

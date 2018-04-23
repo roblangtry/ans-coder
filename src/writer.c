@@ -41,7 +41,6 @@ uint64_t write_bytes(unsigned char * byte_array, size_t no_bytes, struct writer 
 }
 void reverse_write_bytes(unsigned char * byte_array, size_t no_bytes, struct writer * my_writer)
 {
-    uint64_t size = 0;
     unsigned char *probe = byte_array+no_bytes-1;
     while(probe >= byte_array){
         write_byte((*probe--), my_writer);

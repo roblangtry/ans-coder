@@ -119,7 +119,6 @@ uint64_t direct_ans_component(file_header_t * header, bint_page_t * ans_pages,
     bint_page_t * msb_pages, bit_page_t * msb_2_pages, uint32_t bits, uint32_t msb_bits, uint32_t size, coding_signature_t signature)
 {
     uint32_t *data = header->data;
-    uint32_t *translate = header->translation;
     uint32_t *freq = header->freq;
     uint64_t state = header->symbols;
     uint64_t m = header->symbols;
@@ -147,7 +146,6 @@ uint64_t msb_ans_component(file_header_t * header, bint_page_t * ans_pages,
     bint_page_t * msb_pages, bit_page_t * msb_2_pages, uint32_t bits, uint32_t msb_bits, uint32_t size, coding_signature_t signature)
 {
     uint32_t *data = header->data;
-    uint32_t *translate = header->translation;
     uint32_t *freq = header->freq;
     uint64_t state = header->symbols;
     uint64_t m = header->symbols;
@@ -176,7 +174,6 @@ uint64_t msb2_ans_component(file_header_t * header, bint_page_t * ans_pages,
     bint_page_t * msb_pages, bit_page_t * msb_2_pages, uint32_t bits, uint32_t msb_bits, uint32_t size, coding_signature_t signature)
 {
     uint32_t *data = header->data;
-    uint32_t *translate = header->translation;
     uint32_t *freq = header->freq;
     uint64_t state = header->symbols;
     uint64_t m = header->symbols;
@@ -331,8 +328,7 @@ uint64_t ans_component(file_header_t * header, bint_page_t * ans_pages,
 void process_block(FILE * input_file, struct writer * my_writer, file_header_t * header, coding_signature_t signature)
 {
     uint32_t size = 0;
-    uint32_t symbol = 0, *this = NULL, *bot = NULL;
-    uint64_t state = 0, ls = 0, bs = 0, Is = 0, m = 0, bits = signature.bit_factor, msb_bits = signature.msb_bit_factor;
+    uint64_t state = 0, bits = signature.bit_factor, msb_bits = signature.msb_bit_factor;
     struct prelude_code_data * metadata = prepare_metadata(NULL, my_writer, 0);
     bint_page_t * ans_pages = get_bint_page();
     bint_page_t * msb_pages = NULL;
